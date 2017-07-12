@@ -1,8 +1,8 @@
 {
-    "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
-    "license": "BSD3",
+    "version": "0.1.0",
+    "summary": "A Rocket/Elm self hosted commenting system for static sites",
+    "repository": "https://github.com/Libbum/Oration.git",
+    "license": "MIT",
     "source-directories": [
         "."
     ],

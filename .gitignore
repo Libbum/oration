@@ -1,0 +1,8 @@
+target
+public
+**/*.rs.bk
+*~
+app/node_modules
+app/elm/elm-stuff
+app/package-lock.json
+Cargo.lock

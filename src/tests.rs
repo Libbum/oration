@@ -1,13 +1,12 @@
 use super::rocket;
-use rocket::testing::MockRequest;
-use rocket::http::Method::*;
+use rocket::local::Client;
+use rocket::http::Status;
 
 #[test]
 fn db_test() {
-    let rocket = rocket();
-    let mut req = MockRequest::new(Get, "/db");
-    let mut response = req.dispatch_with(&rocket);
+    let client = Client::new(rocket()).expect("valid rocket instance");
+    let mut response = client.get("/db").dispatch();
 
-    let body_str = response.body().and_then(|body| body.into_string());
-    assert_eq!(body_str, Some("This Guy".to_string()));
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(response.body_string(), Some("This Guy".into()));
 }

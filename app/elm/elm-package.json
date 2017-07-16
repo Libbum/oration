@@ -1,7 +1,7 @@
 {
     "version": "0.1.0",
     "summary": "A Rocket/Elm self hosted commenting system for static sites",
-    "repository": "https://github.com/Libbum/Oration.git",
+    "repository": "https://github.com/Libbum/oration.git",
     "license": "MIT",
     "source-directories": [
         "."

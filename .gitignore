@@ -7,3 +7,4 @@ app/elm/elm-stuff
 app/js/main.js
 app/package-lock.json
 Cargo.lock
+oration.db

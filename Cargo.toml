@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Tim DuBois <tim@neophilus.net>"]
 
 [dependencies]
+rand = "0.3"
 rocket = "0.3"
 rocket_codegen = "0.3"
 diesel = { version = "0.14", features = ["sqlite"] }

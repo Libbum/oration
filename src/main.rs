@@ -1,6 +1,7 @@
 #![feature(plugin, custom_derive)]
 #![plugin(rocket_codegen)]
 
+extern crate rand;
 extern crate rocket;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
@@ -15,6 +16,7 @@ mod static_files;
 #[cfg(test)] mod tests;
 
 use std::io;
+use rand::{OsRng, Rng};
 use rocket::response::NamedFile;
 
 use models::{Preference};
@@ -28,6 +30,11 @@ fn rocket() -> rocket::Rocket {
     rocket::ignite().manage(db::init_pool()).mount("/", routes![index, static_files::files])
 }
 
+fn session() -> Result<String, io::Error> {
+    Ok(OsRng::new()?.gen_ascii_chars().take(24).collect())
+}
+
 fn main() {
+    println!("{:?}", session().expect("String from /dev/urandom"));
     rocket().launch();
 }

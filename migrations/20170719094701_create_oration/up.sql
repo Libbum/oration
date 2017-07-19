@@ -1,6 +1,6 @@
 CREATE TABLE preferences (
     key VARCHAR PRIMARY KEY,
-    value VARCHAR
+    value VARCHAR NOT NULL
 );
 
 CREATE TABLE threads (
@@ -15,9 +15,9 @@ CREATE TABLE comments (
     parent INTEGER,
     created FLOAT NOT NULL,
     modified FLOAT,
-    mode INTEGER,
+    mode INTEGER NOT NULL,
     remote_addr VARCHAR,
-    text VARCHAR,
+    text VARCHAR NOT NULL,
     author VARCHAR,
     email VARCHAR,
     website VARCHAR,

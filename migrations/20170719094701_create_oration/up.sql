@@ -10,8 +10,8 @@ CREATE TABLE threads (
 );
 
 CREATE TABLE comments (
-    tid REFERENCES threads(id),
     id INTEGER PRIMARY KEY,
+    tid REFERENCES threads(id),
     parent INTEGER,
     created FLOAT NOT NULL,
     modified FLOAT,
@@ -23,7 +23,7 @@ CREATE TABLE comments (
     website VARCHAR,
     likes INTEGER DEFAULT 0,
     dislikes INTEGER DEFAULT 0,
-    voters BLOB NOT NULL
+    voters VARCHAR NOT NULL
 );
 
 CREATE TRIGGER remove_stale_threads AFTER DELETE ON comments BEGIN

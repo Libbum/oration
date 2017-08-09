@@ -18,25 +18,24 @@ mod static_files;
 #[cfg(test)] mod tests;
 
 use std::io;
-use rand::{OsRng, Rng};
-use rocket::response::NamedFile;
-
-use models::{Preference};
+use rocket::response::{NamedFile, Redirect};
+use models::preferences::Preference;
 
 #[get("/")]
 fn index() -> io::Result<NamedFile> {
     NamedFile::open("public/index.html")
 }
 
-fn rocket() -> rocket::Rocket {
-    rocket::ignite().manage(db::init_pool()).mount("/", routes![index, static_files::files])
+#[get("/session")]
+fn run_session(conn: db::Conn) -> Redirect {
+    Preference::set_session(&conn);
+    Redirect::to("/")
 }
 
-fn session() -> Result<String, io::Error> {
-    Ok(OsRng::new()?.gen_ascii_chars().take(24).collect())
+fn rocket() -> rocket::Rocket {
+    rocket::ignite().manage(db::init_pool()).mount("/", routes![index, static_files::files, run_session])
 }
 
 fn main() {
-    println!("{:?}", session().expect("String from /dev/urandom"));
     rocket().launch();
 }

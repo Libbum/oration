@@ -2,12 +2,8 @@ use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
-use self::schema::*;
-use self::schema::comments::dsl::{comments as all_comments};
-
-mod schema {
-    infer_schema!("dotenv:DATABASE_URL");
-}
+use schema::*;
+use schema::comments::dsl::{comments as all_comments};
 
 #[table_name = "preferences"]
 #[derive(Serialize, Queryable, Insertable, Debug, Clone)]

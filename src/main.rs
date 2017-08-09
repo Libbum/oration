@@ -13,6 +13,7 @@ extern crate r2d2;
 
 mod db;
 mod models;
+mod schema;
 mod static_files;
 #[cfg(test)] mod tests;
 

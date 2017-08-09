@@ -1,6 +1,7 @@
 #![feature(plugin, custom_derive)]
 #![plugin(rocket_codegen)]
 
+extern crate dotenv;
 extern crate rand;
 extern crate rocket;
 extern crate serde_json;

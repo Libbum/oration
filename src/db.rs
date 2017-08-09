@@ -1,3 +1,5 @@
+use dotenv::dotenv;
+use std::env;
 use diesel::sqlite::SqliteConnection;
 use r2d2;
 use r2d2_diesel::ConnectionManager;
@@ -9,13 +11,12 @@ use std::ops::Deref;
 // An alias to the type for a pool of Diesel SQLite connections.
 pub type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
-// The URL to the database, set via the `DATABASE_URL` environment variable.
-pub const DATABASE_URL: &'static str = env!("DATABASE_URL");
-
 /// Initializes a database pool.
 pub fn init_pool() -> Pool {
+    dotenv().ok();
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let config = r2d2::Config::default();
-    let manager = ConnectionManager::<SqliteConnection>::new(DATABASE_URL);
+    let manager = ConnectionManager::<SqliteConnection>::new(database_url);
     r2d2::Pool::new(config, manager).expect("db pool")
 }
 

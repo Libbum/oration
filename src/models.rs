@@ -6,7 +6,7 @@ use self::schema::*;
 use self::schema::comments::dsl::{comments as all_comments};
 
 mod schema {
-    infer_schema!("env:DATABASE_URL");
+    infer_schema!("dotenv:DATABASE_URL");
 }
 
 #[table_name = "preferences"]

@@ -1,4 +1,4 @@
-<img src="https://libbum.github.io/oration/logo_wbl.svg" width=300 px />
+<img src="https://libbum.github.io/oration/oration/logo_wbl.svg" width=300 px />
 
 A Rocket/Elm self hosted commenting system for static sites.
 

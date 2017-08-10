@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 215">
+<style>
+  .a{
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-width:5;
+    stroke:#fff;
+  }
+</style>
+    <rect height="215" width="310" style="fill:#202e52"/>
+    <path d="m127 71h30" class="a"/>
+    <path d="M114 110V58h54v37h-38z" class="a"/>
+    <path d="m127 81h30" class="a"/>
+    <path d="M114 48V36h81v74l-18-16" class="a"/>
+    <text y="190" x="50" font-family="Verdana" font-size="60" fill="white">
+        Oration
+    </text>
+</svg>

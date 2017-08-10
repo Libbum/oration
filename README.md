@@ -1,4 +1,4 @@
-![Oration](logo.png)
+<img src="logo/logo_wbl.svg?raw=true" width=300 px />
 
 A Rocket/Elm self hosted commenting system for static sites.
 
@@ -10,9 +10,12 @@ However, the codebase is unmaintained and [security concerns](https://axiomatic.
 # Development Startup
 
 ```bash
-$ export DATABASE_URL=oration.db
+$ echo DATABASE_URL=oration.db > .env
 $ diesel migration run
-$ cd app
+$ cd app/elm
+$ elm-package install elm-lang/http
+$ elm-package install pukkamustard/elm-identicon
+$ cd ..
 $ brunch build
 $ cd ..
 $ cargo run

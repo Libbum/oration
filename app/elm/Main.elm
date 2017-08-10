@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (Html, Attribute)
+import Html exposing (Attribute, Html)
 import Html.Attributes as HA
 import Html.Events as HE
 import Identicon exposing (identicon)
@@ -46,7 +46,7 @@ view model =
         icon =
             Html.div [ iconStyle ] [ identicon "200px" model ]
     in
-        Html.div [] [ field, icon ]
+    Html.div [] [ field, icon ]
 
 
 inputStyle : Attribute Msg
@@ -70,4 +70,3 @@ iconStyle =
         , ( "font-size", "2em" )
         , ( "text-align", "center" )
         ]
-

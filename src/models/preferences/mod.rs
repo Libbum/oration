@@ -8,12 +8,16 @@ use schema::preferences;
 
 #[table_name = "preferences"]
 #[derive(Serialize, Queryable, Insertable, Debug, Clone)]
+/// Queryable, Insertable reference to the preferences table.
 pub struct Preference {
+    /// Key
     pub key: Option<String>,
+    /// Value
     pub value: Option<String>,
 }
 
 impl Preference {
+    /// Inserts a sesssion key into the database only if the key does not exist.
     pub fn set_session(conn: &SqliteConnection) -> bool {
 
         let hash = session_hash();
@@ -29,6 +33,7 @@ impl Preference {
     }
 }
 
+/// Generates a random hash used as a session ID.
 fn session_hash() -> Result<String, io::Error> {
     Ok(OsRng::new()?.gen_ascii_chars().take(24).collect())
 }

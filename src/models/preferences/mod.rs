@@ -11,9 +11,9 @@ use schema::preferences;
 /// Queryable, Insertable reference to the preferences table.
 pub struct Preference {
     /// Key
-    pub key: Option<String>,
+    pub key: String,
     /// Value
-    pub value: Option<String>,
+    pub value: String,
 }
 
 impl Preference {
@@ -22,8 +22,8 @@ impl Preference {
 
         let hash = session_hash();
         let session = Preference {
-            key: Some("session-key".to_string()),
-            value: Some(hash.unwrap()),
+            key: "session-key".to_string(),
+            value: hash.unwrap(),
         };
         println!("Starting session {:?}", session);
         diesel::insert(&session)

@@ -1,16 +1,16 @@
 CREATE TABLE preferences (
-    key VARCHAR PRIMARY KEY,
+    key VARCHAR PRIMARY KEY NOT NULL,
     value VARCHAR NOT NULL
 );
 
 CREATE TABLE threads (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY NOT NULL,
     uri VARCHAR(256) UNIQUE,
     title VARCHAR(256)
 );
 
 CREATE TABLE comments (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY NOT NULL,
     tid REFERENCES threads(id),
     parent INTEGER,
     created FLOAT NOT NULL,

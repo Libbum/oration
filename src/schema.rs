@@ -1,6 +1,6 @@
 table! {
     comments (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         tid -> Nullable<Binary>,
         parent -> Nullable<Integer>,
         created -> Float,
@@ -19,14 +19,14 @@ table! {
 
 table! {
     preferences (key) {
-        key -> Nullable<Text>,
+        key -> Text,
         value -> Text,
     }
 }
 
 table! {
     threads (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         uri -> Nullable<Text>,
         title -> Nullable<Text>,
     }

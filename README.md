@@ -28,3 +28,4 @@ $ cd app
 $ npm run watch
 ```
 
+Documentation of current methods can be viewed [here](https://libbum.github.io/oration/oration/index.html).

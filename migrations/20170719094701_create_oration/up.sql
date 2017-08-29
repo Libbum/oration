@@ -29,3 +29,5 @@ CREATE TABLE comments (
 CREATE TRIGGER remove_stale_threads AFTER DELETE ON comments BEGIN
     DELETE FROM threads WHERE id NOT IN (SELECT tid FROM comments);
 END;
+
+INSERT INTO preferences (key, value) VALUES ('session-key', '0000');

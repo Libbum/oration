@@ -35,7 +35,7 @@ mod static_files;
 #[cfg(test)] mod tests;
 
 use std::io;
-use rocket::response::{NamedFile, Redirect};
+use rocket::response::NamedFile;
 use models::preferences::Preference;
 
 /// Serve up the index file, which ultimately launches the Elm app.
@@ -45,10 +45,12 @@ fn index() -> io::Result<NamedFile> {
 }
 
 /// Test function that will ultimately initialise the session hash.
+/// Currently this sets a new session every call but this obviously isn't
+/// what we want once we get up and running.
 #[get("/session")]
-fn run_session(conn: db::Conn) -> Redirect {
+fn run_session(conn: db::Conn) -> String {
     Preference::set_session(&conn);
-    Redirect::to("/")
+    Preference::get_session(&conn)
 }
 
 /// Ignite Rocket, connect to the database and start serving data.

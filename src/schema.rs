@@ -31,4 +31,3 @@ table! {
         title -> Nullable<Text>,
     }
 }
-

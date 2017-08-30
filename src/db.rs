@@ -48,8 +48,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Conn {
 
         match pool.get() {
             Ok(conn) => Outcome::Success(Conn(conn)),
-            Err(_) => Outcome::Failure((Status::ServiceUnavailable, ()))
+            Err(_) => Outcome::Failure((Status::ServiceUnavailable, ())),
         }
     }
 }
-

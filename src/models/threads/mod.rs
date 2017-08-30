@@ -9,6 +9,5 @@ pub struct Thread {
     /// URI to the thread
     pub uri: Option<String>,
     /// Thread title
-    pub title: Option<String>
+    pub title: Option<String>,
 }
-

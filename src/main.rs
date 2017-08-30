@@ -17,9 +17,12 @@ extern crate dotenv;
 extern crate rand;
 extern crate rocket;
 extern crate serde_json;
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate diesel;
-#[macro_use] extern crate diesel_codegen;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 
@@ -32,7 +35,8 @@ mod schema;
 /// Serves up static files through Rocket.
 mod static_files;
 /// Tests for the Rocket side of the app.
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;
 
 use std::io;
 use rocket::response::NamedFile;
@@ -48,32 +52,49 @@ fn index() -> io::Result<NamedFile> {
 /// Currently this sets a new session every call but this obviously isn't
 /// what we want once we get up and running.
 #[get("/session")]
-fn run_session(conn: db::Conn) -> String {
+fn get_session(conn: db::Conn) -> String {
+    let session = match Preference::get_session(&conn) {
+        Ok(s) => s,
+        Err(err) => {
+            println!("Error: Failed to load session hash from database: {}", err);
+            err.to_string()
+        }
+    };
+    session
+}
+
+/// Ignite Rocket, connect to the database and start serving data.
+/// Exposes a connection to the database so we can set the session on startup.
+fn rocket() -> (rocket::Rocket, db::Conn) {
+    let pool = db::init_pool();
+    let conn = db::Conn(pool.get().expect("database connection for initialisation"));
+    let rocket = rocket::ignite().manage(pool).mount(
+        "/",
+        routes![
+            index,
+            static_files::files,
+            get_session,
+        ],
+    );
+
+    (rocket, conn)
+}
+
+/// Application entry point.
+fn main() {
+    let (rocket, conn) = rocket();
+
+    //Set the session info in the database
     match Preference::set_session(&conn) {
         Ok(b) => {
             if b == false {
                 //TODO: Turn theses printlns into proper errors and logs.
                 println!("Warning: Failed to set session hash");
             }
-        },
+        }
         Err(err) => println!("Error: Failed to generate session hash: {}", err),
     };
-    let session = match Preference::get_session(&conn) {
-        Ok(s) => s,
-        Err(err) => {
-            println!("Error: Failed to load session hash from database: {}", err);
-            err.to_string()
-        },
-    };
-    session
-}
 
-/// Ignite Rocket, connect to the database and start serving data.
-fn rocket() -> rocket::Rocket {
-    rocket::ignite().manage(db::init_pool()).mount("/", routes![index, static_files::files, run_session])
-}
-
-/// Application entry point.
-fn main() {
-    rocket().launch();
+    //Start the web service
+    rocket.launch();
 }

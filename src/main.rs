@@ -49,8 +49,23 @@ fn index() -> io::Result<NamedFile> {
 /// what we want once we get up and running.
 #[get("/session")]
 fn run_session(conn: db::Conn) -> String {
-    Preference::set_session(&conn);
-    Preference::get_session(&conn)
+    match Preference::set_session(&conn) {
+        Ok(b) => {
+            if b == false {
+                //TODO: Turn theses printlns into proper errors and logs.
+                println!("Warning: Failed to set session hash");
+            }
+        },
+        Err(err) => println!("Error: Failed to generate session hash: {}", err),
+    };
+    let session = match Preference::get_session(&conn) {
+        Ok(s) => s,
+        Err(err) => {
+            println!("Error: Failed to load session hash from database: {}", err);
+            err.to_string()
+        },
+    };
+    session
 }
 
 /// Ignite Rocket, connect to the database and start serving data.

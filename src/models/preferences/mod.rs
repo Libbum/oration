@@ -7,9 +7,9 @@ use std::io;
 use schema::preferences;
 
 #[table_name = "preferences"]
-#[derive(Serialize, Queryable, Identifiable, Debug, Clone)]
+#[derive(Queryable, Identifiable)]
 #[primary_key(key)]
-/// Queryable, Insertable reference to the preferences table.
+/// Queryable, Identifiable reference to the preferences table.
 pub struct Preference {
     /// Key
     pub key: String,
@@ -21,26 +21,31 @@ impl Preference {
     /// Updates the sesssion key into the database only if the key does not exist.
     /// A default value is set in the migration schema and no other functions operate
     /// on this entry, so that should cover all bases.
-    pub fn set_session(conn: &SqliteConnection) -> bool {
+    pub fn set_session(conn: &SqliteConnection) -> Result<bool, io::Error> {
         use schema::preferences::dsl::*; //TODO: It'd be nice if we didn't have to double up here.
 
-        let hash = session_hash();
+        let hash = session_hash()?;
         let session = preferences.filter(key.eq("session-key"));
-        diesel::update(session)
-            .set(value.eq(hash.unwrap())) //TODO: Proper error handling on this.
+        let result = diesel::update(session)
+            .set(value.eq(hash))
             .execute(&*conn)
-            .is_ok()
+            .is_ok();
+        Ok(result)
     }
 
     /// Returns the current session value from the database.
-    pub fn get_session(conn: &SqliteConnection) -> String {
+    pub fn get_session(conn: &SqliteConnection) -> Result<String, diesel::result::Error> {
         use schema::preferences::dsl::*;
 
         let session = preferences
-            .filter(key.eq("session-key")) //TODO: Maybe put .limit(1) here
-            .load::<Preference>(&*conn)
-            .expect("Error loading session hash");
-        session[0].value.to_string() //TODO: We should error check here too - should not expect 1 result be defualt.
+            .filter(key.eq("session-key"))
+            .limit(1) //This should always be the case, but just to be certain
+            .load::<Preference>(&*conn)?;
+        if session.len() == 1 {
+            Ok(session[0].value.to_string())
+        } else {
+            Err(diesel::result::Error::NotFound)
+        }
     }
 }
 

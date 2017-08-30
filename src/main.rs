@@ -10,10 +10,15 @@
 #![cfg_attr(feature="clippy", warn(missing_docs_in_private_items))]
 #![cfg_attr(feature="clippy", warn(single_match_else))]
 
-#![feature(plugin, custom_derive)]
+#![feature(plugin, custom_derive, use_extern_macros)]
 #![plugin(rocket_codegen)]
 
+// `error_chain!` can recurse deeply
+#![recursion_limit = "1024"]
+
 extern crate dotenv;
+#[macro_use]
+extern crate error_chain;
 extern crate rand;
 extern crate rocket;
 extern crate serde_json;
@@ -25,15 +30,19 @@ extern crate diesel;
 extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
+extern crate yansi;
+#[macro_use(log)] extern crate log;
 
 /// Handles the database connection pool.
 mod db;
-/// SQL <--> Rust inerop using Diesel.
+/// SQL <----> Rust inerop using Diesel.
 mod models;
 /// Verbose schema for the comment database.
 mod schema;
 /// Serves up static files through Rocket.
 mod static_files;
+/// Handles the error chain of the program.
+mod errors;
 /// Tests for the Rocket side of the app.
 #[cfg(test)]
 mod tests;
@@ -41,6 +50,10 @@ mod tests;
 use std::io;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
+use std::process;
+use std::thread;
+use std::time::Duration;
+use yansi::Paint;
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
@@ -48,15 +61,17 @@ fn index() -> io::Result<NamedFile> {
     NamedFile::open("public/index.html")
 }
 
-/// Test function that will ultimately initialise the session hash.
-/// Currently this sets a new session every call but this obviously isn't
-/// what we want once we get up and running.
+/// Test function that returns the session hash from the database.
 #[get("/session")]
 fn get_session(conn: db::Conn) -> String {
     let session = match Preference::get_session(&conn) {
         Ok(s) => s,
         Err(err) => {
-            println!("Error: Failed to load session hash from database: {}", err);
+            //TODO: Pretty print these
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("caused by: {}", e);
+            }
             err.to_string()
         }
     };
@@ -80,19 +95,35 @@ fn rocket() -> (rocket::Rocket, db::Conn) {
     (rocket, conn)
 }
 
+/// Exits (with error, but no display) after a short pause. Because we're using async logs, sometimes we dump before
+/// the log system outputs information. We spool for a little first in these instances so we get the
+/// logging info.
+fn exit_with_pause() {
+    thread::sleep(Duration::from_millis(10));
+    process::exit(1);
+}
+
 /// Application entry point.
 fn main() {
+    //Initialise webserver routes and database connection pool
     let (rocket, conn) = rocket();
 
     //Set the session info in the database
+    log::info!("💿  {}", Paint::purple("Saving session hash to database"));
     match Preference::set_session(&conn) {
         Ok(b) => {
             if b == false {
-                //TODO: Turn theses printlns into proper errors and logs.
-                println!("Warning: Failed to set session hash");
+                //TODO: This may need to be a crit as well. Unsure.
+                log::warn!("Failed to set session hash");
             }
         }
-        Err(err) => println!("Error: Failed to generate session hash: {}", err),
+        Err(err) => {
+            log::error!("{}", err);
+            for e in err.iter().skip(1) {
+                log::error!("caused by: {}", e);
+            }
+            exit_with_pause();
+        },
     };
 
     //Start the web service

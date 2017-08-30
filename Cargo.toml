@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Tim DuBois <tim@neophilus.net>"]
 
 [dependencies]
+clippy = {version = "*", optional = true}
 dotenv = "0.10"
 rand = "0.3"
 rocket = "0.3"
@@ -15,4 +16,6 @@ r2d2 = "0.7"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
-clippy = {version = "*", optional = true}
+error-chain = "0.11.0-rc.2"
+log = "0.3"
+yansi = "0.3"

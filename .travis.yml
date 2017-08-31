@@ -10,10 +10,16 @@ matrix:
     - rust: nightly
 before_install:
   - sudo apt-get update
-# Add clippy
+addons:
+  apt:
+    packages:
+      - sqlite3
 before_script:
   - ( ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false );
+  - cargo install diesel_cli --no-default-features --features sqlite
   - export PATH=$PATH:~/.cargo/bin
+  - echo "DATABASE_URL=oration.db" > .env
+  - diesel migration run
 script:
   - cargo build
   - cargo test

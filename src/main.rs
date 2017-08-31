@@ -51,8 +51,6 @@ use std::io;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
 use std::process;
-use std::thread;
-use std::time::Duration;
 use yansi::Paint;
 
 /// Serve up the index file, which ultimately launches the Elm app.
@@ -95,14 +93,6 @@ fn rocket() -> (rocket::Rocket, db::Conn) {
     (rocket, conn)
 }
 
-/// Exits (with error, but no display) after a short pause. Because we're using async logs, sometimes we dump before
-/// the log system outputs information. We spool for a little first in these instances so we get the
-/// logging info.
-fn exit_with_pause() {
-    thread::sleep(Duration::from_millis(10));
-    process::exit(1);
-}
-
 /// Application entry point.
 fn main() {
     //Initialise webserver routes and database connection pool
@@ -122,7 +112,7 @@ fn main() {
             for e in err.iter().skip(1) {
                 log::error!("caused by: {}", e);
             }
-            exit_with_pause();
+            process::exit(1);
         },
     };
 

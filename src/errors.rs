@@ -1,9 +1,5 @@
 error_chain!{
     errors {
-        CreateLog(path: String) {
-                description("Cannot write log file")
-                display("Unable to write log file `{}`", path)
-        }
         SessionHash {
                 description("Cannot generate session hash")
                 display("Unable to generate a session hash")

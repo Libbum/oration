@@ -16,16 +16,6 @@ fn db_connection() {
 }
 
 #[test]
-/// Tests the response of the /session request is of length 24.
-fn session() {
-    let client = Client::new(rocket().0).expect("valid rocket instance");
-    let mut response = client.get("/session").dispatch();
-
-    assert_eq!(response.status(), Status::Ok);
-    assert_eq!(response.body_string().unwrap().len(), 24);
-}
-
-#[test]
 /// Compares the session hash in the database to the one returned by /session
 fn session_hash() {
     let (rocket, conn) = rocket();

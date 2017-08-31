@@ -24,7 +24,7 @@ script:
   - cargo build
   - cargo test
   - |
-      if [[ $CLIPPY ]]; then
+      if [[ $CLIPPY = "true" ]]; then
         cargo build --features="clippy"
       fi
 after_success:

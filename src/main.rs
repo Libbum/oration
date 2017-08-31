@@ -62,7 +62,7 @@ fn index() -> io::Result<NamedFile> {
 /// Test function that returns the session hash from the database.
 #[get("/session")]
 fn get_session(conn: db::Conn) -> String {
-    let session = match Preference::get_session(&conn) {
+    match Preference::get_session(&conn) {
         Ok(s) => s,
         Err(err) => {
             log::warn!("{}", err);
@@ -71,8 +71,7 @@ fn get_session(conn: db::Conn) -> String {
             }
             err.to_string()
         }
-    };
-    session
+    }
 }
 
 /// Ignite Rocket, connect to the database and start serving data.
@@ -100,8 +99,8 @@ fn main() {
     //Set the session info in the database
     log::info!("💿  {}", Paint::purple("Saving session hash to database"));
     match Preference::set_session(&conn) {
-        Ok(b) => {
-            if b == false {
+        Ok(set) => {
+            if !set {
                 //TODO: This may need to be a crit as well. Unsure.
                 log::warn!("Failed to set session hash");
             }

@@ -65,10 +65,9 @@ fn get_session(conn: db::Conn) -> String {
     let session = match Preference::get_session(&conn) {
         Ok(s) => s,
         Err(err) => {
-            //TODO: Pretty print these
             log::warn!("{}", err);
             for e in err.iter().skip(1) {
-                log::warn!("caused by: {}", e);
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
             }
             err.to_string()
         }
@@ -110,12 +109,15 @@ fn main() {
         Err(err) => {
             log::error!("{}", err);
             for e in err.iter().skip(1) {
-                log::error!("caused by: {}", e);
+                log::error!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
             }
             process::exit(1);
         },
     };
 
+    log::info!("📢  {}", Paint::blue("Oration is now serving your comments"));
     //Start the web service
     rocket.launch();
+
+
 }

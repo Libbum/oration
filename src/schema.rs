@@ -27,7 +27,8 @@ table! {
 table! {
     threads (id) {
         id -> Integer,
-        uri -> Nullable<Text>,
+        uri -> Text,
         title -> Nullable<Text>,
     }
 }
+

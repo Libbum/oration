@@ -28,7 +28,7 @@ impl Preference {
         let session = preferences.filter(key.eq("session-key"));
         let result = diesel::update(session)
             .set(value.eq(hash))
-            .execute(&*conn)
+            .execute(conn)
             .is_ok();
         Ok(result)
     }
@@ -40,7 +40,7 @@ impl Preference {
         let session = preferences
             .filter(key.eq("session-key"))
             .limit(1) //This should always be the case, but just to be certain
-            .load::<Preference>(&*conn).chain_err(|| ErrorKind::DBRead)?;
+            .load::<Preference>(conn).chain_err(|| ErrorKind::DBRead)?;
         if session.len() == 1 {
             Ok(session[0].value.to_string())
         } else {

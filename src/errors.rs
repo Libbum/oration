@@ -8,6 +8,10 @@ error_chain!{
                 description("Cannot read session info")
                 display("Unable to read session information from database")
         }
+        NoThread(uri: String) {
+                description("Cannot read thread info")
+                display("Unable to read thread information for {} from database", uri)
+        }
         DBRead {
                 description("Cannot parse db response")
                 display("Unable to parse response from database query")

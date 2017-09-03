@@ -5,7 +5,7 @@ CREATE TABLE preferences (
 
 CREATE TABLE threads (
     id INTEGER PRIMARY KEY NOT NULL,
-    uri VARCHAR(256) UNIQUE,
+    uri VARCHAR(256) UNIQUE NOT NULL,
     title VARCHAR(256)
 );
 

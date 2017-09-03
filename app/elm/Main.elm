@@ -77,7 +77,8 @@ view model =
         , input [ type_ "submit", value "Comment" ] []
         , viewValidation model
         ]
-    , Markdown.toHtml [] model.comment
+    , div []
+        <| Markdown.toHtml Nothing model.comment
     ]
 
 viewValidation : Model -> Html msg

@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
 import Identicon exposing (identicon)
 import Markdown
 
@@ -20,12 +20,13 @@ type alias Model =
     , name : String
     , email : String
     , url : String
+    , preview: Bool
     }
 
 
 model : Model
 model =
-    Model "" "" "" ""
+    Model "" "" "" "" False
 
 
 
@@ -37,6 +38,7 @@ type Msg
     | Name String
     | Email String
     | Url String
+    | Preview
 
 
 update : Msg -> Model -> Model
@@ -54,6 +56,9 @@ update msg model =
         Url url ->
             { model | url = url }
 
+        Preview ->
+            { model | preview = not model.preview }
+
 
 
 -- VIEW
@@ -64,21 +69,24 @@ view model =
     let
         identity =
             String.concat [ model.name, ", ", model.email, ", ", model.url ]
+        markdown =
+            markdownContent model.comment model.preview
     in
-    div []
-    [ Html.form [ action "/", method "post" ]
+    div [ id "oration" ]
+    [ Html.form [ action "/", method "post", id "oration-form" ]
         [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
         , br [] []
-        , span [ iconStyle ] [ identicon "25px" identity ]
+        , span [ id "oration-identicon", iconStyle ] [ identicon "25px" identity ]
         , input [ type_ "text", name "name", placeholder "Name (optional)", autocomplete True, onInput Name ] []
         , input [ type_ "email", name "email", placeholder "Email (optional)", autocomplete True, onInput Email ] []
         , input [ type_ "url", name "url", placeholder "Website (optional)", onInput Url ] []
         , br [] []
+        , input [ type_ "checkbox", name "preview", onClick Preview ] [], text "Preview"
         , input [ type_ "submit", value "Comment" ] []
         , viewValidation model
         ]
-    , div []
-        <| Markdown.toHtml Nothing model.comment
+    , div [ id "comment-preview" ]
+           <| Markdown.toHtml Nothing markdown
     ]
 
 viewValidation : Model -> Html msg
@@ -103,3 +111,11 @@ iconStyle =
         , ( "font-size", "2em" )
         , ( "text-align", "center" )
         ]
+
+markdownContent : String -> Bool -> String
+markdownContent content preview =
+    if preview then
+       content
+
+    else
+        ""

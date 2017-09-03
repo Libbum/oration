@@ -3,7 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
-
+import Identicon exposing (identicon)
 
 main =
     Html.beginnerProgram { model = model, view = view, update = update }
@@ -59,9 +59,14 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    let
+        identity =
+            String.concat [model.name, ", ", model.email, ", ", model.url]
+    in
     Html.form [ action "/", method "post" ]
         [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
         , br [] []
+        , span [ iconStyle ] [ identicon "25px" identity ]
         , input [ type_ "text", name "name", placeholder "Name (optional)", autocomplete True, onInput Name ] []
         , input [ type_ "email", name "email", placeholder "Email (optional)", autocomplete True, onInput Email ] []
         , input [ type_ "url", name "url", placeholder "Website (optional)", onInput Url ] []
@@ -81,3 +86,15 @@ viewValidation model =
                 ( "red", "Comment it too short." )
     in
     div [ style [ ( "color", color ) ] ] [ text message ]
+
+
+iconStyle : Attribute Msg
+iconStyle =
+    style
+        [ ( "width", "25px" )
+        , ( "height", "25px" )
+        , ( "padding", "5px" )
+        , ( "margin", "auto" )
+        , ( "font-size", "2em" )
+        , ( "text-align", "center" )
+        ]

@@ -1,72 +1,83 @@
 module Main exposing (..)
 
-import Html exposing (Attribute, Html)
-import Html.Attributes as HA
-import Html.Events as HE
-import Identicon exposing (identicon)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onInput)
 
 
 main =
-    Html.beginnerProgram
-        { model = init
-        , update = update
-        , view = view
-        }
+    Html.beginnerProgram { model = model, view = view, update = update }
+
+
+
+-- MODEL
 
 
 type alias Model =
-    String
+    { comment : String
+    , name : String
+    , email : String
+    , url : String
+    }
 
 
-init : Model
-init =
-    "Hello!"
+model : Model
+model =
+    Model "" "" "" ""
 
 
-type alias Msg =
-    String
+
+-- UPDATE
+
+
+type Msg
+    = Comment String
+    | Name String
+    | Email String
+    | Url String
 
 
 update : Msg -> Model -> Model
-update text model =
-    text
+update msg model =
+    case msg of
+        Comment comment ->
+            { model | comment = comment }
+
+        Name name ->
+            { model | name = name }
+
+        Email email ->
+            { model | email = email }
+
+        Url url ->
+            { model | url = url }
+
+
+
+-- VIEW
 
 
 view : Model -> Html Msg
 view model =
+    Html.form [ action "/", method "post" ]
+        [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
+        , br [] []
+        , input [ type_ "text", name "name", placeholder "Name (optional)", autocomplete True, onInput Name ] []
+        , input [ type_ "email", name "email", placeholder "Email (optional)", autocomplete True, onInput Email ] []
+        , input [ type_ "url", name "url", placeholder "Website (optional)", onInput Url ] []
+        , br [] []
+        , input [ type_ "submit", value "Comment" ] []
+        , viewValidation model
+        ]
+
+
+viewValidation : Model -> Html msg
+viewValidation model =
     let
-        field =
-            Html.input
-                [ HA.placeholder "Enter a string..."
-                , HE.onInput identity
-                , inputStyle
-                ]
-                []
-
-        icon =
-            Html.div [ iconStyle ] [ identicon "200px" model ]
+        ( color, message ) =
+            if String.length model.comment > 3 then
+                ( "green", "OK" )
+            else
+                ( "red", "Comment it too short." )
     in
-    Html.div [] [ field, icon ]
-
-
-inputStyle : Attribute Msg
-inputStyle =
-    HA.style
-        [ ( "width", "100%" )
-        , ( "height", "40px" )
-        , ( "padding", "10px 0" )
-        , ( "font-size", "2em" )
-        , ( "text-align", "center" )
-        ]
-
-
-iconStyle : Attribute Msg
-iconStyle =
-    HA.style
-        [ ( "width", "200px" )
-        , ( "height", "200px" )
-        , ( "padding", "50px 0" )
-        , ( "margin", "auto" )
-        , ( "font-size", "2em" )
-        , ( "text-align", "center" )
-        ]
+    div [ style [ ( "color", color ) ] ] [ text message ]

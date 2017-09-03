@@ -15,6 +15,7 @@ $ diesel migration run
 $ cd app/elm
 $ elm-package install elm-lang/http
 $ elm-package install pukkamustard/elm-identicon
+$ elm-package install evancz/elm-markdown
 $ cd ..
 $ brunch build
 $ cd ..

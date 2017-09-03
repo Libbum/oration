@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Identicon exposing (identicon)
+import Markdown
+
 
 main =
     Html.beginnerProgram { model = model, view = view, update = update }
@@ -61,9 +63,10 @@ view : Model -> Html Msg
 view model =
     let
         identity =
-            String.concat [model.name, ", ", model.email, ", ", model.url]
+            String.concat [ model.name, ", ", model.email, ", ", model.url ]
     in
-    Html.form [ action "/", method "post" ]
+    div []
+    [ Html.form [ action "/", method "post" ]
         [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
         , br [] []
         , span [ iconStyle ] [ identicon "25px" identity ]
@@ -74,7 +77,8 @@ view model =
         , input [ type_ "submit", value "Comment" ] []
         , viewValidation model
         ]
-
+    , Markdown.toHtml [] model.comment
+    ]
 
 viewValidation : Model -> Html msg
 viewValidation model =

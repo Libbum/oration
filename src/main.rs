@@ -48,6 +48,8 @@ mod errors;
 mod tests;
 
 use std::io;
+use rocket::http::RawStr;
+use rocket::request::Form;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
 use std::process;
@@ -57,6 +59,30 @@ use yansi::Paint;
 #[get("/")]
 fn index() -> io::Result<NamedFile> {
     NamedFile::open("public/index.html")
+}
+
+//NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
+#[derive(Debug, FromForm)]
+/// Incoming data from the web based form for a new comment.
+struct FormInput<'c> {
+    /// Comment from textarea.
+    comment: &'c RawStr,
+    /// Optional name.
+    name: Option<String>,
+    /// Optional email.
+    email: Option<String>,
+    /// Optional website.
+    url: Option<String>,
+}
+
+/// Process comment input from form.
+#[post("/", data = "<comment>")]
+fn new_comment<'c>(comment: Result<Form<'c, FormInput<'c>>, Option<String>>) -> String {
+    match comment {
+        Ok(form) => format!("{:?}", form.get()),
+        Err(Some(f)) => format!("Invalid form input: {}", f),
+        Err(None) => format!("Form input was invalid UTF8."),
+    }
 }
 
 /// Test function that returns the session hash from the database.
@@ -84,6 +110,7 @@ fn rocket() -> (rocket::Rocket, db::Conn) {
         routes![
             index,
             static_files::files,
+            new_comment,
             get_session,
         ],
     );
@@ -117,6 +144,4 @@ fn main() {
     log::info!("📢  {}", Paint::blue("Oration is now serving your comments"));
     //Start the web service
     rocket.launch();
-
-
 }

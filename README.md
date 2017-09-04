@@ -15,7 +15,7 @@ $ diesel migration run
 $ cd app/elm
 $ elm-package install elm-lang/http
 $ elm-package install pukkamustard/elm-identicon
-$ elm-package install evancz/elm-markdown
+$ elm-package install pablohirafuji/elm-markdown
 $ cd ..
 $ brunch build
 $ cd ..
@@ -29,4 +29,4 @@ $ cd app
 $ npm run watch
 ```
 
-Documentation of current methods can be viewed [here](https://libbum.github.io/oration/oration/index.html).
+Documentation of current backend methods can be viewed [here](https://libbum.github.io/oration/oration/index.html).

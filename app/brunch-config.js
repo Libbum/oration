@@ -4,7 +4,7 @@ exports.config = {
       joinTo: "js/app.js"
     },
     stylesheets: {
-      joinTo: "css/app.css"
+      joinTo: "css/oration.css"
     }
   },
   conventions: {

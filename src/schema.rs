@@ -1,7 +1,7 @@
 table! {
     comments (id) {
         id -> Integer,
-        tid -> Nullable<Binary>,
+        tid -> Nullable<Integer>,
         parent -> Nullable<Integer>,
         created -> Float,
         modified -> Nullable<Float>,
@@ -31,4 +31,6 @@ table! {
         title -> Nullable<Text>,
     }
 }
+
+joinable!(comments -> threads (tid));
 

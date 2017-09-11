@@ -22,6 +22,7 @@ $ cd app/elm
 $ elm-package install elm-lang/http
 $ elm-package install pukkamustard/elm-identicon
 $ elm-package install pablohirafuji/elm-markdown
+$ elm-package install NoRedInk/elm-decode-pipeline
 $ cd ..
 $ brunch build
 $ cd ..

@@ -2,9 +2,6 @@
 
 Thank you for considering contributing to Oration.
 
-Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project.
-In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
-
 Oration is an open source project and we love to receive contributions from our community — you! There are many ways to contribute, from improving the documentation, submitting bug reports and feature requests or writing code which can be incorporated into Oration itself.
 As Oration is still pre 0.1, there are no channels other than the issue tracker setup for communication. If you have a support question, please file an issue with the tracker.
 This may change as Oration grows.
@@ -18,7 +15,7 @@ This may change as Oration grows.
 
 # Your First Contribution
 
-Unsure where to begin contributing to Oration? You can start by looking through the tracker and assign youself to any issue that currently do not have an assignee.
+Unsure where to begin contributing to Oration? You can start by looking through the tracker and assign yourself to any issue that currently do not have an assignee.
 Issues labeled Help wanted in particular.
 
 Working on your first Pull Request? You can learn how from this *free* series, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github).

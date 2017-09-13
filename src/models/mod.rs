@@ -3,4 +3,4 @@ pub mod preferences;
 /// Threads table.
 mod threads;
 /// Comments table.
-mod comments;
+pub mod comments;

@@ -54,6 +54,7 @@ use rocket::http::RawStr;
 use rocket::request::Form;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
+use models::comments::Comment;
 use std::process;
 use yansi::Paint;
 
@@ -119,6 +120,21 @@ fn get_session(conn: db::Conn) -> String {
     }
 }
 
+/// Test function that returns the comment count for a thread from the database.
+#[get("/count")]
+fn get_comment_count(conn: db::Conn) -> String {
+    match Comment::count(&conn, Some(1)) {
+        Ok(s) => s.to_string(),
+        Err(err) => {
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            }
+            err.to_string()
+        }
+    }
+}
+
 /// Ignite Rocket, connect to the database and start serving data.
 /// Exposes a connection to the database so we can set the session on startup.
 fn rocket() -> (rocket::Rocket, db::Conn) {
@@ -131,6 +147,7 @@ fn rocket() -> (rocket::Rocket, db::Conn) {
             static_files::files,
             new_comment,
             get_session,
+            get_comment_count,
         ],
     );
 
@@ -164,3 +181,4 @@ fn main() {
     //Start the web service
     rocket.launch();
 }
+

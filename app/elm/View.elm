@@ -3,10 +3,11 @@ module View exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
-import Msg exposing (Msg(..))
-import Models exposing (Model)
 import Identicon exposing (identicon)
 import Markdown
+import Models exposing (Model)
+import Msg exposing (Msg(..))
+
 
 view : Model -> Html Msg
 view model =
@@ -18,7 +19,8 @@ view model =
             markdownContent model.comment model.preview
     in
     div [ id "oration" ]
-        [ Html.form [ action "/", method "post", id "oration-form" ]
+        [ h2 [] [ text model.post.pathname ]
+        , Html.form [ action "/", method "post", id "oration-form" ]
             [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
             , div [ id "oration-control" ]
                 [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
@@ -28,7 +30,7 @@ view model =
                 , input [ type_ "checkbox", id "oration-preview-check", name "preview", onClick Preview ] []
                 , label [ for "oration-preview-check" ] [ text "Preview" ]
                 , input [ type_ "submit", class "oration-submit", value "Comment" ] []
-            ]
+                ]
             , viewValidation model
             ]
         , div [ id "comment-preview" ] <|

@@ -1,6 +1,8 @@
 module Msg exposing (..)
 
 import Models exposing (Changes)
+import Navigation exposing (Location)
+
 
 type Msg
     = Comment String
@@ -8,5 +10,4 @@ type Msg
     | Email String
     | Url String
     | Preview
-
-
+    | Post Location

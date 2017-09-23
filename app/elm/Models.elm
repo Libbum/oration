@@ -1,5 +1,7 @@
 module Models exposing (..)
 
+import Navigation exposing (Location)
+
 
 type alias Model =
     { comment : String
@@ -8,12 +10,8 @@ type alias Model =
     , url : String
     , preview : Bool
     , count : Int
+    , post : Location
     }
-
-
-initialModel : Model
-initialModel =
-    Model "" "" "" "" False 0
 
 
 type alias Changes =

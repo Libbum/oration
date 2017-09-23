@@ -40,6 +40,9 @@ update msg model =
         Count (Err _) ->
             ( model, Cmd.none )
 
+        Post location ->
+            ( { model | post = location }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

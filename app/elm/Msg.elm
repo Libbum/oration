@@ -2,6 +2,8 @@ module Msg exposing (..)
 
 import Http
 import Models exposing (Changes)
+import Navigation exposing (Location)
+
 
 
 type Msg
@@ -11,3 +13,4 @@ type Msg
     | Url String
     | Preview
     | Count (Result Http.Error String)
+    | Post Location

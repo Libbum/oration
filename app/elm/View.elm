@@ -23,6 +23,7 @@ view model =
     in
     div [ id "oration" ]
         [ h2 [] [ text count ]
+        , h2 [] [ text model.post.pathname ]
         , Html.form [ action "/", method "post", id "oration-form" ]
             [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
             , div [ id "oration-control" ]

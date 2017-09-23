@@ -9,7 +9,7 @@ pub struct Comment {
     /// Primary key.
     id: i32,
     /// Reference to Thread.
-    tid: Option<i32>, //TODO: Diesel parsed this as a bool. Write up a new issue.
+    tid: i32, //TODO: Diesel parsed this as a bool. Write up a new issue.
     /// Parent comment.
     parent: Option<i32>,
     /// Timestamp of creation.
@@ -37,26 +37,29 @@ pub struct Comment {
 }
 
 impl Comment {
-    pub fn count(conn: &SqliteConnection, thread: Option<i32>) -> Result<usize> {
-        use schema::comments::dsl::*;
+    pub fn count(conn: &SqliteConnection, path: &str) -> Result<i64> {
+        use schema::comments;
+        use schema::threads;
 
-        let comment_count = comments
-            .filter(tid.eq(thread))
+        let comment_count = comments::table
+            .inner_join(threads::table)
+            .filter(threads::uri.eq(path))
             .count()
-            .execute(conn)
+            .first(conn)
             .chain_err(|| ErrorKind::DBRead)?;
+
         Ok(comment_count)
     }
-////    pub fn all(conn: &SqliteConnection) -> Vec<Comment> {
-////        all_comments.order(comments::id.desc()).load::<Comment>(conn).unwrap()
-////    }
-//
-//    //pub fn insert(post: Post, conn: &SqliteConnection) -> bool {
-//    //    let c = Comment { id: None, text: Some(post.comment) }; //TODO: Finish
-//    //    diesel::insert(&c).into(comments::table).execute(conn).is_ok()
-//    //}
-//
-//  //  pub fn delete_with_id(id: i32, conn: &SqliteConnection) -> bool {
-//  //      diesel::delete(all_comments.find(id)).execute(conn).is_ok()
-//   // }
+    ////    pub fn all(conn: &SqliteConnection) -> Vec<Comment> {
+    ////        all_comments.order(comments::id.desc()).load::<Comment>(conn).unwrap()
+    ////    }
+    //
+    //    //pub fn insert(post: Post, conn: &SqliteConnection) -> bool {
+    //    //    let c = Comment { id: None, text: Some(post.comment) }; //TODO: Finish
+    //    //    diesel::insert(&c).into(comments::table).execute(conn).is_ok()
+    //    //}
+    //
+    //  //  pub fn delete_with_id(id: i32, conn: &SqliteConnection) -> bool {
+    //  //      diesel::delete(all_comments.find(id)).execute(conn).is_ok()
+    //   // }
 }

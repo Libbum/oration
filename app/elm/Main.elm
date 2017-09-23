@@ -1,10 +1,11 @@
 module Main exposing (..)
 
 import Html exposing (..)
+import Http
 import Models exposing (Model)
 import Msg exposing (Msg)
 import Navigation
-import Update exposing (getCount, subscriptions, update)
+import Update exposing (subscriptions, update)
 import View exposing (view)
 
 
@@ -22,5 +23,13 @@ init location =
       , count = 0
       , post = location
       }
-    , getCount
+    , getCount location
     )
+
+getCount : Navigation.Location -> Cmd Msg
+getCount location =
+    let
+        path = "/count?url=" ++ location.pathname
+    in
+    Http.send Msg.Count <|
+        Http.getString path

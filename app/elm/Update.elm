@@ -2,7 +2,6 @@ module Update exposing (..)
 
 --import Storage exposing (saveUserState,userStateLoaded,injectChanges)
 
-import Http
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 
@@ -49,8 +48,3 @@ subscriptions model =
     Sub.batch
         []
 
-
-getCount : Cmd Msg
-getCount =
-    Http.send Count <|
-        Http.getString "/count"

@@ -31,7 +31,8 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
-#[macro_use(log)] extern crate log;
+#[macro_use(log)]
+extern crate log;
 
 /// Handles the database connection pool.
 mod db;
@@ -55,6 +56,7 @@ use rocket::request::Form;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
 use models::comments::Comment;
+use models::threads::Thread;
 use std::process;
 use yansi::Paint;
 
@@ -91,7 +93,10 @@ struct FormInput<'c> {
 
 /// Process comment input from form.
 #[post("/", data = "<comment>")]
-fn new_comment<'c>(mut cookies: Cookies, comment: Result<Form<'c, FormInput<'c>>, Option<String>>) -> String {
+fn new_comment<'c>(
+    mut cookies: Cookies,
+    comment: Result<Form<'c, FormInput<'c>>, Option<String>>,
+) -> String {
     match comment {
         Ok(f) => {
             let form = f.get();
@@ -99,7 +104,7 @@ fn new_comment<'c>(mut cookies: Cookies, comment: Result<Form<'c, FormInput<'c>>
             cookies.add_private(Cookie::new("email", form.email.to_string()));
             cookies.add_private(Cookie::new("url", form.url.to_string()));
             format!("{:?}", form)
-        },
+        }
         Err(Some(f)) => format!("Invalid form input: {}", f),
         Err(None) => format!("Form input was invalid UTF8."),
     }
@@ -120,10 +125,20 @@ fn get_session(conn: db::Conn) -> String {
     }
 }
 
-/// Test function that returns the comment count for a thread from the database.
-#[get("/count")]
-fn get_comment_count(conn: db::Conn) -> String {
-    match Comment::count(&conn, Some(1)) {
+#[derive(FromForm)]
+struct Post {
+    url: Option<String>,
+}
+
+/// Returns the comment count for a given post from the database.
+#[get("/count?<post>")]
+fn get_comment_count(conn: db::Conn, post: Post) -> String {
+    //TODO: The logic here is not 100%, need to consider / vs /index.* and response to nulls etc
+    let path = match post.url {
+        Some(l) => l,
+        None => "/".to_string(),
+    };
+    match Comment::count(&conn, &path) {
         Ok(s) => s.to_string(),
         Err(err) => {
             log::warn!("{}", err);
@@ -174,11 +189,13 @@ fn main() {
                 log::error!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
             }
             process::exit(1);
-        },
+        }
     };
 
-    log::info!("📢  {}", Paint::blue("Oration is now serving your comments"));
+    log::info!(
+        "📢  {}",
+        Paint::blue("Oration is now serving your comments")
+    );
     //Start the web service
     rocket.launch();
 }
-

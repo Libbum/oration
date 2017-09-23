@@ -20,7 +20,9 @@ pub struct Thread {
 #[table_name = "threads"]
 /// Insertable reference to the threads table.
 struct NewThread<'t> {
+    /// URI to the thread.
     uri: &'t str,
+    /// Thread title.
     title: Option<&'t str>,
 }
 

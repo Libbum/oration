@@ -37,6 +37,7 @@ pub struct Comment {
 }
 
 impl Comment {
+    /// Returns the number of comments for a given post denoted via the `path` variable.
     pub fn count(conn: &SqliteConnection, path: &str) -> Result<i64> {
         use schema::comments;
         use schema::threads;

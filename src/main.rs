@@ -21,7 +21,7 @@ extern crate dotenv;
 extern crate error_chain;
 extern crate rand;
 extern crate rocket;
-extern crate serde_json;
+//extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -49,31 +49,17 @@ mod errors;
 mod tests;
 
 use std::io;
-use std::collections::HashMap;
-use rocket::http::{Cookie, Cookies};
 use rocket::http::RawStr;
 use rocket::request::Form;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
 use models::comments::Comment;
-use models::threads::Thread;
 use std::process;
 use yansi::Paint;
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
-fn index(mut cookies: Cookies) -> io::Result<NamedFile> {
-    let mut user = HashMap::new();
-    let values = &["name", "email", "url"];
-    for v in values.iter() {
-        let cookie = cookies.get_private(&v);
-        if let Some(cookie) = cookie {
-            user.insert(v, cookie.value().to_string());
-        }
-    }
-
-    log::info!("{:?}", user);
-
+fn index() -> io::Result<NamedFile> {
     NamedFile::open("public/index.html")
 }
 
@@ -93,20 +79,14 @@ struct FormInput<'c> {
 
 /// Process comment input from form.
 #[post("/", data = "<comment>")]
-fn new_comment<'c>(
-    mut cookies: Cookies,
-    comment: Result<Form<'c, FormInput<'c>>, Option<String>>,
-) -> String {
+fn new_comment<'c>(comment: Result<Form<'c, FormInput<'c>>, Option<String>>) -> String {
     match comment {
         Ok(f) => {
             let form = f.get();
-            cookies.add_private(Cookie::new("name", form.name.to_string()));
-            cookies.add_private(Cookie::new("email", form.email.to_string()));
-            cookies.add_private(Cookie::new("url", form.url.to_string()));
             format!("{:?}", form)
         }
         Err(Some(f)) => format!("Invalid form input: {}", f),
-        Err(None) => format!("Form input was invalid UTF8."),
+        Err(None) => "Form input was invalid UTF8.".to_string(),
     }
 }
 
@@ -126,7 +106,9 @@ fn get_session(conn: db::Conn) -> String {
 }
 
 #[derive(FromForm)]
+/// Used in conjuction with `/count?`.
 struct Post {
+    /// Gets the url for the request.
     url: Option<String>,
 }
 

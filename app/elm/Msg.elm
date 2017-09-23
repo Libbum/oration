@@ -1,9 +1,16 @@
 module Msg exposing (..)
 
 import Http
-import Models exposing (Changes)
+import LocalStorage
 import Navigation exposing (Location)
 
+
+type alias Key =
+    LocalStorage.Key
+
+
+type alias Value =
+    LocalStorage.Value
 
 
 type Msg
@@ -14,3 +21,11 @@ type Msg
     | Preview
     | Count (Result Http.Error String)
     | Post Location
+    | OnKeys (Result LocalStorage.Error (List Key))
+    | SetLocalKeys (List Key)
+    | OnGet Key (Result LocalStorage.Error (Maybe Value))
+    | SetLocalValue Key (Maybe Value)
+    | OnVoidOp (Result LocalStorage.Error ())
+    | Refresh
+    | AfterSetValue Key Value (Result LocalStorage.Error ())
+    | StoreUser

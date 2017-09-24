@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Html exposing (..)
 import Http
 import LocalStorage
 import Models exposing (Model)
@@ -10,7 +9,7 @@ import Task
 import Update exposing (subscriptions, update)
 import View exposing (view)
 
-
+main : Program Never Model Msg
 main =
     Navigation.program Msg.Post { init = init, view = view, update = update, subscriptions = subscriptions }
 

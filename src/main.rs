@@ -75,6 +75,10 @@ struct FormInput<'c> {
     email: String,
     /// Optional website.
     url: String,
+    /// Title of post.
+    title: String,
+    /// Path of post.
+    path: String,
 }
 
 /// Process comment input from form.

@@ -24,8 +24,6 @@ view model =
     in
     div [ id "oration" ]
         [ h2 [] [ text count ]
-        , h2 [] [ text model.post.pathname ]
-        , h2 [] [ text model.title ]
         , Html.form [ action "/", method "post", id "oration-form" ]
             [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", minlength 3, cols 55, rows 4, onInput Comment ] []
             , div [ id "oration-control" ]
@@ -35,6 +33,8 @@ view model =
                 , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue model.url, onInput Url ] []
                 , input [ type_ "checkbox", id "oration-preview-check", checked model.preview, onClick Preview ] []
                 , label [ for "oration-preview-check" ] [ text "Preview" ]
+                , input [ type_ "hidden", name "title", value model.title ] []
+                , input [ type_ "hidden", name "path", value model.post.pathname ] []
                 , input [ type_ "submit", class "oration-submit", value "Comment", onClick StoreUser ] []
                 ]
             , viewValidation model

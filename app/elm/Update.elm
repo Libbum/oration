@@ -3,6 +3,7 @@ module Update exposing (..)
 import LocalStorage
 import Models exposing (Model)
 import Msg exposing (Msg(..))
+import Ports exposing (title)
 import Task
 
 
@@ -124,10 +125,13 @@ update msg model =
         StoreUser ->
             model ! [ storeUser model ]
 
+        Title value ->
+            { model | title = value } ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    title Title
 
 
 {-| localStorage values are always strings. We store the preview bool via toString, so this will be good enough as a decoder.

@@ -29,3 +29,4 @@ type Msg
     | Refresh
     | AfterSetValue Key Value (Result LocalStorage.Error ())
     | StoreUser
+    | Title String

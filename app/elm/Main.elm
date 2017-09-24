@@ -24,6 +24,7 @@ init location =
       , preview = False
       , count = 0
       , post = location
+      , title = ""
       }
     , initialise location
     )

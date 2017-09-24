@@ -11,4 +11,5 @@ type alias Model =
     , preview : Bool
     , count : Int
     , post : Location
+    , title : String
     }

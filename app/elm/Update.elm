@@ -1,6 +1,5 @@
 module Update exposing (..)
 
-import Dict exposing (Dict)
 import LocalStorage
 import Models exposing (Model)
 import Msg exposing (Msg(..))
@@ -29,11 +28,11 @@ update msg model =
             let
                 intCount =
                     case String.toInt strCount of
-                        Err _ ->
-                            0
-
                         Ok val ->
                             val
+
+                        Err _ ->
+                            0
             in
             ( { model | count = intCount }, Cmd.none )
 
@@ -46,21 +45,22 @@ update msg model =
         OnKeys result ->
             case result of
                 Ok keys ->
-                    update (SetLocalKeys keys) model
+                    update (SetUser keys) model
 
-                Err err ->
-                    onError err model
+                Err _ ->
+                    --We don't care if the pull fails, we just set keep defaults
+                    model ! []
 
-        SetLocalKeys keys ->
-            { model | keys = keys } ! [ requestValues keys ]
+        SetUser keys ->
+            model ! [ requestValues keys ]
 
         OnGet key result ->
             case result of
                 Ok maybeValue ->
-                    update (SetLocalValue key maybeValue) model
+                    update (SetUserValue key maybeValue) model
 
-                Err err ->
-                    onError err model
+                Err _ ->
+                    model ! []
 
         OnVoidOp result ->
             case result of
@@ -68,7 +68,7 @@ update msg model =
                     update Refresh model
 
                 Err err ->
-                    onError err model
+                    model ! []
 
         Refresh ->
             model ! [ Task.attempt OnKeys LocalStorage.keys ]
@@ -76,47 +76,71 @@ update msg model =
         AfterSetValue key val result ->
             case result of
                 Ok _ ->
-                    update (SetLocalValue key (Just val)) model
+                    update (SetUserValue key (Just val)) model
 
                 Err err ->
-                    onError err model
+                    model ! []
 
-        SetLocalValue key valueMaybe ->
+        SetUserValue key valueMaybe ->
             case valueMaybe of
                 Just value ->
                     let
-                        values_ =
-                            Dict.insert key value model.values
+                        --TODO: Would be nice if this was cleaner, but I'm not sure how atm.
+                        name_ =
+                            if key == "name" then
+                                value
+                            else
+                                model.name
+
+                        email_ =
+                            if key == "email" then
+                                value
+                            else
+                                model.email
+
+                        url_ =
+                            if key == "url" then
+                                value
+                            else
+                                model.url
+
+                        preview_ =
+                            if key == "preview" then
+                                dumbDecode value
+                            else
+                                model.preview
                     in
-                    { model | values = values_ } ! []
+                    { model
+                        | name = name_
+                        , email = email_
+                        , url = url_
+                        , preview = preview_
+                    }
+                        ! []
 
                 Nothing ->
                     model ! []
 
         StoreUser ->
-            model
-                ! [ Cmd.batch
-                        [ --TODO: Clean this up. I'm sure it's possible to map over these keys somehow
-                          Task.attempt (AfterSetValue "name" model.name) (LocalStorage.set "name" model.name)
-                        , Task.attempt (AfterSetValue "email" model.email) (LocalStorage.set "email" model.email)
-                        , Task.attempt (AfterSetValue "url" model.url) (LocalStorage.set "url" model.url)
-                        , Task.attempt (AfterSetValue "preview" (toString model.preview)) (LocalStorage.set "preview" (toString model.preview))
-                        ]
-                  ]
+            model ! [ storeUser model ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        []
+    Sub.none
 
 
-onError : LocalStorage.Error -> Model -> ( Model, Cmd Msg )
-onError err model =
-    { model | errors = err :: model.errors } ! []
+{-| localStorage values are always strings. We store the preview bool via toString, so this will be good enough as a decoder.
+-}
+dumbDecode : Msg.Value -> Bool
+dumbDecode val =
+    if val == "True" then
+        True
+    else
+        False
 
 
-{-| Create a command to request the values from localstorage of the given keys.
+{-| Request the users' information from localstorage.
 -}
 requestValues : List LocalStorage.Key -> Cmd Msg
 requestValues keys =
@@ -125,3 +149,23 @@ requestValues keys =
             Task.attempt (OnGet key) (LocalStorage.get key)
     in
     Cmd.batch <| List.map requestKey keys
+
+
+{-| Store user information to localstorage
+-}
+storeUser : Model -> Cmd Msg
+storeUser model =
+    let
+        storeData key value =
+            Task.attempt (AfterSetValue key value) (LocalStorage.set key value)
+
+        preview_ =
+            toString model.preview
+
+        keys =
+            [ "name", "email", "url", "preview" ]
+
+        values =
+            [ model.name, model.email, model.url, preview_ ]
+    in
+    Cmd.batch <| List.map2 storeData keys values

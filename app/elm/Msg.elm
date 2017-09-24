@@ -22,9 +22,9 @@ type Msg
     | Count (Result Http.Error String)
     | Post Location
     | OnKeys (Result LocalStorage.Error (List Key))
-    | SetLocalKeys (List Key)
+    | SetUser (List Key)
     | OnGet Key (Result LocalStorage.Error (Maybe Value))
-    | SetLocalValue Key (Maybe Value)
+    | SetUserValue Key (Maybe Value)
     | OnVoidOp (Result LocalStorage.Error ())
     | Refresh
     | AfterSetValue Key Value (Result LocalStorage.Error ())

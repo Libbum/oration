@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Dict exposing (Dict)
 import Html exposing (..)
 import Http
 import LocalStorage
@@ -25,9 +24,6 @@ init location =
       , preview = False
       , count = 0
       , post = location
-      , keys = []
-      , values = Dict.empty
-      , errors = []
       }
     , initialise location
     )
@@ -49,4 +45,3 @@ getCount location =
     in
     Http.send Msg.Count <|
         Http.getString path
-

@@ -4,7 +4,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Identicon exposing (identicon)
-import LocalStorage
 import Markdown
 import Models exposing (Model)
 import Msg exposing (Msg(..))
@@ -20,7 +19,12 @@ view model =
             markdownContent model.comment model.preview
 
         count =
-            toString model.count ++ " comments"
+            toString model.count
+                ++ (if model.count /= 1 then
+                        " comments"
+                    else
+                        " comment"
+                   )
     in
     div [ id "oration" ]
         [ h2 [] [ text count ]
@@ -35,25 +39,20 @@ view model =
                 , label [ for "oration-preview-check" ] [ text "Preview" ]
                 , input [ type_ "hidden", name "title", value model.title ] []
                 , input [ type_ "hidden", name "path", value model.post.pathname ] []
-                , input [ type_ "submit", class "oration-submit", value "Comment", onClick StoreUser ] []
+                , input [ type_ "submit", class "oration-submit", disabled <| setDisabled model.comment, value "Comment", onClick StoreUser ] []
                 ]
-            , viewValidation model
             ]
         , div [ id "comment-preview" ] <|
             Markdown.toHtml Nothing markdown
         ]
 
 
-viewValidation : Model -> Html msg
-viewValidation model =
-    let
-        ( color, message ) =
-            if String.length model.comment > 3 then
-                ( "green", "OK" )
-            else
-                ( "red", "Comment it too short." )
-    in
-    div [ class color ] [ text message ]
+setDisabled : String -> Bool
+setDisabled comment =
+    if String.length comment > 3 then
+        False
+    else
+        True
 
 
 markdownContent : String -> Bool -> String

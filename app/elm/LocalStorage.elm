@@ -218,6 +218,7 @@ init =
     Task.succeed Nothing
 
 
+(&>) : Task x a -> Task x b -> Task x b
 (&>) t1 t2 =
     t1 |> Task.andThen (\_ -> t2)
 

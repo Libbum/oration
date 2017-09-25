@@ -31,9 +31,12 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
+extern crate serde_yaml;
 #[macro_use(log)]
 extern crate log;
 
+/// Loads configuration data from disk.
+mod config;
 /// Handles the database connection pool.
 mod db;
 /// SQL <----> Rust inerop using Diesel.
@@ -56,6 +59,7 @@ use models::preferences::Preference;
 use models::comments::Comment;
 use std::process;
 use yansi::Paint;
+use config::Config;
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
@@ -157,6 +161,18 @@ fn rocket() -> (rocket::Rocket, db::Conn) {
 
 /// Application entry point.
 fn main() {
+    //Load configuration data from disk
+    let config = match Config::load() {
+        Ok(c) => c,
+        Err(ref err) => {
+            println!("Error loading configuration: {}", err);
+            for e in err.iter().skip(1) {
+                println!("caused by: {}", e);
+            }
+            process::exit(1);
+        }
+    };
+
     //Initialise webserver routes and database connection pool
     let (rocket, conn) = rocket();
 
@@ -179,8 +195,9 @@ fn main() {
     };
 
     log::info!(
-        "📢  {}",
-        Paint::blue("Oration is now serving your comments")
+        "📢  {} {}",
+        Paint::blue("Oration is now serving your comments to"),
+        &config.host
     );
     //Start the web service
     rocket.launch();

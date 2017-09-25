@@ -20,5 +20,21 @@ error_chain!{
                 description("Cannot generate random number")
                 display("Unable to call /dev/urandom")
         }
+        ConfigLoad {
+                description("Config file not found")
+                display("Unable to read configuration file oration.yaml")
+        }
+        ConfigParse {
+            description("Error parsing config")
+            display("an error occurred trying to parse the configuratation file")
+        }
+        Deserialize {
+                description("Cannot deserialize data")
+                display("Unable to deserialize data to required struct")
+        }
+        NoHTTPHandle {
+                description("No HTTP handle")
+                display("The configuration parameter 'host' requires either a http:// or https:// prefix")
+        }
     }
 }

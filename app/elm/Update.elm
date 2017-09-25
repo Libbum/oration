@@ -1,5 +1,6 @@
 module Update exposing (..)
 
+import Http
 import LocalStorage
 import Models exposing (Model)
 import Msg exposing (Msg(..))
@@ -128,6 +129,22 @@ update msg model =
         Title value ->
             { model | title = value } ! []
 
+        PostComment ->
+            { model | comment = "" } ! [ postComment model ]
+
+        --TODO: Proper responses are needed
+        ReceiveHttp result ->
+            let
+                response =
+                    case result of
+                        Ok val ->
+                            val
+
+                        Err err ->
+                            "Error!"
+            in
+            { model | httpResponse = response } ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -173,3 +190,30 @@ storeUser model =
             [ model.name, model.email, model.url, preview_ ]
     in
     Cmd.batch <| List.map2 storeData keys values
+
+
+{-| We want to override the default post behaviour and send this data seemlessly to the backend
+-}
+postComment : Model -> Cmd Msg
+postComment model =
+    let
+        body =
+            String.concat [ "comment=", model.comment
+                          , "&name=", model.name
+                          , "&email=", model.email
+                          , "&url=", model.url
+                          , "&title=", model.title
+                          , "&path=", model.post.pathname
+                          ]
+    in
+    Http.send ReceiveHttp <|
+        Http.request
+            { method = "POST"
+            , headers = []
+            , url = "/"
+            , body =
+                Http.stringBody "application/x-www-form-urlencoded" body
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }

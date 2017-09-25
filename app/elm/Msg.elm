@@ -30,3 +30,5 @@ type Msg
     | AfterSetValue Key Value (Result LocalStorage.Error ())
     | StoreUser
     | Title String
+    | PostComment
+    | ReceiveHttp (Result Http.Error String)

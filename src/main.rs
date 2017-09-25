@@ -52,7 +52,9 @@ mod errors;
 mod tests;
 
 use std::io;
-use rocket::http::RawStr;
+use std::io::Cursor;
+use rocket::http::Status;
+use rocket::Response;
 use rocket::request::Form;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
@@ -70,9 +72,9 @@ fn index() -> io::Result<NamedFile> {
 //NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
 #[derive(Debug, FromForm)]
 /// Incoming data from the web based form for a new comment.
-struct FormInput<'c> {
+struct FormInput {
     /// Comment from textarea.
-    comment: &'c RawStr,
+    comment: String,
     /// Optional name.
     name: String,
     /// Optional email.
@@ -87,15 +89,24 @@ struct FormInput<'c> {
 
 /// Process comment input from form.
 #[post("/", data = "<comment>")]
-fn new_comment<'c>(comment: Result<Form<'c, FormInput<'c>>, Option<String>>) -> String {
+fn new_comment(comment: Result<Form<FormInput>, Option<String>>) -> Response {
+    let mut response = Response::new();
     match comment {
-        Ok(f) => {
-            let form = f.get();
-            format!("{:?}", form)
+        Ok(_) => {
+            //let form = f.into_inner();
+            response.set_status(Status::Ok);
+            response.set_sized_body(Cursor::new("Comment recieved."));
         }
-        Err(Some(f)) => format!("Invalid form input: {}", f),
-        Err(None) => "Form input was invalid UTF8.".to_string(),
+        Err(Some(f)) => {
+            response.set_status(Status::BadRequest);
+            response.set_sized_body(Cursor::new(format!("Invalid form input: {}", f)));
+        }
+        Err(None) => {
+            response.set_status(Status::BadRequest);
+            response.set_sized_body(Cursor::new("Form input was invalid UTF8."));
+        }
     }
+    response
 }
 
 /// Test function that returns the session hash from the database.
@@ -142,25 +153,7 @@ fn get_comment_count(conn: db::Conn, post: Post) -> String {
 
 /// Ignite Rocket, connect to the database and start serving data.
 /// Exposes a connection to the database so we can set the session on startup.
-fn rocket() -> (rocket::Rocket, db::Conn) {
-    let pool = db::init_pool();
-    let conn = db::Conn(pool.get().expect("database connection for initialisation"));
-    let rocket = rocket::ignite().manage(pool).mount(
-        "/",
-        routes![
-            index,
-            static_files::files,
-            new_comment,
-            get_session,
-            get_comment_count,
-        ],
-    );
-
-    (rocket, conn)
-}
-
-/// Application entry point.
-fn main() {
+fn rocket() -> (rocket::Rocket, db::Conn, String) {
     //Load configuration data from disk
     let config = match Config::load() {
         Ok(c) => c,
@@ -172,9 +165,28 @@ fn main() {
             process::exit(1);
         }
     };
+    let host = config.host.clone();
+    let pool = db::init_pool();
+    let conn = db::Conn(pool.get().expect("database connection for initialisation"));
+    let rocket = rocket::ignite().manage(pool).manage(config).mount(
+        "/",
+        routes![
+            index,
+            static_files::files,
+            new_comment,
+            get_session,
+            get_comment_count,
+        ],
+    );
+
+    (rocket, conn, host)
+}
+
+/// Application entry point.
+fn main() {
 
     //Initialise webserver routes and database connection pool
-    let (rocket, conn) = rocket();
+    let (rocket, conn, host) = rocket();
 
     //Set the session info in the database
     log::info!("💿  {}", Paint::purple("Saving session hash to database"));
@@ -196,9 +208,11 @@ fn main() {
 
     log::info!(
         "📢  {} {}",
-        Paint::blue("Oration is now serving your comments to"),
-        &config.host
+        Paint::blue("Oration will serve comments to"),
+        host
     );
+
+
     //Start the web service
     rocket.launch();
 }

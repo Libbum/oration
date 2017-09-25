@@ -9,6 +9,7 @@ import Task
 import Update exposing (subscriptions, update)
 import View exposing (view)
 
+
 main : Program Never Model Msg
 main =
     Navigation.program Msg.Post { init = init, view = view, update = update, subscriptions = subscriptions }
@@ -24,6 +25,7 @@ init location =
       , count = 0
       , post = location
       , title = ""
+      , httpResponse = ""
       }
     , initialise location
     )

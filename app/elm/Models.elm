@@ -12,4 +12,5 @@ type alias Model =
     , count : Int
     , post : Location
     , title : String
+    , httpResponse : String
     }

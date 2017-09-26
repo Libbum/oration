@@ -40,11 +40,7 @@ pub fn gen_or_get_id(conn: &SqliteConnection, host: &str, title: &str, path: &st
                     //Create one.
                     //TODO: Pehaps we need to verify what's coming from the frontend is true.
                     //does host+path exist on host?
-                    let opt_title = if title.is_empty() {
-                        None
-                    } else {
-                        Some(title)
-                    };
+                    let opt_title = if title.is_empty() { None } else { Some(title) };
 
                     let tid = create(conn, path, opt_title)?;
                     Ok(tid)
@@ -74,7 +70,11 @@ fn create<'t>(
         .is_ok();
 
     if result {
-        let thread_info = threads.order(id.desc()).first::<Thread>(conn).chain_err(|| ErrorKind::DBRead)?;
+        let thread_info = threads.order(id.desc()).first::<Thread>(conn).chain_err(
+            || {
+                ErrorKind::DBRead
+            },
+        )?;
         Ok(thread_info.id)
     } else {
         Err(ErrorKind::DBInsert.into())
@@ -125,4 +125,3 @@ fn contains(conn: &SqliteConnection, find_uri: &str) -> Result<bool> {
         Ok(false)
     }
 }
-

@@ -16,6 +16,7 @@
 // `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
 
+extern crate chrono;
 extern crate dotenv;
 #[macro_use]
 extern crate error_chain;
@@ -90,14 +91,35 @@ struct FormInput {
 
 /// Process comment input from form.
 #[post("/", data = "<comment>")]
-fn new_comment<'a>(conn: db::Conn, comment: Result<Form<FormInput>, Option<String>>, config: State<Config>) -> Response<'a> {
+fn new_comment<'a>(
+    conn: db::Conn,
+    comment: Result<Form<FormInput>, Option<String>>,
+    config: State<Config>,
+) -> Response<'a> {
     let mut response = Response::new();
     match comment {
         Ok(f) => {
             let form = f.into_inner();
-            let tid = threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path);
-            response.set_status(Status::Ok);
-            response.set_sized_body(Cursor::new("Comment recieved."));
+            if let Ok(tid) = threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
+                if let Err(err) = Comment::new(
+                    &conn,
+                    tid,
+                    &form.comment,
+                    &form.name,
+                    &form.email,
+                    &form.url,
+                )
+                {
+                    log::warn!("{}", err);
+                    for e in err.iter().skip(1) {
+                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+                    }
+                    response.set_status(Status::InternalServerError);
+                } else {
+                    response.set_status(Status::Ok);
+                    response.set_sized_body(Cursor::new("Comment recieved."));
+                }
+            };
         }
         Err(Some(f)) => {
             response.set_status(Status::BadRequest);

@@ -9,7 +9,7 @@ dotenv = "0.10"
 rand = "0.3"
 rocket = "0.3"
 rocket_codegen = "0.3"
-diesel = { version = "0.16", features = ["sqlite"] }
+diesel = { version = "0.16", features = ["sqlite","chrono"] }
 diesel_codegen = { version = "0.16", features = ["sqlite"] }
 r2d2-diesel = "0.16"
 r2d2 = "0.7"
@@ -20,3 +20,4 @@ error-chain = "0.11"
 log = "0.3"
 yansi = "0.3"
 serde_yaml = "0.7"
+chrono = "0.4"

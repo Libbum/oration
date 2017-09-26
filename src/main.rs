@@ -54,11 +54,12 @@ mod tests;
 use std::io;
 use std::io::Cursor;
 use rocket::http::Status;
-use rocket::Response;
+use rocket::{State, Response};
 use rocket::request::Form;
 use rocket::response::NamedFile;
 use models::preferences::Preference;
 use models::comments::Comment;
+use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
@@ -89,11 +90,12 @@ struct FormInput {
 
 /// Process comment input from form.
 #[post("/", data = "<comment>")]
-fn new_comment(comment: Result<Form<FormInput>, Option<String>>) -> Response {
+fn new_comment<'a>(conn: db::Conn, comment: Result<Form<FormInput>, Option<String>>, config: State<Config>) -> Response<'a> {
     let mut response = Response::new();
     match comment {
-        Ok(_) => {
-            //let form = f.into_inner();
+        Ok(f) => {
+            let form = f.into_inner();
+            let tid = threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path);
             response.set_status(Status::Ok);
             response.set_sized_body(Cursor::new("Comment recieved."));
         }

@@ -16,6 +16,10 @@ error_chain!{
                 description("Cannot parse db response")
                 display("Unable to parse response from database query")
         }
+        DBInsert {
+                description("Cannot insert data in db")
+                display("Database query to insert data failed")
+        }
         Rand {
                 description("Cannot generate random number")
                 display("Unable to call /dev/urandom")

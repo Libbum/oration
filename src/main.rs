@@ -54,6 +54,7 @@ mod errors;
 mod tests;
 
 use std::io;
+use std::net::SocketAddr;
 use std::io::Cursor;
 use rocket::http::Status;
 use rocket::{State, Response};
@@ -97,6 +98,7 @@ fn new_comment<'a>(
     conn: db::Conn,
     comment: Result<Form<FormInput>, Option<String>>,
     config: State<Config>,
+    remote_addr: SocketAddr,
 ) -> Response<'a> {
     let mut response = Response::new();
     match comment {
@@ -113,6 +115,7 @@ fn new_comment<'a>(
                         &form.name,
                         &form.email,
                         &form.url,
+                        &remote_addr.ip().to_string(),
                     )
                     {
                         //Something went wrong, return a 500

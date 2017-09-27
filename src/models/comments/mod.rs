@@ -54,7 +54,7 @@ struct NewComment<'c> {
     /// If the comment is live or under review.
     mode: i32,
     /// Remote IP.
-    remote_addr: Option<String>,
+    remote_addr: Option<&'c str>,
     /// Actual comment.
     text: &'c str,
     /// Commentors author if given.
@@ -94,6 +94,7 @@ impl Comment {
         author: &'c str,
         email: &'c str,
         url: &'c str,
+        ip_addr: &'c str,
     ) -> Result<()> {
         let time = Utc::now().naive_utc();
         let auth = if author.is_empty() {
@@ -103,6 +104,11 @@ impl Comment {
         };
         let addr = if email.is_empty() { None } else { Some(email) };
         let web = if url.is_empty() { None } else { Some(url) };
+        let ip = if ip_addr.is_empty() {
+            None
+        } else {
+            Some(ip_addr)
+        };
 
         let c = NewComment {
             tid: tid,
@@ -110,7 +116,7 @@ impl Comment {
             created: time,
             modified: None,
             mode: 0,
-            remote_addr: None,
+            remote_addr: ip,
             text: data,
             author: auth,
             email: addr,

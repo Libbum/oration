@@ -2,6 +2,7 @@ use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
+use reqwest;
 use schema::threads;
 use errors::*;
 
@@ -36,10 +37,10 @@ pub fn gen_or_get_id(conn: &SqliteConnection, host: &str, title: &str, path: &st
         Err(err) => {
             match err {
                 Error(ErrorKind::NoThread(_), _) => {
+                    verify_post(host, path)?;
+
                     //We didn't find an id, but there was no error from the db.
                     //Create one.
-                    //TODO: Pehaps we need to verify what's coming from the frontend is true.
-                    //does host+path exist on host?
                     let opt_title = if title.is_empty() { None } else { Some(title) };
 
                     let tid = create(conn, path, opt_title)?;
@@ -48,6 +49,21 @@ pub fn gen_or_get_id(conn: &SqliteConnection, host: &str, title: &str, path: &st
                 _ => Err(err),
             }
         }
+    }
+}
+
+/// Checks that the path posted actually exists on the host.
+/// Should minimise the injection attack surface.
+fn verify_post(host: &str, path: &str) -> Result<()> {
+    // We use reqwest to handle the request for now, but may drop down to hyper later on.
+    let res = reqwest::get(&format!("{}{}", host, path)).chain_err(|| {
+        ErrorKind::Request
+    })?;
+
+    if res.status() == reqwest::StatusCode::Ok {
+        Ok(())
+    } else {
+        Err(ErrorKind::PathCheckFailed.into())
     }
 }
 

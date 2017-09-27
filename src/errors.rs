@@ -40,5 +40,13 @@ error_chain!{
                 description("No HTTP handle")
                 display("The configuration parameter 'host' requires either a http:// or https:// prefix")
         }
+        Request {
+                description("HTTP request failed")
+                display("Could not generate HTTP request")
+        }
+        PathCheckFailed {
+                description("Requested path does not exist")
+                display("Could not find path on blog server")
+        }
     }
 }

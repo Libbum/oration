@@ -32,6 +32,7 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
+extern crate reqwest;
 extern crate serde_yaml;
 #[macro_use(log)]
 extern crate log;
@@ -64,6 +65,7 @@ use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
+
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
@@ -99,33 +101,52 @@ fn new_comment<'a>(
     let mut response = Response::new();
     match comment {
         Ok(f) => {
+            //If the comment form data is valid, proceed to comment insertion
             let form = f.into_inner();
-            if let Ok(tid) = threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
-                if let Err(err) = Comment::new(
-                    &conn,
-                    tid,
-                    &form.comment,
-                    &form.name,
-                    &form.email,
-                    &form.url,
-                )
-                {
-                    log::warn!("{}", err);
-                    for e in err.iter().skip(1) {
-                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            //Get thread id from the db, create if needed
+            match threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
+                Ok(tid) => {
+                    if let Err(err) = Comment::new(
+                        &conn,
+                        tid,
+                        &form.comment,
+                        &form.name,
+                        &form.email,
+                        &form.url,
+                    )
+                    {
+                        //Something went wrong, return a 500
+                        log::warn!("{}", &err);
+                        for e in err.iter().skip(1) {
+                            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+                        }
+                        response.set_status(Status::InternalServerError);
+                    } else {
+                        //All good, 200
+                        response.set_status(Status::Ok);
+                        response.set_sized_body(Cursor::new("Comment recieved."));
                     }
-                    response.set_status(Status::InternalServerError);
-                } else {
-                    response.set_status(Status::Ok);
-                    response.set_sized_body(Cursor::new("Comment recieved."));
                 }
-            };
+                Err(err) => {
+                    //We didn't get the thread id
+                    match err {
+                        errors::Error(errors::ErrorKind::PathCheckFailed, _) => {
+                            //The requsted path doesn't exist on the server
+                            //Most likely an attempt at injecting junk into the db through the post method
+                            response.set_status(Status::Forbidden)
+                        }
+                        _ => response.set_status(Status::InternalServerError),
+                    }
+                }
+            }
         }
         Err(Some(f)) => {
+            //The form request was malformed, 400
             response.set_status(Status::BadRequest);
             response.set_sized_body(Cursor::new(format!("Invalid form input: {}", f)));
         }
         Err(None) => {
+            //Not UTF-8 encoded
             response.set_status(Status::BadRequest);
             response.set_sized_body(Cursor::new("Form input was invalid UTF8."));
         }

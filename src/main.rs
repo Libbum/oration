@@ -68,6 +68,8 @@ use std::process;
 use yansi::Paint;
 use config::Config;
 
+pub const LENGTH: usize = 16;
+
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
 fn index() -> io::Result<NamedFile> {
@@ -162,8 +164,15 @@ fn new_comment<'a>(
 fn get_hash(config: State<Config>, remote_addr: SocketAddr) -> String {
     let ip_addr = remote_addr.ip().to_string();
 
+    // We don't need this to be long and the process is not crazy fast, so let's drop the length.
+    let mut hash = [0; LENGTH];
     //This is not a password, so use the faster 2d variant
-    let hash = argon2rs::argon2d_simple(&ip_addr, &config.salt);
+    let a2 = argon2rs::Argon2::default(argon2rs::Variant::Argon2d);
+    a2.hash(&mut hash, ip_addr.as_bytes(), config.salt.as_bytes(), &[], &[]);
+    //out
+
+
+    //let hash = argon2rs::argon2d_simple(&ip_addr, &config.salt);
     hash.iter().map(|b| format!("{:02x}", b)).collect()
 }
 

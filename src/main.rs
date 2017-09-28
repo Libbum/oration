@@ -32,6 +32,7 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
+extern crate argon2rs;
 extern crate reqwest;
 extern crate serde_yaml;
 #[macro_use(log)]
@@ -66,7 +67,9 @@ use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
-
+use argon2rs::verifier::Encoded;
+use argon2rs::defaults::{KIB, LANES, PASSES};
+use argon2rs::{Argon2, Variant};
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
@@ -157,6 +160,22 @@ fn new_comment<'a>(
     response
 }
 
+/// Gets a hash from a clients IP.
+#[get("/hash")]
+fn get_hash(config: State<Config>, remote_addr: SocketAddr) -> String {
+    let ip_addr = remote_addr.ip().to_string();
+    //TODO: Pull the salt from config
+    //This is not a password, so use the faster 2d variant
+    let a2 = Argon2::new(PASSES, LANES, KIB, Variant::Argon2d).unwrap();
+    let enc0 = Encoded::new(a2,
+                            ip_addr.into_bytes().as_slice(),
+                            b"sodium chloride",
+                            b"",
+                            b"");
+    enc0.to_u8().iter().map(|b| format!("{:02x}", b)).collect()
+    //String::from_utf8(enc0.to_u8()).unwrap()
+}
+
 /// Test function that returns the session hash from the database.
 #[get("/session")]
 fn get_session(conn: db::Conn) -> String {
@@ -222,6 +241,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             index,
             static_files::files,
             new_comment,
+            get_hash,
             get_session,
             get_comment_count,
         ],
@@ -232,7 +252,6 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
 
 /// Application entry point.
 fn main() {
-
     //Initialise webserver routes and database connection pool
     let (rocket, conn, host) = rocket();
 

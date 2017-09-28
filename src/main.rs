@@ -67,9 +67,6 @@ use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
-use argon2rs::verifier::Encoded;
-use argon2rs::defaults::{KIB, LANES, PASSES};
-use argon2rs::{Argon2, Variant};
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
@@ -164,16 +161,10 @@ fn new_comment<'a>(
 #[get("/hash")]
 fn get_hash(config: State<Config>, remote_addr: SocketAddr) -> String {
     let ip_addr = remote_addr.ip().to_string();
-    //TODO: Pull the salt from config
+
     //This is not a password, so use the faster 2d variant
-    let a2 = Argon2::new(PASSES, LANES, KIB, Variant::Argon2d).unwrap();
-    let enc0 = Encoded::new(a2,
-                            ip_addr.into_bytes().as_slice(),
-                            b"sodium chloride",
-                            b"",
-                            b"");
-    enc0.to_u8().iter().map(|b| format!("{:02x}", b)).collect()
-    //String::from_utf8(enc0.to_u8()).unwrap()
+    let hash = argon2rs::argon2d_simple(&ip_addr, &config.salt);
+    hash.iter().map(|b| format!("{:02x}", b)).collect()
 }
 
 /// Test function that returns the session hash from the database.

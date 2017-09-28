@@ -11,3 +11,6 @@
 
 # Top level location of your blog
 host: http://localhost:8000/
+
+# Salt for argon2 hashing. Note this is NOT used for passwords, only for keeping things somewhat anonymous.
+salt: 3BooSGokWgZXfae7WxhGZR1KuJbRT6cxDujirSPhepeovB057j

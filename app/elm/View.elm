@@ -75,8 +75,11 @@ markdownContent content preview =
 
 getIdentity : User -> String
 getIdentity user =
-    if isNothing user.name && isNothing user.email && isNothing user.url then
+    let
+        data =
+            [ user.name ? "", user.email ? "", user.url ? "" ]
+    in
+    if List.all String.isEmpty data then
         user.hash ? ""
-        else
-            String.concat [ user.name ? "", ", ", user.email ? "", ", ", user.url ? "" ]
-
+    else
+        String.join ", " data

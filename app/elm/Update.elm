@@ -6,6 +6,7 @@ import Maybe.Extra exposing ((?))
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Ports exposing (title)
+import Request.Comment
 import Task
 import Util exposing (stringToMaybe)
 
@@ -158,7 +159,13 @@ update msg model =
                 | comment = ""
                 , count = model.count + 1
             }
-                ! [ postComment model ]
+                ! [ let
+                        postReq =
+                            Request.Comment.post model
+                                |> Http.toTask
+                    in
+                    Task.attempt ReceiveHttp postReq
+                  ]
 
         --TODO: Proper responses are needed
         ReceiveHttp result ->
@@ -218,37 +225,3 @@ storeUser model =
             [ model.user.name ? "", model.user.email ? "", model.user.url ? "", preview_ ]
     in
     Cmd.batch <| List.map2 storeData keys values
-
-
-{-| We want to override the default post behaviour and send this data seemlessly to the backend
--}
-postComment : Model -> Cmd Msg
-postComment model =
-    let
-        body =
-            String.concat
-                [ "comment="
-                , model.comment
-                , "&name="
-                , model.user.name ? ""
-                , "&email="
-                , model.user.email ? ""
-                , "&url="
-                , model.user.url ? ""
-                , "&title="
-                , model.title
-                , "&path="
-                , model.post.pathname
-                ]
-    in
-    Http.send ReceiveHttp <|
-        Http.request
-            { method = "POST"
-            , headers = []
-            , url = "/"
-            , body =
-                Http.stringBody "application/x-www-form-urlencoded" body
-            , expect = Http.expectString
-            , timeout = Nothing
-            , withCredentials = False
-            }

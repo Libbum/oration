@@ -83,11 +83,11 @@ struct FormInput {
     /// Comment from textarea.
     comment: String,
     /// Optional name.
-    name: String,
+    name: Option<String>,
     /// Optional email.
-    email: String,
+    email: Option<String>,
     /// Optional website.
-    url: String,
+    url: Option<String>,
     /// Title of post.
     title: String,
     /// Path of post.
@@ -114,9 +114,9 @@ fn new_comment<'a>(
                         &conn,
                         tid,
                         &form.comment,
-                        &form.name,
-                        &form.email,
-                        &form.url,
+                        form.name,
+                        form.email,
+                        form.url,
                         &remote_addr.ip().to_string(),
                     )
                     {
@@ -168,7 +168,13 @@ fn get_hash(config: State<Config>, remote_addr: SocketAddr) -> String {
     let mut hash = [0; LENGTH];
     //This is not a password, so use the faster 2d variant
     let a2 = argon2rs::Argon2::default(argon2rs::Variant::Argon2d);
-    a2.hash(&mut hash, ip_addr.as_bytes(), config.salt.as_bytes(), &[], &[]);
+    a2.hash(
+        &mut hash,
+        ip_addr.as_bytes(),
+        config.salt.as_bytes(),
+        &[],
+        &[],
+    );
     //out
 
 

@@ -58,11 +58,11 @@ struct NewComment<'c> {
     /// Actual comment.
     text: &'c str,
     /// Commentors author if given.
-    author: Option<&'c str>,
+    author: Option<String>,
     /// Commentors email address if given.
-    email: Option<&'c str>,
+    email: Option<String>,
     /// Commentors website if given.
-    website: Option<&'c str>,
+    website: Option<String>,
     /// Number of likes a comment has recieved.
     likes: Option<i32>,
     /// Number of dislikes a comment has recieved.
@@ -91,19 +91,12 @@ impl Comment {
         conn: &SqliteConnection,
         tid: i32,
         data: &'c str,
-        author: &'c str,
-        email: &'c str,
-        url: &'c str,
+        author: Option<String>,
+        email: Option<String>,
+        url: Option<String>,
         ip_addr: &'c str,
     ) -> Result<()> {
         let time = Utc::now().naive_utc();
-        let auth = if author.is_empty() {
-            None
-        } else {
-            Some(author)
-        };
-        let addr = if email.is_empty() { None } else { Some(email) };
-        let web = if url.is_empty() { None } else { Some(url) };
         let ip = if ip_addr.is_empty() {
             None
         } else {
@@ -118,9 +111,9 @@ impl Comment {
             mode: 0,
             remote_addr: ip,
             text: data,
-            author: auth,
-            email: addr,
-            website: web,
+            author: author,
+            email: email,
+            website: url,
             likes: None,
             dislikes: None,
             voters: "1".to_string(),

@@ -19,10 +19,7 @@ Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Cod
 $ echo DATABASE_URL=oration.db > .env
 $ diesel migration run
 $ cd app/elm
-$ elm-package install elm-lang/http
-$ elm-package install pukkamustard/elm-identicon
-$ elm-package install pablohirafuji/elm-markdown
-$ elm-package install NoRedInk/elm-decode-pipeline
+$ elm-package install
 $ cd ..
 $ brunch build
 $ cd ..
@@ -35,5 +32,7 @@ for live reloading of `app` files:
 $ cd app
 $ npm run watch
 ```
+
+# Documentation
 
 Documentation of current backend methods can be viewed [here](https://libbum.github.io/oration/oration/index.html).

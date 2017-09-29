@@ -1,14 +1,12 @@
 module Models exposing (..)
 
+import Data.User as User exposing (User)
 import Navigation exposing (Location)
 
 
 type alias Model =
     { comment : String
-    , name : String
-    , email : String
-    , url : String
-    , preview : Bool
+    , user : User
     , count : Int
     , post : Location
     , title : String

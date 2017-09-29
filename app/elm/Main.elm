@@ -19,10 +19,13 @@ main =
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
     ( { comment = ""
-      , name = ""
-      , email = ""
-      , url = ""
-      , preview = False
+      , user =
+            { name = Nothing
+            , email = Nothing
+            , url = Nothing
+            , preview = False
+            , hash = Nothing
+            }
       , count = 0
       , post = location
       , title = ""

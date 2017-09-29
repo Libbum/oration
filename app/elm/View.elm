@@ -1,10 +1,12 @@
 module View exposing (view)
 
+import Data.User as User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
+import Maybe.Extra exposing ((?), isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 
@@ -13,10 +15,10 @@ view : Model -> Html Msg
 view model =
     let
         identity =
-            String.concat [ model.name, ", ", model.email, ", ", model.url ]
+            getIdentity model.user
 
         markdown =
-            markdownContent model.comment model.preview
+            markdownContent model.comment model.user.preview
 
         count =
             toString model.count
@@ -25,6 +27,15 @@ view model =
                     else
                         " comment"
                    )
+
+        name_ =
+            model.user.name ? ""
+
+        email_ =
+            model.user.email ? ""
+
+        url_ =
+            model.user.url ? ""
     in
     div [ id "oration" ]
         [ h2 [] [ text count ]
@@ -32,10 +43,10 @@ view model =
             [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", value model.comment, minlength 3, cols 55, rows 4, onInput Comment ] []
             , div [ id "oration-control" ]
                 [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
-                , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue model.name, autocomplete True, onInput Name ] []
-                , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue model.email, autocomplete True, onInput Email ] []
-                , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue model.url, onInput Url ] []
-                , input [ type_ "checkbox", id "oration-preview-check", checked model.preview, onClick Preview ] []
+                , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput Name ] []
+                , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput Email ] []
+                , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput Url ] []
+                , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick Preview ] []
                 , label [ for "oration-preview-check" ] [ text "Preview" ]
                 , input [ type_ "submit", class "oration-submit", disabled <| setDisabled model.comment, value "Comment", onClick StoreUser ] []
                 ]
@@ -60,3 +71,11 @@ markdownContent content preview =
         content
     else
         ""
+
+
+getIdentity : User -> String
+getIdentity user =
+    if isNothing user.name && isNothing user.email && isNothing user.url then
+        user.hash ? ""
+    else
+        Maybe.map3 (\a b c -> a ++ ", " ++ b ++ ", " ++ c) user.name user.email user.url ? ""

@@ -2,29 +2,47 @@ module Update exposing (..)
 
 import Http
 import LocalStorage
+import Maybe.Extra exposing ((?))
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Ports exposing (title)
 import Task
+import Util exposing (stringToMaybe)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Comment comment ->
-            ( { model | comment = comment }, Cmd.none )
+            { model | comment = comment } ! []
 
         Name name ->
-            ( { model | name = name }, Cmd.none )
+            let
+                user =
+                    model.user
+            in
+            { model | user = { user | name = stringToMaybe name } } ! []
 
         Email email ->
-            ( { model | email = email }, Cmd.none )
+            let
+                user =
+                    model.user
+            in
+            { model | user = { user | email = stringToMaybe email } } ! []
 
         Url url ->
-            ( { model | url = url }, Cmd.none )
+            let
+                user =
+                    model.user
+            in
+            { model | user = { user | url = stringToMaybe url } } ! []
 
         Preview ->
-            ( { model | preview = not model.preview }, Cmd.none )
+            let
+                user =
+                    model.user
+            in
+            { model | user = { user | preview = not model.user.preview } } ! []
 
         Count (Ok strCount) ->
             let
@@ -36,13 +54,13 @@ update msg model =
                         Err _ ->
                             0
             in
-            ( { model | count = intCount }, Cmd.none )
+            { model | count = intCount } ! []
 
         Count (Err _) ->
-            ( model, Cmd.none )
+            model ! []
 
         Post location ->
-            ( { model | post = location }, Cmd.none )
+            { model | post = location } ! []
 
         OnKeys result ->
             case result of
@@ -87,36 +105,42 @@ update msg model =
             case valueMaybe of
                 Just value ->
                     let
+                        user =
+                            model.user
+
                         --TODO: Would be nice if this was cleaner, but I'm not sure how atm.
                         name_ =
                             if key == "name" then
-                                value
+                                stringToMaybe value
                             else
-                                model.name
+                                model.user.name
 
                         email_ =
                             if key == "email" then
-                                value
+                                stringToMaybe value
                             else
-                                model.email
+                                model.user.email
 
                         url_ =
                             if key == "url" then
-                                value
+                                stringToMaybe value
                             else
-                                model.url
+                                model.user.url
 
                         preview_ =
                             if key == "preview" then
                                 dumbDecode value
                             else
-                                model.preview
+                                model.user.preview
                     in
                     { model
-                        | name = name_
-                        , email = email_
-                        , url = url_
-                        , preview = preview_
+                        | user =
+                            { user
+                                | name = name_
+                                , email = email_
+                                , url = url_
+                                , preview = preview_
+                            }
                     }
                         ! []
 
@@ -185,13 +209,13 @@ storeUser model =
             Task.attempt (AfterSetValue key value) (LocalStorage.set key value)
 
         preview_ =
-            toString model.preview
+            toString model.user.preview
 
         keys =
             [ "name", "email", "url", "preview" ]
 
         values =
-            [ model.name, model.email, model.url, preview_ ]
+            [ model.user.name ? "", model.user.email ? "", model.user.url ? "", preview_ ]
     in
     Cmd.batch <| List.map2 storeData keys values
 
@@ -206,11 +230,11 @@ postComment model =
                 [ "comment="
                 , model.comment
                 , "&name="
-                , model.name
+                , model.user.name ? ""
                 , "&email="
-                , model.email
+                , model.user.email ? ""
                 , "&url="
-                , model.url
+                , model.user.url ? ""
                 , "&title="
                 , model.title
                 , "&path="

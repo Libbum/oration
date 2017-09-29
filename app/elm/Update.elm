@@ -130,7 +130,11 @@ update msg model =
             { model | title = value } ! []
 
         PostComment ->
-            { model | comment = "" } ! [ postComment model ]
+            { model
+                | comment = ""
+                , count = model.count + 1
+            }
+                ! [ postComment model ]
 
         --TODO: Proper responses are needed
         ReceiveHttp result ->
@@ -198,13 +202,20 @@ postComment : Model -> Cmd Msg
 postComment model =
     let
         body =
-            String.concat [ "comment=", model.comment
-                          , "&name=", model.name
-                          , "&email=", model.email
-                          , "&url=", model.url
-                          , "&title=", model.title
-                          , "&path=", model.post.pathname
-                          ]
+            String.concat
+                [ "comment="
+                , model.comment
+                , "&name="
+                , model.name
+                , "&email="
+                , model.email
+                , "&url="
+                , model.url
+                , "&title="
+                , model.title
+                , "&path="
+                , model.post.pathname
+                ]
     in
     Http.send ReceiveHttp <|
         Http.request

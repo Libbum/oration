@@ -8,6 +8,8 @@ use errors::*;
 pub struct Config {
     /// Top level location of the blog we are serving.
     pub host: String,
+    /// A salt for slightly more anonymous `anonymous` user identification.
+    pub salt: String,
 }
 
 impl Config {

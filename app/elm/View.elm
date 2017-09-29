@@ -77,5 +77,6 @@ getIdentity : User -> String
 getIdentity user =
     if isNothing user.name && isNothing user.email && isNothing user.url then
         user.hash ? ""
-    else
-        Maybe.map3 (\a b c -> a ++ ", " ++ b ++ ", " ++ c) user.name user.email user.url ? ""
+        else
+            String.concat [ user.name ? "", ", ", user.email ? "", ", ", user.url ? "" ]
+

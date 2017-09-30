@@ -8,7 +8,7 @@ import HttpBuilder exposing (RequestBuilder, withQueryParams)
 -}
 hash : Http.Request String
 hash =
-    "/hash"
+    "/iphash"
         |> HttpBuilder.get
         |> HttpBuilder.withExpect Http.expectString
         |> HttpBuilder.toRequest

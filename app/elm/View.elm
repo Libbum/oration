@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Crypto.Hash
 import Data.User as User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -80,6 +81,10 @@ getIdentity user =
             [ user.name ? "", user.email ? "", user.url ? "" ]
     in
     if List.all String.isEmpty data then
-        user.hash ? ""
+        user.iphash ? ""
     else
-        String.join ", " data
+        Crypto.Hash.sha224 (String.join "b" data)
+
+
+
+--Join with b since it gives the authors' credentials a cool identicon

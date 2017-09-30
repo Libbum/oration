@@ -2,6 +2,9 @@ use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use chrono::{NaiveDateTime, Utc};
+use crypto::digest::Digest;
+use crypto::sha2::Sha224;
+use itertools::join;
 
 use schema::comments;
 use errors::*;
@@ -31,6 +34,8 @@ pub struct Comment {
     email: Option<String>,
     /// Commentors website if given.
     website: Option<String>,
+    /// Commentors idenifier hash.
+    hash: String,
     /// Number of likes a comment has recieved.
     likes: Option<i32>,
     /// Number of dislikes a comment has recieved.
@@ -63,6 +68,8 @@ struct NewComment<'c> {
     email: Option<String>,
     /// Commentors website if given.
     website: Option<String>,
+    /// Sha224 hash to identify commentor.
+    hash: String,
     /// Number of likes a comment has recieved.
     likes: Option<i32>,
     /// Number of dislikes a comment has recieved.
@@ -97,11 +104,41 @@ impl Comment {
         ip_addr: &'c str,
     ) -> Result<()> {
         let time = Utc::now().naive_utc();
+
         let ip = if ip_addr.is_empty() {
-            None
+            None //TODO: I wonder if this is ever true?
         } else {
             Some(ip_addr)
         };
+
+        // Generate users sha224 hash
+        let mut hasher = Sha224::new();
+        //TODO: This section is pretty nasty at the moment.
+        //There has to be a better way to organise this.
+        let is_data = {
+            let user = [&author, &email, &url];
+            if user.into_iter().any(|&v| v.is_some()) {
+                true
+            } else {
+                false
+            }
+        };
+        if is_data {
+            let mut data: Vec<String> = Vec::new();
+            if let Some(val) = author.clone() {
+                data.push(val)
+            };
+            if let Some(val) = email.clone() {
+                data.push(val)
+            };
+            if let Some(val) = url.clone() {
+                data.push(val)
+            };
+            hasher.input_str(&join(data.iter(), "b"));
+        } else {
+            hasher.input_str(&ip_addr);
+        }
+        let hash = hasher.result_str();
 
         let c = NewComment {
             tid: tid,
@@ -114,6 +151,7 @@ impl Comment {
             author: author,
             email: email,
             website: url,
+            hash: hash,
             likes: None,
             dislikes: None,
             voters: "1".to_string(),
@@ -140,6 +178,8 @@ pub struct PrintedComment {
     text: String,
     /// Commentors author if given.
     author: Option<String>,
+    /// Commentors indentifier.
+    hash: String,
 }
 
 impl PrintedComment {
@@ -148,7 +188,7 @@ impl PrintedComment {
         use schema::threads;
 
         let comments: Vec<PrintedComment> = comments::table
-            .select((comments::text, comments::author))
+            .select((comments::text, comments::author, comments::hash))
             .inner_join(threads::table)
             .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
             .load(conn)

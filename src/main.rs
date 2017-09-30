@@ -37,6 +37,7 @@ extern crate yansi;
 extern crate crypto;
 extern crate reqwest;
 extern crate serde_yaml;
+extern crate itertools;
 #[macro_use(log)]
 extern crate log;
 
@@ -72,8 +73,6 @@ use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
-
-pub const LENGTH: usize = 16;
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]

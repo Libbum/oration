@@ -21,6 +21,7 @@ CREATE TABLE comments (
     author VARCHAR,
     email VARCHAR,
     website VARCHAR,
+    hash VARCHAR NOT NULL,
     likes INTEGER DEFAULT 0,
     dislikes INTEGER DEFAULT 0,
     voters VARCHAR NOT NULL

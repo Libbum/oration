@@ -2,7 +2,7 @@ module Update exposing (..)
 
 import Http
 import LocalStorage
-import Maybe.Extra exposing ((?))
+import Maybe.Extra exposing ((?), isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Ports exposing (title)
@@ -179,6 +179,22 @@ update msg model =
                             "Error!"
             in
             { model | httpResponse = response } ! []
+
+        Hash (Ok result) ->
+            let
+                user =
+                    model.user
+
+                store =
+                    if List.all isNothing [ user.name, user.email, user.url ] then
+                        Just result
+                    else
+                        Nothing
+            in
+            { model | user = { user | hash = store } } ! []
+
+        Hash (Err _) ->
+            model ! []
 
 
 subscriptions : Model -> Sub Msg

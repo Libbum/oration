@@ -32,3 +32,4 @@ type Msg
     | Title String
     | PostComment
     | ReceiveHttp (Result Http.Error String)
+    | Hash (Result Http.Error String)

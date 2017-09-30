@@ -6,6 +6,7 @@ import Models exposing (Model)
 import Msg exposing (Msg)
 import Navigation
 import Request.Comment
+import Request.User
 import Task
 import Update exposing (subscriptions, update)
 import View exposing (view)
@@ -41,8 +42,13 @@ initialise location =
         loadCount =
             Request.Comment.count location
                 |> Http.toTask
+
+        loadHash =
+            Request.User.hash
+                |> Http.toTask
     in
     Cmd.batch
         [ Task.attempt Msg.Count loadCount
         , Task.attempt Msg.OnKeys LocalStorage.keys
+        , Task.attempt Msg.Hash loadHash
         ]

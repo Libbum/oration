@@ -22,6 +22,7 @@ extern crate dotenv;
 extern crate error_chain;
 extern crate rand;
 extern crate rocket;
+extern crate rocket_contrib;
 //extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
@@ -61,8 +62,9 @@ use rocket::http::Status;
 use rocket::{State, Response};
 use rocket::request::Form;
 use rocket::response::NamedFile;
+use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::Comment;
+use models::comments::{PrintedComment, Comment};
 use models::threads;
 use std::process;
 use yansi::Paint;
@@ -175,10 +177,7 @@ fn get_hash(config: State<Config>, remote_addr: SocketAddr) -> String {
         &[],
         &[],
     );
-    //out
 
-
-    //let hash = argon2rs::argon2d_simple(&ip_addr, &config.salt);
     hash.iter().map(|b| format!("{:02x}", b)).collect()
 }
 
@@ -198,21 +197,43 @@ fn get_session(conn: db::Conn) -> String {
 }
 
 #[derive(FromForm)]
-/// Used in conjuction with `/count?`.
+/// Used in conjuction with `/count?` and `/comments?`.
 struct Post {
     /// Gets the url for the request.
-    url: Option<String>,
+    url: String,
+}
+
+#[derive(Serialize)]
+/// Comments to frontend
+struct PostComments {
+    comments: Vec<PrintedComment>,
+}
+
+/// Return a json block of comment data for the requested url.
+#[get("/comments?<post>")]
+fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
+    //TODO: The logic here may not 100%, need to consider / vs /index.* for example.
+    match PrintedComment::list(&conn, &post.url) {
+        Ok(comments) => {
+            //We now have a vector of comments
+            let to_send = PostComments { comments: comments };
+            Some(Json(to_send))
+        }
+        Err(err) => {
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            }
+            None
+        }
+    }
 }
 
 /// Returns the comment count for a given post from the database.
 #[get("/count?<post>")]
 fn get_comment_count(conn: db::Conn, post: Post) -> String {
-    //TODO: The logic here is not 100%, need to consider / vs /index.* and response to nulls etc
-    let path = match post.url {
-        Some(l) => l,
-        None => "/".to_string(),
-    };
-    match Comment::count(&conn, &path) {
+    //TODO: The logic here may not 100%, need to consider / vs /index.* for example.
+    match Comment::count(&conn, &post.url) {
         Ok(s) => s.to_string(),
         Err(err) => {
             log::warn!("{}", err);
@@ -250,6 +271,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             get_hash,
             get_session,
             get_comment_count,
+            get_comments,
         ],
     );
 

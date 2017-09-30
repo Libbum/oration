@@ -130,3 +130,30 @@ impl Comment {
         }
     }
 }
+
+
+#[derive(Serialize, Queryable, Debug)]
+/// Subset of the comments table which is to be sent to the frontend.
+/// Very cut down for the moment (i.e. proof of concept).
+pub struct PrintedComment {
+    /// Actual comment.
+    text: String,
+    /// Commentors author if given.
+    author: Option<String>,
+}
+
+impl PrintedComment {
+    /// Returna a list of all comments for a give post denoted via the `path` variable.
+    pub fn list(conn: &SqliteConnection, path: &str) -> Result<Vec<PrintedComment>> {
+        use schema::threads;
+
+        let comments: Vec<PrintedComment> = comments::table
+            .select((comments::text, comments::author))
+            .inner_join(threads::table)
+            .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
+            .load(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+
+        Ok(comments)
+    }
+}

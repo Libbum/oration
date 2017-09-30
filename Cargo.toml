@@ -9,6 +9,7 @@ dotenv = "0.10"
 rand = "0.3"
 rocket = "0.3"
 rocket_codegen = "0.3"
+rocket_contrib = "0.3"
 diesel = { version = "0.16", features = ["sqlite","chrono"] }
 diesel_codegen = { version = "0.16", features = ["sqlite"] }
 r2d2-diesel = "0.16"

@@ -11,7 +11,7 @@ type alias User =
     { name : Maybe String
     , email : Maybe String
     , url : Maybe String
-    , hash : Maybe String
+    , iphash : Maybe String
     , preview : Bool
     }
 
@@ -26,7 +26,7 @@ decoder =
         |> required "name" (Decode.nullable Decode.string)
         |> required "email" (Decode.nullable Decode.string)
         |> required "url" (Decode.nullable Decode.string)
-        |> required "hash" (Decode.nullable Decode.string)
+        |> required "iphash" (Decode.nullable Decode.string)
         |> required "preview" Decode.bool
 
 
@@ -36,6 +36,6 @@ encode user =
         [ "name" => EncodeExtra.maybe Encode.string user.name
         , "email" => EncodeExtra.maybe Encode.string user.email
         , "url" => EncodeExtra.maybe Encode.string user.url
-        , "hash" => EncodeExtra.maybe Encode.string user.hash
+        , "iphash" => EncodeExtra.maybe Encode.string user.iphash
         , "preview" => Encode.bool user.preview
         ]

@@ -24,3 +24,5 @@ serde_yaml = "0.7"
 chrono = "0.4"
 reqwest = "0.7"
 argon2rs = { version = "0.2", features = ["simd"] }
+rust-crypto = "^0.2"
+itertools = "0.6"

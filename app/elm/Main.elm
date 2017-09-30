@@ -25,7 +25,7 @@ init location =
             , email = Nothing
             , url = Nothing
             , preview = False
-            , hash = Nothing
+            , iphash = Nothing
             }
       , count = 0
       , post = location

@@ -11,6 +11,7 @@ table! {
         author -> Nullable<Text>,
         email -> Nullable<Text>,
         website -> Nullable<Text>,
+        hash -> Text,
         likes -> Nullable<Integer>,
         dislikes -> Nullable<Integer>,
         voters -> Text,

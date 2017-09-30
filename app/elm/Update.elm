@@ -184,14 +184,8 @@ update msg model =
             let
                 user =
                     model.user
-
-                store =
-                    if List.all isNothing [ user.name, user.email, user.url ] then
-                        Just result
-                    else
-                        Nothing
             in
-            { model | user = { user | hash = store } } ! []
+            { model | user = { user | iphash = Just result } } ! []
 
         Hash (Err _) ->
             model ! []

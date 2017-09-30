@@ -33,9 +33,11 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
-extern crate argon2rs;
+//extern crate argon2rs;
+extern crate crypto;
 extern crate reqwest;
 extern crate serde_yaml;
+extern crate itertools;
 #[macro_use(log)]
 extern crate log;
 
@@ -69,8 +71,8 @@ use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
-
-pub const LENGTH: usize = 16;
+use crypto::digest::Digest;
+use crypto::sha2::Sha224;
 
 /// Serve up the index file, which ultimately launches the Elm app.
 #[get("/")]
@@ -161,24 +163,16 @@ fn new_comment<'a>(
     response
 }
 
-/// Gets a hash from a clients IP.
-#[get("/hash")]
-fn get_hash(config: State<Config>, remote_addr: SocketAddr) -> String {
+/// Gets a Sha224 hash from a clients IP.
+#[get("/iphash")]
+fn get_iphash(remote_addr: SocketAddr) -> String {
     let ip_addr = remote_addr.ip().to_string();
-
-    // We don't need this to be long and the process is not crazy fast, so let's drop the length.
-    let mut hash = [0; LENGTH];
-    //This is not a password, so use the faster 2d variant
-    let a2 = argon2rs::Argon2::default(argon2rs::Variant::Argon2d);
-    a2.hash(
-        &mut hash,
-        ip_addr.as_bytes(),
-        config.salt.as_bytes(),
-        &[],
-        &[],
-    );
-
-    hash.iter().map(|b| format!("{:02x}", b)).collect()
+    // create a Sha224 object
+    let mut hasher = Sha224::new();
+    // write input message
+    hasher.input_str(&ip_addr);
+    // read hash digest
+    hasher.result_str()
 }
 
 /// Test function that returns the session hash from the database.
@@ -268,7 +262,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             index,
             static_files::files,
             new_comment,
-            get_hash,
+            get_iphash,
             get_session,
             get_comment_count,
             get_comments,

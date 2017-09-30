@@ -27,6 +27,7 @@ init location =
             , preview = False
             , iphash = Nothing
             }
+      , comments = []
       , count = 0
       , post = location
       , title = ""
@@ -39,6 +40,7 @@ init location =
 initialise : Navigation.Location -> Cmd Msg
 initialise location =
     let
+        --TODO: Count wont be needed soon, not on the main view at least.
         loadCount =
             Request.Comment.count location
                 |> Http.toTask
@@ -46,9 +48,14 @@ initialise location =
         loadHash =
             Request.User.hash
                 |> Http.toTask
+
+        loadComments =
+            Request.Comment.comments location
+                |> Http.toTask
     in
     Cmd.batch
         [ Task.attempt Msg.Count loadCount
         , Task.attempt Msg.OnKeys LocalStorage.keys
         , Task.attempt Msg.Hash loadHash
+        , Task.attempt Msg.Comments loadComments
         ]

@@ -190,6 +190,16 @@ update msg model =
         Hash (Err _) ->
             model ! []
 
+        Comments (Ok result) ->
+            let
+                comments =
+                    model.comments
+            in
+            { model | comments = result } ! []
+
+        Comments (Err _) ->
+            model ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

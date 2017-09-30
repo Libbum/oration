@@ -1,5 +1,6 @@
 module Msg exposing (..)
 
+import Data.Comment as Comment exposing (Comment)
 import Http
 import LocalStorage
 import Navigation exposing (Location)
@@ -33,3 +34,4 @@ type Msg
     | PostComment
     | ReceiveHttp (Result Http.Error String)
     | Hash (Result Http.Error String)
+    | Comments (Result Http.Error (List Comment))

@@ -15,11 +15,11 @@ type alias Value =
 
 
 type Msg
-    = Comment String
-    | Name String
-    | Email String
-    | Url String
-    | Preview
+    = UpdateComment String
+    | UpdateName String
+    | UpdateEmail String
+    | UpdateUrl String
+    | UpdatePreview
     | Count (Result Http.Error String)
     | Post Location
     | OnKeys (Result LocalStorage.Error (List Key))

@@ -14,31 +14,31 @@ import Util exposing (stringToMaybe)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Comment comment ->
+        UpdateComment comment ->
             { model | comment = comment } ! []
 
-        Name name ->
+        UpdateName name ->
             let
                 user =
                     model.user
             in
             { model | user = { user | name = stringToMaybe name } } ! []
 
-        Email email ->
+        UpdateEmail email ->
             let
                 user =
                     model.user
             in
             { model | user = { user | email = stringToMaybe email } } ! []
 
-        Url url ->
+        UpdateUrl url ->
             let
                 user =
                     model.user
             in
             { model | user = { user | url = stringToMaybe url } } ! []
 
-        Preview ->
+        UpdatePreview ->
             let
                 user =
                     model.user

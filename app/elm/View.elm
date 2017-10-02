@@ -1,6 +1,7 @@
 module View exposing (view)
 
 import Crypto.Hash
+import Data.Comment as Comment exposing (Comment)
 import Data.User as User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -41,13 +42,13 @@ view model =
     div [ id "oration" ]
         [ h2 [] [ text count ]
         , Html.form [ method "post", id "oration-form", onSubmit PostComment ]
-            [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", value model.comment, minlength 3, cols 55, rows 4, onInput Comment ] []
+            [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", value model.comment, minlength 3, cols 55, rows 4, onInput UpdateComment ] []
             , div [ id "oration-control" ]
                 [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
-                , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput Name ] []
-                , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput Email ] []
-                , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput Url ] []
-                , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick Preview ] []
+                , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
+                , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
+                , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
+                , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
                 , label [ for "oration-preview-check" ] [ text "Preview" ]
                 , input [ type_ "submit", class "oration-submit", disabled <| setDisabled model.comment, value "Comment", onClick StoreUser ] []
                 ]
@@ -55,6 +56,7 @@ view model =
         , div [ id "debug" ] [ text model.httpResponse ]
         , div [ id "comment-preview" ] <|
             Markdown.toHtml Nothing markdown
+        , div [ id "oration-comments" ] <| printComments model.comments
         ]
 
 
@@ -83,8 +85,23 @@ getIdentity user =
     if List.all String.isEmpty data then
         user.iphash ? ""
     else
+        -- Join with b since it gives the authors' credentials a cool identicon
         Crypto.Hash.sha224 (String.join "b" data)
 
 
+printComments : List Comment -> List (Html Msg)
+printComments comments =
+    List.map printComment comments
 
---Join with b since it gives the authors' credentials a cool identicon
+
+printComment : Comment -> Html Msg
+printComment comment =
+    let
+        author =
+            comment.author ? "Anonymous"
+    in
+    div [ class "comment" ]
+        [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
+        , span [ class "author" ] [ text author ]
+        , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
+        ]

@@ -9,3 +9,4 @@ app/package-lock.json
 Cargo.lock
 *.db
 .env
+.vagrant

@@ -3,6 +3,8 @@ module View exposing (view)
 import Crypto.Hash
 import Data.Comment as Comment exposing (Comment)
 import Data.User as User exposing (User)
+import Date
+import Date.Distance as Distance
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -11,6 +13,7 @@ import Markdown
 import Maybe.Extra exposing ((?), isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
+import Task exposing (succeed)
 
 
 view : Model -> Html Msg
@@ -99,9 +102,18 @@ printComment comment =
     let
         author =
             comment.author ? "Anonymous"
+
+        created =
+            case comment.created of
+                Just val ->
+                    Distance.inWords val Date.now
+
+                Nothing ->
+                    ""
     in
     div [ class "comment" ]
         [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
         , span [ class "author" ] [ text author ]
+        , span [ class "date" ] [ text ]
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
         ]

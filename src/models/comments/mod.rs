@@ -180,6 +180,8 @@ pub struct PrintedComment {
     author: Option<String>,
     /// Commentors indentifier.
     hash: String,
+    /// Timestamp of creation.
+    created: NaiveDateTime,
 }
 
 impl PrintedComment {
@@ -188,7 +190,7 @@ impl PrintedComment {
         use schema::threads;
 
         let comments: Vec<PrintedComment> = comments::table
-            .select((comments::text, comments::author, comments::hash))
+            .select((comments::text, comments::author, comments::hash, comments::created))
             .inner_join(threads::table)
             .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
             .load(conn)

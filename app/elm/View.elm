@@ -3,6 +3,10 @@ module View exposing (view)
 import Crypto.Hash
 import Data.Comment as Comment exposing (Comment)
 import Data.User as User exposing (User)
+import Date
+import Date.Distance exposing (defaultConfig, inWordsWithConfig)
+import Date.Distance.I18n.En as English
+import Date.Distance.Types exposing (Config, Locale)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -56,7 +60,7 @@ view model =
         , div [ id "debug" ] [ text model.httpResponse ]
         , div [ id "comment-preview" ] <|
             Markdown.toHtml Nothing markdown
-        , div [ id "oration-comments" ] <| printComments model.comments
+        , div [ id "oration-comments" ] <| printComments model
         ]
 
 
@@ -89,19 +93,43 @@ getIdentity user =
         Crypto.Hash.sha224 (String.join "b" data)
 
 
-printComments : List Comment -> List (Html Msg)
-printComments comments =
-    List.map printComment comments
+printComments : Model -> List (Html Msg)
+printComments model =
+    List.map (\c -> printComment c model.now) model.comments
 
 
-printComment : Comment -> Html Msg
-printComment comment =
+printComment : Comment -> Maybe Date.Date -> Html Msg
+printComment comment now =
     let
         author =
             comment.author ? "Anonymous"
+
+        created =
+            --TODO: Can this be chained?
+            case comment.created of
+                Just val ->
+                    case now of
+                        Just time ->
+                            inWordsWithConfig wordsConfig time val
+
+                        Nothing ->
+                            ""
+
+                Nothing ->
+                    ""
     in
     div [ class "comment" ]
         [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
         , span [ class "author" ] [ text author ]
+        , span [ class "date" ] [ text created ]
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
         ]
+
+
+wordsConfig : Config
+wordsConfig =
+    let
+        localeWithSuffix =
+            English.locale { addSuffix = True }
+    in
+    { defaultConfig | locale = localeWithSuffix }

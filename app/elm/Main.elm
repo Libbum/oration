@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Date
 import Http
 import LocalStorage
 import Models exposing (Model)
@@ -32,6 +33,7 @@ init location =
       , post = location
       , title = ""
       , httpResponse = ""
+      , now = Nothing
       }
     , initialise location
     )
@@ -58,4 +60,5 @@ initialise location =
         , Task.attempt Msg.OnKeys LocalStorage.keys
         , Task.attempt Msg.Hash loadHash
         , Task.attempt Msg.Comments loadComments
+        , Task.perform Msg.ReceiveDate Date.now
         ]

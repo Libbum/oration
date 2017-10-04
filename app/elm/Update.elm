@@ -1,5 +1,6 @@
 module Update exposing (..)
 
+import Date
 import Http
 import LocalStorage
 import Maybe.Extra exposing ((?), isNothing)
@@ -149,7 +150,12 @@ update msg model =
                     model ! []
 
         StoreUser ->
-            model ! [ storeUser model ]
+            model
+                ! [ Cmd.batch
+                        [ storeUser model
+                        , Task.perform ReceiveDate Date.now
+                        ]
+                  ]
 
         Title value ->
             { model | title = value } ! []
@@ -199,6 +205,9 @@ update msg model =
 
         Comments (Err _) ->
             model ! []
+
+        ReceiveDate date ->
+            { model | now = Just date } ! []
 
 
 subscriptions : Model -> Sub Msg

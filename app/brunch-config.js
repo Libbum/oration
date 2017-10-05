@@ -11,7 +11,8 @@ exports.config = {
         // This option sets where we should place non-css and non-js assets in.
         // By default, we set this to "/assets/static". Files in this directory
         // will be copied to `paths.public`, which is set below to "../public".
-        assets: /^(static)/
+        assets: /^(static)/,
+        ignored: /elm-stuff/
     },
     // paths configuration
     paths: {
@@ -28,9 +29,15 @@ exports.config = {
         elmBrunch: {
             elmFolder: "elm",
             mainModules: ["Main.elm"],
-            makeParameters: ['--warn','--debug'],
+            makeParameters: ["--warn","--debug"],
             outputFolder: "../js"
         },
+        elmCss: {
+            projectDir: "elm",
+            sourcePath: "Stylesheets.elm",
+            patters: "Style.elm",
+            outputDir: "../css"
+        }
     },
     modules: {
         autoRequire: {

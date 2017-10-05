@@ -6,7 +6,7 @@ import LocalStorage
 import Maybe.Extra exposing ((?), isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
-import Ports exposing (title)
+import Ports exposing (..)
 import Request.Comment
 import Task
 import Util exposing (stringToMaybe)

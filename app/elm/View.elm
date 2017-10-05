@@ -7,6 +7,8 @@ import Date
 import Date.Distance exposing (defaultConfig, inWordsWithConfig)
 import Date.Distance.I18n.En as English
 import Date.Distance.Types exposing (Config, Locale)
+import Date.Extra.Create exposing (getTimezoneOffset)
+import Date.Extra.Period as Period exposing (Period(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -64,6 +66,10 @@ view model =
         ]
 
 
+
+{- Only allows users to comment if their comment is longer than 3 characters -}
+
+
 setDisabled : String -> Bool
 setDisabled comment =
     if String.length comment > 3 then
@@ -72,12 +78,20 @@ setDisabled comment =
         True
 
 
+
+{- Renders comments to markdown -}
+
+
 markdownContent : String -> Bool -> String
 markdownContent content preview =
     if preview then
         content
     else
         ""
+
+
+
+{- Hashes user information depending on available data -}
 
 
 getIdentity : User -> String
@@ -93,9 +107,34 @@ getIdentity user =
         Crypto.Hash.sha224 (String.join "b" data)
 
 
+
+{- We work in UTC, so offset the users time so we can compare dates -}
+
+
+offsetNow : Maybe Date.Date -> Maybe Date.Date
+offsetNow now =
+    let
+        offsetMinutes =
+            Maybe.map getTimezoneOffset now
+    in
+    Maybe.map (\d -> Period.add Period.Minute (offsetMinutes ? 0) d) now
+
+
+
+{- Format a list of comments -}
+
+
 printComments : Model -> List (Html Msg)
 printComments model =
-    List.map (\c -> printComment c model.now) model.comments
+    let
+        utcNow =
+            offsetNow model.now
+    in
+    List.map (\c -> printComment c utcNow) model.comments
+
+
+
+{- Format a single comment -}
 
 
 printComment : Comment -> Maybe Date.Date -> Html Msg
@@ -124,6 +163,12 @@ printComment comment now =
         , span [ class "date" ] [ text created ]
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
         ]
+
+
+
+{- We want to add a suffix onto our word distances.
+   This is how you do that. Not very nice, but we can extend the locale portion later this way
+-}
 
 
 wordsConfig : Config

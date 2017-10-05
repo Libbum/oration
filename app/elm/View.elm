@@ -98,13 +98,16 @@ getIdentity : User -> String
 getIdentity user =
     let
         data =
-            [ user.name ? "", user.email ? "", user.url ? "" ]
+            [ user.name, user.email, user.url ]
+
+        unwrapped =
+            List.filterMap identity data
     in
-    if List.all String.isEmpty data then
+    if List.all isNothing data then
         user.iphash ? ""
     else
         -- Join with b since it gives the authors' credentials a cool identicon
-        Crypto.Hash.sha224 (String.join "b" data)
+        Crypto.Hash.sha224 (String.join "b" unwrapped)
 
 
 

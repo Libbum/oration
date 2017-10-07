@@ -1,7 +1,7 @@
-module Models exposing (..)
+module Models exposing (Model)
 
-import Data.Comment as Comment exposing (Comment)
-import Data.User as User exposing (User)
+import Data.Comment exposing (Comment)
+import Data.User exposing (User)
 import Date exposing (Date)
 import Navigation exposing (Location)
 

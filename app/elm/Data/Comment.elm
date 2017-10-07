@@ -3,7 +3,7 @@ module Data.Comment exposing (Comment, decoder, encode)
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
-import Json.Decode.Pipeline as Pipeline exposing (decode, required)
+import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode exposing (Value)
 import Json.Encode.Extra as EncodeExtra
 import Util exposing ((=>))

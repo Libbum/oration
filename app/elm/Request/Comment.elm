@@ -2,7 +2,7 @@ module Request.Comment exposing (comments, count, post)
 
 import Data.Comment as Comment exposing (Comment)
 import Http
-import HttpBuilder exposing (RequestBuilder, withExpect, withQueryParams)
+import HttpBuilder
 import Json.Decode as Decode
 import Models exposing (Model)
 import Navigation exposing (Location)

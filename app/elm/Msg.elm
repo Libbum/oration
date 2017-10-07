@@ -1,6 +1,6 @@
 module Msg exposing (..)
 
-import Data.Comment as Comment exposing (Comment)
+import Data.Comment exposing (Comment)
 import Date exposing (Date)
 import Http
 import LocalStorage

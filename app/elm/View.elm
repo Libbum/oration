@@ -1,12 +1,12 @@
 module View exposing (view)
 
 import Crypto.Hash
-import Data.Comment as Comment exposing (Comment)
-import Data.User as User exposing (User)
+import Data.Comment exposing (Comment)
+import Data.User exposing (User)
 import Date
 import Date.Distance exposing (defaultConfig, inWordsWithConfig)
 import Date.Distance.I18n.En as English
-import Date.Distance.Types exposing (Config, Locale)
+import Date.Distance.Types exposing (Config)
 import Date.Extra.Create exposing (getTimezoneOffset)
 import Date.Extra.Period as Period exposing (Period(..))
 import Html exposing (..)

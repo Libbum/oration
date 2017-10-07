@@ -1,12 +1,12 @@
-module Update exposing (..)
+module Update exposing (subscriptions, update)
 
 import Date
 import Http
 import LocalStorage
-import Maybe.Extra exposing ((?), isNothing)
+import Maybe.Extra exposing ((?))
 import Models exposing (Model)
 import Msg exposing (Msg(..))
-import Ports exposing (..)
+import Ports exposing (title)
 import Request.Comment
 import Task
 import Util exposing (stringToMaybe)
@@ -89,7 +89,7 @@ update msg model =
                 Ok _ ->
                     update Refresh model
 
-                Err err ->
+                Err _ ->
                     model ! []
 
         Refresh ->
@@ -100,7 +100,7 @@ update msg model =
                 Ok _ ->
                     update (SetUserValue key (Just val)) model
 
-                Err err ->
+                Err _ ->
                     model ! []
 
         SetUserValue key valueMaybe ->
@@ -181,7 +181,7 @@ update msg model =
                         Ok val ->
                             val
 
-                        Err err ->
+                        Err _ ->
                             "Error!"
             in
             { model | httpResponse = response } ! []
@@ -197,10 +197,6 @@ update msg model =
             model ! []
 
         Comments (Ok result) ->
-            let
-                comments =
-                    model.comments
-            in
             { model | comments = result } ! []
 
         Comments (Err _) ->

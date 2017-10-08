@@ -97,6 +97,7 @@ impl Comment {
     pub fn new<'c>(
         conn: &SqliteConnection,
         tid: i32,
+        parent: Option<i32>,
         data: &'c str,
         author: Option<String>,
         email: Option<String>,
@@ -142,7 +143,7 @@ impl Comment {
 
         let c = NewComment {
             tid: tid,
-            parent: None,
+            parent: parent,
             created: time,
             modified: None,
             mode: 0,
@@ -174,6 +175,10 @@ impl Comment {
 /// Subset of the comments table which is to be sent to the frontend.
 /// Very cut down for the moment (i.e. proof of concept).
 pub struct PrintedComment {
+    /// Primary key.
+    id: i32,
+    /// Parent comment.
+    parent: Option<i32>,
     /// Actual comment.
     text: String,
     /// Commentors author if given.
@@ -190,7 +195,7 @@ impl PrintedComment {
         use schema::threads;
 
         let comments: Vec<PrintedComment> = comments::table
-            .select((comments::text, comments::author, comments::hash, comments::created))
+            .select((comments::id, comments::parent, comments::text, comments::author, comments::hash, comments::created))
             .inner_join(threads::table)
             .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
             .load(conn)

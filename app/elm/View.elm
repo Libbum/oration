@@ -22,9 +22,6 @@ import Msg exposing (Msg(..))
 view : Model -> Html Msg
 view model =
     let
-        identity =
-            getIdentity model.user
-
         markdown =
             markdownContent model.comment model.user.preview
 
@@ -35,6 +32,26 @@ view model =
                     else
                         " comment"
                    )
+    in
+    div [ id "oration" ]
+        [ h2 [] [ text count ]
+        , commentForm model "oration-form"
+        , div [ id "debug" ] [ text model.httpResponse ]
+        , div [ id "comment-preview" ] <|
+            Markdown.toHtml Nothing markdown
+        , div [ id "oration-comments" ] <| printComments model
+        ]
+
+
+
+{- Comment form. Can be used as the main form or in a reply. -}
+
+
+commentForm : Model -> String -> Html Msg
+commentForm model formID =
+    let
+        identity =
+            getIdentity model.user
 
         name_ =
             model.user.name ? ""
@@ -45,24 +62,26 @@ view model =
         url_ =
             model.user.url ? ""
     in
-    div [ id "oration" ]
-        [ h2 [] [ text count ]
-        , Html.form [ method "post", id "oration-form", onSubmit PostComment ]
-            [ textarea [ name "comment", placeholder "Write a comment here (min 3 characters).", value model.comment, minlength 3, cols 55, rows 4, onInput UpdateComment ] []
-            , div [ id "oration-control" ]
-                [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
-                , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
-                , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
-                , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
-                , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
-                , label [ for "oration-preview-check" ] [ text "Preview" ]
-                , input [ type_ "submit", class "oration-submit", disabled <| setDisabled model.comment, value "Comment", onClick StoreUser ] []
-                ]
+    Html.form [ method "post", id formID, onSubmit PostComment ]
+        [ textarea
+            [ name "comment"
+            , placeholder "Write a comment here (min 3 characters)."
+            , value model.comment
+            , minlength 3
+            , cols 55
+            , rows 4
+            , onInput UpdateComment
             ]
-        , div [ id "debug" ] [ text model.httpResponse ]
-        , div [ id "comment-preview" ] <|
-            Markdown.toHtml Nothing markdown
-        , div [ id "oration-comments" ] <| printComments model
+            []
+        , div [ id "oration-control" ]
+            [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
+            , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
+            , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
+            , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
+            , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
+            , label [ for "oration-preview-check" ] [ text "Preview" ]
+            , input [ type_ "submit", class "oration-submit", disabled <| setDisabled model.comment, value "Comment", onClick StoreUser ] []
+            ]
         ]
 
 
@@ -137,7 +156,9 @@ printComments model =
 
 
 
-{- Format a single comment -}
+{- Format a single comment
+   For now this ignores parent nesting.
+-}
 
 
 printComment : Comment -> Maybe Date.Date -> Html Msg
@@ -159,12 +180,16 @@ printComment comment now =
 
                 Nothing ->
                     ""
+
+        replyID =
+            "reply-" ++ toString comment.id
     in
     div [ class "comment" ]
         [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
         , span [ class "author" ] [ text author ]
         , span [ class "date" ] [ text created ]
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
+        , button [ id replyID ] [ text "reply" ]
         ]
 
 

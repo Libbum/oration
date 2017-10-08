@@ -14,6 +14,8 @@ type alias Comment =
     , author : Maybe String
     , hash : String
     , created : Maybe Date
+    , id : Int
+    , parent : Maybe Int
     }
 
 
@@ -28,6 +30,8 @@ decoder =
         |> required "author" (Decode.nullable Decode.string)
         |> required "hash" Decode.string
         |> required "created" (Decode.nullable DecodeExtra.date)
+        |> required "id" Decode.int
+        |> required "parent" (Decode.nullable Decode.int)
 
 
 encode : Comment -> Value
@@ -36,4 +40,5 @@ encode comment =
         [ "text" => Encode.string comment.text
         , "author" => EncodeExtra.maybe Encode.string comment.author
         , "hash" => Encode.string comment.hash
+        , "parent" => EncodeExtra.maybe Encode.int comment.parent
         ]

@@ -86,6 +86,8 @@ fn index() -> io::Result<NamedFile> {
 struct FormInput {
     /// Comment from textarea.
     comment: String,
+    /// Parent comment if any.
+    parent: Option<i32>,
     /// Optional name.
     name: Option<String>,
     /// Optional email.
@@ -117,6 +119,7 @@ fn new_comment<'a>(
                     if let Err(err) = Comment::new(
                         &conn,
                         tid,
+                        form.parent,
                         &form.comment,
                         form.name,
                         form.email,

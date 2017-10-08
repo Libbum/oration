@@ -21,6 +21,7 @@ main =
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
     ( { comment = ""
+      , parent = Nothing
       , user =
             { name = Nothing
             , email = Nothing

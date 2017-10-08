@@ -205,6 +205,9 @@ update msg model =
         ReceiveDate date ->
             { model | now = Just date } ! []
 
+        CommentReply id ->
+            { model | parent = Just id } ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

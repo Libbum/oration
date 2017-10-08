@@ -36,7 +36,8 @@ post model =
     "/"
         |> HttpBuilder.post
         |> HttpBuilder.withUrlEncodedBody
-            (prependMaybe body "name" model.user.name
+            (prependMaybe body "parent" (Maybe.map toString model.parent)
+                ++ prependMaybe body "name" model.user.name
                 ++ prependMaybe body "email" model.user.email
                 ++ prependMaybe body "url" model.user.url
             )

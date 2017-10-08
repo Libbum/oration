@@ -37,3 +37,4 @@ type Msg
     | Hash (Result Http.Error String)
     | Comments (Result Http.Error (List Comment))
     | ReceiveDate Date
+    | CommentReply Int

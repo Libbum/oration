@@ -40,5 +40,4 @@ encode comment =
         [ "text" => Encode.string comment.text
         , "author" => EncodeExtra.maybe Encode.string comment.author
         , "hash" => Encode.string comment.hash
-        , "parent" => EncodeExtra.maybe Encode.int comment.parent
         ]

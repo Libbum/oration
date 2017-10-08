@@ -181,15 +181,15 @@ printComment comment now =
                 Nothing ->
                     ""
 
-        replyID =
-            "reply-" ++ toString comment.id
+        id =
+            toString comment.id
     in
-    div [ class "comment" ]
+    div [ class ("comment-" ++ id) ]
         [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
         , span [ class "author" ] [ text author ]
         , span [ class "date" ] [ text created ]
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
-        , button [ id replyID ] [ text "reply" ]
+        , button [ onClick (CommentReply comment.id) ] [ text "reply" ]
         ]
 
 

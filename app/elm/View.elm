@@ -14,9 +14,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
-import Maybe.Extra exposing ((?), isNothing)
+import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
+import Util exposing (nothing)
 
 
 view : Model -> Html Msg
@@ -61,16 +62,39 @@ commentForm model formID =
 
         url_ =
             model.user.url ? ""
+
+        textAreaValue =
+            if formID == "oration-form" then
+                if isNothing model.parent then
+                    model.comment
+                else
+                    ""
+            else
+                --reply-form
+                model.comment
+
+        textAreaDisable =
+            if formID == "oration-form" && isJust model.parent then
+                True
+            else
+                False
+
+        buttonDisable =
+            if textAreaDisable then
+                True
+            else
+                setButtonDisabled model.comment
     in
     Html.form [ method "post", id formID, onSubmit PostComment ]
         [ textarea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
-            , value model.comment
+            , value textAreaValue
             , minlength 3
             , cols 55
             , rows 4
             , onInput UpdateComment
+            , disabled textAreaDisable
             ]
             []
         , div [ id "oration-control" ]
@@ -80,7 +104,7 @@ commentForm model formID =
             , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
             , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
             , label [ for "oration-preview-check" ] [ text "Preview" ]
-            , input [ type_ "submit", class "oration-submit", disabled <| setDisabled model.comment, value "Comment", onClick StoreUser ] []
+            , input [ type_ "submit", class "oration-submit", disabled buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]
 
@@ -89,8 +113,8 @@ commentForm model formID =
 {- Only allows users to comment if their comment is longer than 3 characters -}
 
 
-setDisabled : String -> Bool
-setDisabled comment =
+setButtonDisabled : String -> Bool
+setButtonDisabled comment =
     if String.length comment > 3 then
         False
     else
@@ -119,6 +143,7 @@ getIdentity user =
         data =
             [ user.name, user.email, user.url ]
 
+        --I think Maybe.Extra.values could also be used here
         unwrapped =
             List.filterMap identity data
     in
@@ -152,7 +177,7 @@ printComments model =
         utcNow =
             offsetNow model.now
     in
-    List.map (\c -> printComment c utcNow) model.comments
+    List.map (\c -> printComment c utcNow model) model.comments
 
 
 
@@ -161,8 +186,8 @@ printComments model =
 -}
 
 
-printComment : Comment -> Maybe Date.Date -> Html Msg
-printComment comment now =
+printComment : Comment -> Maybe Date.Date -> Model -> Html Msg
+printComment comment now model =
     let
         author =
             comment.author ? "Anonymous"
@@ -183,14 +208,34 @@ printComment comment now =
 
         id =
             toString comment.id
+
+        buttonText =
+            if model.parent == Just comment.id then
+                "close"
+            else
+                "reply"
     in
-    div [ class ("comment-" ++ id) ]
+    div [ name ("comment-" ++ id), class "comment" ]
         [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
         , span [ class "author" ] [ text author ]
         , span [ class "date" ] [ text created ]
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
-        , button [ onClick (CommentReply comment.id) ] [ text "reply" ]
+        , button [ onClick (CommentReply comment.id) ] [ text buttonText ]
+        , replyForm comment.id model.parent model
         ]
+
+
+replyForm : Int -> Maybe Int -> Model -> Html Msg
+replyForm id parent model =
+    case parent of
+        Just val ->
+            if id == val then
+                commentForm model "reply-form"
+            else
+                nothing
+
+        Nothing ->
+            nothing
 
 
 

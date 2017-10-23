@@ -1,44 +1,67 @@
 module Style exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li)
+import Css.Elements exposing (input, textarea)
 import Css.Namespace exposing (namespace)
+import Html.CssHelpers exposing (withNamespace)
 
 
-type CssClasses
-    = NavBar
+type OrationClasses
+    = Submit
+    | Reply
+    | Comment
+    | Identicon
+    | Author
+    | Date
+    | Content
 
 
-type CssIds
-    = Page
+type OrationIds
+    = OrationForm
+
+
+orationNamespace =
+    withNamespace "oration"
 
 
 css =
-    (stylesheet << namespace "oration")
-        [ body
-            [ overflowX auto
-            , minWidth (px 1280)
+    (stylesheet << namespace orationNamespace.name)
+        [ class Submit
+            [ backgroundColor (hex "ddd")
+            , padding (em 0.3)
+            , outline zero
+            , cursor pointer
+            , borderRadius (px 2)
+            , border3 (px 1) solid (hex "ccc")
+            , boxShadow4 zero (px 1) (px 2) (rgba 0 0 0 0.1)
+            , lineHeight (em 1.4)
             ]
-        , id Page
-            [ backgroundColor (rgb 200 128 64)
-            , color (hex "CCFFFF")
-            , width (pct 100)
-            , height (pct 100)
-            , boxSizing borderBox
-            , padding (px 8)
-            , margin zero
+        , class Reply
+            [ padding (px 20)
             ]
-        , class NavBar
-            [ margin zero
-            , children
-                [ li
-                    [ display inlineBlock |> important
-                    , color primaryAccentColor
+        , class Author
+            [ padding (px 2)
+            ]
+        , class Date
+            [ padding (px 3)
+            ]
+        , class Content
+            [ padding (px 1)
+            ]
+        , class Identicon
+            [ margin2 zero (px 10)
+            , display inlineBlock
+            , verticalAlign middle
+            ]
+        , id OrationForm
+            [ children
+                [ each [ input, textarea ]
+                    [ padding2 (em 0.3) (px 10)
+                    , borderRadius (px 3)
+                    , lineHeight (em 1.4)
+                    , border3 (px 1) solid (rgba 0 0 0 0.2)
+                    , boxShadow4 zero (px 1) (px 2) (rgba 0 0 0 0.1)
                     ]
                 ]
             ]
         ]
-
-
-primaryAccentColor =
-    hex "ccffaa"

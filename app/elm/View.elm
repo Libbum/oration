@@ -10,14 +10,19 @@ import Date.Distance.Types exposing (Config)
 import Date.Extra.Create exposing (getTimezoneOffset)
 import Date.Extra.Period as Period exposing (Period(..))
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
+import Style exposing (..)
 import Util exposing (nothing)
+
+
+{ id, class, classList } =
+    orationNamespace
 
 
 view : Model -> Html Msg
@@ -85,7 +90,7 @@ commentForm model formID =
             else
                 setButtonDisabled model.comment
     in
-    Html.form [ method "post", id formID, onSubmit PostComment ]
+    Html.form [ method "post", id OrationForm, onSubmit PostComment ]
         [ textarea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
@@ -104,7 +109,7 @@ commentForm model formID =
             , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
             , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
             , label [ for "oration-preview-check" ] [ text "Preview" ]
-            , input [ type_ "submit", class "oration-submit", disabled buttonDisable, value "Comment", onClick StoreUser ] []
+            , input [ type_ "submit", class [ Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]
 
@@ -213,11 +218,11 @@ printComment comment now model =
             else
                 "reply"
     in
-    div [ name ("comment-" ++ id), class "comment" ]
-        [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
-        , span [ class "author" ] [ text author ]
-        , span [ class "date" ] [ text created ]
-        , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
+    div [ name ("comment-" ++ id), class [ Style.Comment ] ]
+        [ span [ class [ Identicon ] ] [ identicon "25px" comment.hash ]
+        , span [ class [ Author ] ] [ text author ]
+        , span [ class [ Date ] ] [ text created ]
+        , span [ class [ Content ] ] <| Markdown.toHtml Nothing comment.text
         , button [ onClick (CommentReply comment.id) ] [ text buttonText ]
         , replyForm comment.id model.parent model
         , printResponses comment.children now model
@@ -228,7 +233,7 @@ printResponses : Maybe Responses -> Maybe Date.Date -> Model -> Html Msg
 printResponses responses now model =
     case responses of
         Just responseList ->
-            div [ class "reply" ] <|
+            div [ class [ Reply ] ] <|
                 List.map (\c -> printComment c now model) <|
                     unwrapResponses responseList
 

@@ -2,9 +2,6 @@ exports.config = {
     files: {
         javascripts: {
             joinTo: "js/app.js"
-        },
-        stylesheets: {
-            joinTo: "css/oration.css"
         }
     },
     conventions: {
@@ -17,7 +14,7 @@ exports.config = {
     // paths configuration
     paths: {
         // Dependencies and current project directories to watch
-        watched: ["static", "css", "js", "vendor", "elm"],
+        watched: ["static", "js", "vendor", "elm"],
         // Where to compile files to
         public: "../public"
     },
@@ -36,7 +33,7 @@ exports.config = {
             projectDir: "elm",
             sourcePath: "Stylesheets.elm",
             patters: "Style.elm",
-            outputDir: "../css"
+            outputDir: "../../public/css"
         }
     },
     modules: {

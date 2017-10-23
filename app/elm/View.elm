@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Crypto.Hash
-import Data.Comment exposing (Comment)
+import Data.Comment exposing (Comment, Responses, unwrapResponses)
 import Data.User exposing (User)
 import Date
 import Date.Distance exposing (defaultConfig, inWordsWithConfig)
@@ -181,9 +181,7 @@ printComments model =
 
 
 
-{- Format a single comment
-   For now this ignores parent nesting.
--}
+{- Format a single comment -}
 
 
 printComment : Comment -> Maybe Date.Date -> Model -> Html Msg
@@ -222,7 +220,20 @@ printComment comment now model =
         , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
         , button [ onClick (CommentReply comment.id) ] [ text buttonText ]
         , replyForm comment.id model.parent model
+        , printResponses comment.children now model
         ]
+
+
+printResponses : Maybe Responses -> Maybe Date.Date -> Model -> Html Msg
+printResponses responses now model =
+    case responses of
+        Just responseList ->
+            div [ class "reply" ] <|
+                List.map (\c -> printComment c now model) <|
+                    unwrapResponses responseList
+
+        Nothing ->
+            nothing
 
 
 replyForm : Int -> Maybe Int -> Model -> Html Msg

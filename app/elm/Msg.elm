@@ -39,3 +39,4 @@ type Msg
     | Comments (Result Http.Error (List Comment))
     | GetDate Time
     | NewDate Date
+    | CommentReply Int

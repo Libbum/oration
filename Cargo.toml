@@ -26,3 +26,4 @@ reqwest = "0.7"
 argon2rs = { version = "0.2", features = ["simd"] }
 rust-crypto = "^0.2"
 itertools = "0.6"
+petgraph = "0.4"

@@ -1,7 +1,7 @@
 module Request.User exposing (hash)
 
 import Http
-import HttpBuilder exposing (RequestBuilder, withQueryParams)
+import HttpBuilder
 
 
 {-| Request a hash of the users IP

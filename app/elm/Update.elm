@@ -1,14 +1,15 @@
-module Update exposing (..)
+module Update exposing (subscriptions, update)
 
 import Date
 import Http
 import LocalStorage
-import Maybe.Extra exposing ((?), isNothing)
+import Maybe.Extra exposing ((?))
 import Models exposing (Model)
 import Msg exposing (Msg(..))
-import Ports exposing (..)
+import Ports exposing (title)
 import Request.Comment
 import Task
+import Time exposing (Time, minute)
 import Util exposing (stringToMaybe)
 
 
@@ -89,7 +90,7 @@ update msg model =
                 Ok _ ->
                     update Refresh model
 
-                Err err ->
+                Err _ ->
                     model ! []
 
         Refresh ->
@@ -100,7 +101,7 @@ update msg model =
                 Ok _ ->
                     update (SetUserValue key (Just val)) model
 
-                Err err ->
+                Err _ ->
                     model ! []
 
         SetUserValue key valueMaybe ->
@@ -150,12 +151,7 @@ update msg model =
                     model ! []
 
         StoreUser ->
-            model
-                ! [ Cmd.batch
-                        [ storeUser model
-                        , Task.perform ReceiveDate Date.now
-                        ]
-                  ]
+            model ! [ storeUser model ]
 
         Title value ->
             { model | title = value } ! []
@@ -163,6 +159,7 @@ update msg model =
         PostComment ->
             { model
                 | comment = ""
+                , parent = Nothing
                 , count = model.count + 1
             }
                 ! [ let
@@ -181,7 +178,7 @@ update msg model =
                         Ok val ->
                             val
 
-                        Err err ->
+                        Err _ ->
                             "Error!"
             in
             { model | httpResponse = response } ! []
@@ -197,22 +194,37 @@ update msg model =
             model ! []
 
         Comments (Ok result) ->
-            let
-                comments =
-                    model.comments
-            in
             { model | comments = result } ! []
 
         Comments (Err _) ->
             model ! []
 
-        ReceiveDate date ->
+        GetDate _ ->
+            model ! [ Task.perform NewDate Date.now ]
+
+        NewDate date ->
             { model | now = Just date } ! []
+
+        CommentReply id ->
+            let
+                current =
+                    model.parent
+
+                value =
+                    if current == Just id then
+                        Nothing
+                    else
+                        Just id
+            in
+            { model | parent = value } ! []
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    title Title
+    Sub.batch
+        [ title Title
+        , Time.every minute GetDate
+        ]
 
 
 {-| localStorage values are always strings. We store the preview bool via toString, so this will be good enough as a decoder.

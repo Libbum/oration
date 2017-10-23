@@ -1,4 +1,4 @@
-port module Ports exposing (..)
+port module Ports exposing (title)
 
 {- port for listening for document title from JavaScript -}
 

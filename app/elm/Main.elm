@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Date
 import Http
@@ -21,6 +21,7 @@ main =
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
     ( { comment = ""
+      , parent = Nothing
       , user =
             { name = Nothing
             , email = Nothing
@@ -60,5 +61,5 @@ initialise location =
         , Task.attempt Msg.OnKeys LocalStorage.keys
         , Task.attempt Msg.Hash loadHash
         , Task.attempt Msg.Comments loadComments
-        , Task.perform Msg.ReceiveDate Date.now
+        , Task.perform Msg.NewDate Date.now
         ]

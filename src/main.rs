@@ -33,6 +33,7 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
+extern crate petgraph;
 //extern crate argon2rs;
 extern crate crypto;
 extern crate reqwest;
@@ -66,7 +67,7 @@ use rocket::request::Form;
 use rocket::response::NamedFile;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{PrintedComment, Comment};
+use models::comments::{NestedComment, Comment};
 use models::threads;
 use std::process;
 use yansi::Paint;
@@ -86,6 +87,8 @@ fn index() -> io::Result<NamedFile> {
 struct FormInput {
     /// Comment from textarea.
     comment: String,
+    /// Parent comment if any.
+    parent: Option<i32>,
     /// Optional name.
     name: Option<String>,
     /// Optional email.
@@ -117,6 +120,7 @@ fn new_comment<'a>(
                     if let Err(err) = Comment::new(
                         &conn,
                         tid,
+                        form.parent,
                         &form.comment,
                         form.name,
                         form.email,
@@ -200,14 +204,14 @@ struct Post {
 #[derive(Serialize)]
 /// Comments to frontend
 struct PostComments {
-    comments: Vec<PrintedComment>,
+    comments: Vec<NestedComment>,
 }
 
 /// Return a json block of comment data for the requested url.
 #[get("/comments?<post>")]
 fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
     //TODO: The logic here may not 100%, need to consider / vs /index.* for example.
-    match PrintedComment::list(&conn, &post.url) {
+    match NestedComment::list(&conn, &post.url) {
         Ok(comments) => {
             //We now have a vector of comments
             let to_send = PostComments { comments: comments };

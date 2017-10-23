@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, decoder, encode)
+module Data.Comment exposing (Comment, Responses, decoder, encode, unwrapResponses)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
@@ -14,7 +14,20 @@ type alias Comment =
     , author : Maybe String
     , hash : String
     , created : Maybe Date
+    , id : Int
+    , children : Maybe Responses
     }
+
+
+type Responses
+    = Responses (List Comment)
+
+
+unwrapResponses : Responses -> List Comment
+unwrapResponses responses =
+    case responses of
+        Responses comments ->
+            comments
 
 
 
@@ -28,6 +41,13 @@ decoder =
         |> required "author" (Decode.nullable Decode.string)
         |> required "hash" Decode.string
         |> required "created" (Decode.nullable DecodeExtra.date)
+        |> required "id" Decode.int
+        |> required "children" (Decode.nullable decodeResponses)
+
+
+decodeResponses : Decoder Responses
+decodeResponses =
+    Decode.map Responses (Decode.list (Decode.lazy (\_ -> decoder)))
 
 
 encode : Comment -> Value

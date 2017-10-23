@@ -8,6 +8,7 @@ import Navigation exposing (Location)
 
 type alias Model =
     { comment : String --TODO: Should probably rename this now
+    , parent : Maybe Int
     , user : User
     , comments : List Comment
     , count : Int

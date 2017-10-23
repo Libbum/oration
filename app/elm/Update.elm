@@ -159,6 +159,7 @@ update msg model =
         PostComment ->
             { model
                 | comment = ""
+                , parent = Nothing
                 , count = model.count + 1
             }
                 ! [ let
@@ -203,6 +204,19 @@ update msg model =
 
         NewDate date ->
             { model | now = Just date } ! []
+
+        CommentReply id ->
+            let
+                current =
+                    model.parent
+
+                value =
+                    if current == Just id then
+                        Nothing
+                    else
+                        Just id
+            in
+            { model | parent = value } ! []
 
 
 subscriptions : Model -> Sub Msg

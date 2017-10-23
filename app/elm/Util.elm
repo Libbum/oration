@@ -1,4 +1,6 @@
-module Util exposing ((=>), pair, stringToMaybe)
+module Util exposing ((=>), nothing, pair, stringToMaybe)
+
+import Html exposing (Html, text)
 
 
 (=>) : a -> b -> ( a, b )
@@ -30,3 +32,8 @@ stringToMaybe val =
         Nothing
     else
         Just val
+
+
+nothing : Html msg
+nothing =
+    text ""

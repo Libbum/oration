@@ -9,6 +9,7 @@ import Msg exposing (Msg(..))
 import Ports exposing (title)
 import Request.Comment
 import Task
+import Time exposing (Time, minute)
 import Util exposing (stringToMaybe)
 
 
@@ -150,12 +151,7 @@ update msg model =
                     model ! []
 
         StoreUser ->
-            model
-                ! [ Cmd.batch
-                        [ storeUser model
-                        , Task.perform ReceiveDate Date.now
-                        ]
-                  ]
+            model ! [ storeUser model ]
 
         Title value ->
             { model | title = value } ! []
@@ -203,7 +199,10 @@ update msg model =
         Comments (Err _) ->
             model ! []
 
-        ReceiveDate date ->
+        GetDate _ ->
+            model ! [ Task.perform NewDate Date.now ]
+
+        NewDate date ->
             { model | now = Just date } ! []
 
         CommentReply id ->
@@ -222,7 +221,10 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    title Title
+    Sub.batch
+        [ title Title
+        , Time.every minute GetDate
+        ]
 
 
 {-| localStorage values are always strings. We store the preview bool via toString, so this will be good enough as a decoder.

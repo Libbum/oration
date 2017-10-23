@@ -5,6 +5,7 @@ import Date exposing (Date)
 import Http
 import LocalStorage
 import Navigation exposing (Location)
+import Time exposing (Time)
 
 
 type alias Key =
@@ -36,5 +37,5 @@ type Msg
     | ReceiveHttp (Result Http.Error String)
     | Hash (Result Http.Error String)
     | Comments (Result Http.Error (List Comment))
-    | ReceiveDate Date
-    | CommentReply Int
+    | GetDate Time
+    | NewDate Date

@@ -61,5 +61,5 @@ initialise location =
         , Task.attempt Msg.OnKeys LocalStorage.keys
         , Task.attempt Msg.Hash loadHash
         , Task.attempt Msg.Comments loadComments
-        , Task.perform Msg.ReceiveDate Date.now
+        , Task.perform Msg.NewDate Date.now
         ]

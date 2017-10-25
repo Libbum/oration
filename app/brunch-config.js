@@ -22,10 +22,6 @@ exports.config = {
         public: "../public"
     },
     plugins: {
-        babel: {
-            // Do not use ES6 compiler in vendor code
-            ignore: [/vendor/]
-        },
         elmBrunch: {
             elmFolder: "elm",
             mainModules: ["Main.elm"],

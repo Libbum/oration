@@ -17,12 +17,15 @@ import Markdown
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
-import Style exposing (..)
+import Style
 import Util exposing (nothing)
 
 
+{- Sync up stylsheets -}
+
+
 { id, class, classList } =
-    orationNamespace
+    Style.orationNamespace
 
 
 view : Model -> Html Msg
@@ -45,7 +48,7 @@ view model =
         , div [ id "debug" ] [ text model.httpResponse ]
         , div [ id "comment-preview" ] <|
             Markdown.toHtml Nothing markdown
-        , div [ id "oration-comments" ] <| printComments model
+        , div [ id Style.OrationComments ] <| printComments model
         ]
 
 
@@ -90,26 +93,29 @@ commentForm model formID =
             else
                 setButtonDisabled model.comment
     in
-    Html.form [ method "post", id OrationForm, onSubmit PostComment ]
+    Html.form [ method "post", id formID, class [ Style.Form ], onSubmit PostComment ]
         [ textarea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
             , value textAreaValue
             , minlength 3
-            , cols 55
+            , cols 80
             , rows 4
             , onInput UpdateComment
             , disabled textAreaDisable
+            , class [ Style.Block ]
             ]
             []
-        , div [ id "oration-control" ]
-            [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
+        , div [ class [ Style.User ] ]
+            [ span [ class [ Style.Identicon ] ] [ identicon "25px" identity ]
             , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
             , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
             , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
-            , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
+            ]
+        , div [ class [ Style.Control ] ]
+            [ input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
             , label [ for "oration-preview-check" ] [ text "Preview" ]
-            , input [ type_ "submit", class [ Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
+            , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]
 
@@ -219,11 +225,12 @@ printComment comment now model =
                 "reply"
     in
     div [ name ("comment-" ++ id), class [ Style.Comment ] ]
-        [ span [ class [ Identicon ] ] [ identicon "25px" comment.hash ]
-        , span [ class [ Author ] ] [ text author ]
-        , span [ class [ Date ] ] [ text created ]
-        , span [ class [ Content ] ] <| Markdown.toHtml Nothing comment.text
-        , button [ onClick (CommentReply comment.id) ] [ text buttonText ]
+        [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
+        , span [ class [ Style.Author ] ] [ text author ]
+        , span [ class [ Style.Spacer ] ] [ text "•" ]
+        , span [ class [ Style.Date ] ] [ text created ]
+        , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
+        , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
         , replyForm comment.id model.parent model
         , printResponses comment.children now model
         ]
@@ -233,7 +240,7 @@ printResponses : Maybe Responses -> Maybe Date.Date -> Model -> Html Msg
 printResponses responses now model =
     case responses of
         Just responseList ->
-            div [ class [ Reply ] ] <|
+            div [ class [ Style.Response ] ] <|
                 List.map (\c -> printComment c now model) <|
                     unwrapResponses responseList
 

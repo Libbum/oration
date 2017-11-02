@@ -42,14 +42,17 @@ orationNamespace =
 {- Colors -}
 
 
+primaryColor : Color
 primaryColor =
     hex "6496c8"
 
 
+hoverColor : Color
 hoverColor =
     hex "346392"
 
 
+activeColor : Color
 activeColor =
     hex "27496d"
 
@@ -202,6 +205,7 @@ css =
         ]
 
 
+inputStyle : Style
 inputStyle =
     batch
         [ padding2 (em 0.3) (px 10)

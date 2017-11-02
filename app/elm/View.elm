@@ -10,14 +10,22 @@ import Date.Distance.Types exposing (Config)
 import Date.Extra.Create exposing (getTimezoneOffset)
 import Date.Extra.Period as Period exposing (Period(..))
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
+import Style
 import Util exposing (nothing)
+
+
+{- Sync up stylsheets -}
+
+
+{ id, class, classList } =
+    Style.orationNamespace
 
 
 view : Model -> Html Msg
@@ -34,13 +42,13 @@ view model =
                         " comment"
                    )
     in
-    div [ id "oration" ]
+    div [ id Style.Oration ]
         [ h2 [] [ text count ]
-        , commentForm model "oration-form"
-        , div [ id "debug" ] [ text model.httpResponse ]
-        , div [ id "comment-preview" ] <|
+        , commentForm model Style.OrationForm
+        , div [ id Style.OrationDebug ] [ text model.httpResponse ]
+        , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
-        , div [ id "oration-comments" ] <| printComments model
+        , ul [ id Style.OrationComments ] <| printComments model
         ]
 
 
@@ -48,7 +56,7 @@ view model =
 {- Comment form. Can be used as the main form or in a reply. -}
 
 
-commentForm : Model -> String -> Html Msg
+commentForm : Model -> Style.OrationIds -> Html Msg
 commentForm model formID =
     let
         identity =
@@ -64,17 +72,17 @@ commentForm model formID =
             model.user.url ? ""
 
         textAreaValue =
-            if formID == "oration-form" then
+            if formID == Style.OrationForm then
                 if isNothing model.parent then
                     model.comment
                 else
                     ""
             else
-                --reply-form
+                --OrationReplyForm
                 model.comment
 
         textAreaDisable =
-            if formID == "oration-form" && isJust model.parent then
+            if formID == Style.OrationForm && isJust model.parent then
                 True
             else
                 False
@@ -85,26 +93,29 @@ commentForm model formID =
             else
                 setButtonDisabled model.comment
     in
-    Html.form [ method "post", id formID, onSubmit PostComment ]
+    Html.form [ method "post", id formID, class [ Style.Form ], onSubmit PostComment ]
         [ textarea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
             , value textAreaValue
             , minlength 3
-            , cols 55
+            , cols 80
             , rows 4
             , onInput UpdateComment
             , disabled textAreaDisable
+            , class [ Style.Block ]
             ]
             []
-        , div [ id "oration-control" ]
-            [ span [ id "oration-identicon" ] [ identicon "25px" identity ]
+        , div [ class [ Style.User ] ]
+            [ span [ class [ Style.Identicon, Style.LeftMargin10 ] ] [ identicon "25px" identity ]
             , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
             , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
             , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
-            , input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
-            , label [ for "oration-preview-check" ] [ text "Preview" ]
-            , input [ type_ "submit", class "oration-submit", disabled buttonDisable, value "Comment", onClick StoreUser ] []
+            ]
+        , div [ class [ Style.Control ] ]
+            [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []
+            , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
+            , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]
 
@@ -213,12 +224,13 @@ printComment comment now model =
             else
                 "reply"
     in
-    div [ name ("comment-" ++ id), class "comment" ]
-        [ span [ class "identicon" ] [ identicon "25px" comment.hash ]
-        , span [ class "author" ] [ text author ]
-        , span [ class "date" ] [ text created ]
-        , span [ class "text" ] <| Markdown.toHtml Nothing comment.text
-        , button [ onClick (CommentReply comment.id) ] [ text buttonText ]
+    li [ name ("comment-" ++ id), class [ Style.Comment ] ]
+        [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
+        , span [ class [ Style.Author ] ] [ text author ]
+        , span [ class [ Style.Spacer ] ] [ text "•" ]
+        , span [ class [ Style.Date ] ] [ text created ]
+        , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
+        , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
         , replyForm comment.id model.parent model
         , printResponses comment.children now model
         ]
@@ -228,7 +240,7 @@ printResponses : Maybe Responses -> Maybe Date.Date -> Model -> Html Msg
 printResponses responses now model =
     case responses of
         Just responseList ->
-            div [ class "reply" ] <|
+            ul [] <|
                 List.map (\c -> printComment c now model) <|
                     unwrapResponses responseList
 
@@ -241,7 +253,7 @@ replyForm id parent model =
     case parent of
         Just val ->
             if id == val then
-                commentForm model "reply-form"
+                commentForm model Style.OrationReplyForm
             else
                 nothing
 

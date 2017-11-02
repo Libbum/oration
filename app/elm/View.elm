@@ -48,7 +48,7 @@ view model =
         , div [ id Style.OrationDebug ] [ text model.httpResponse ]
         , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
-        , div [ id Style.OrationComments ] <| printComments model
+        , ul [ id Style.OrationComments ] <| printComments model
         ]
 
 
@@ -224,7 +224,7 @@ printComment comment now model =
             else
                 "reply"
     in
-    div [ name ("comment-" ++ id), class [ Style.Comment ] ]
+    li [ name ("comment-" ++ id), class [ Style.Comment ] ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
         , span [ class [ Style.Author ] ] [ text author ]
         , span [ class [ Style.Spacer ] ] [ text "•" ]
@@ -240,7 +240,7 @@ printResponses : Maybe Responses -> Maybe Date.Date -> Model -> Html Msg
 printResponses responses now model =
     case responses of
         Just responseList ->
-            div [ class [ Style.Response ] ] <|
+            ul [] <|
                 List.map (\c -> printComment c now model) <|
                     unwrapResponses responseList
 

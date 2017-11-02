@@ -1,7 +1,7 @@
 module Style exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (input, label, textarea, typeSelector)
+import Css.Elements exposing (input, label, li, textarea, typeSelector, ul)
 import Css.Namespace exposing (namespace)
 import Html.CssHelpers exposing (withNamespace)
 
@@ -82,6 +82,7 @@ css =
             , hover [ borderColor hoverColor, color hoverColor ]
             , active [ borderColor activeColor, color activeColor ]
             , marginBottom (px 10)
+            , fontSize (pt 10)
             ]
         , class Response
             [ paddingLeft (px 20)
@@ -181,11 +182,22 @@ css =
                 ]
             ]
         , id OrationComments
-            [ display block
+            [ padding zero
+            , children
+                [ li
+                    [ firstChild
+                        [ border zero
+                        ]
+                    ]
+                ]
+            ]
+        , li
+            [ listStyleType none
+            , borderTop3 (px 1) solid (rgba 0 0 0 0.2)
+            , paddingTop (px 5)
             ]
         , id Oration
             [ width (px 597)
-            , border3 (px 1) solid (hex "000")
             ]
         ]
 

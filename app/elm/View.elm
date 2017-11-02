@@ -42,11 +42,11 @@ view model =
                         " comment"
                    )
     in
-    div [ id "oration" ]
+    div [ id Style.Oration ]
         [ h2 [] [ text count ]
-        , commentForm model "oration-form"
-        , div [ id "debug" ] [ text model.httpResponse ]
-        , div [ id "comment-preview" ] <|
+        , commentForm model Style.OrationForm
+        , div [ id Style.OrationDebug ] [ text model.httpResponse ]
+        , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
         , div [ id Style.OrationComments ] <| printComments model
         ]
@@ -56,7 +56,7 @@ view model =
 {- Comment form. Can be used as the main form or in a reply. -}
 
 
-commentForm : Model -> String -> Html Msg
+commentForm : Model -> Style.OrationIds -> Html Msg
 commentForm model formID =
     let
         identity =
@@ -72,17 +72,17 @@ commentForm model formID =
             model.user.url ? ""
 
         textAreaValue =
-            if formID == "oration-form" then
+            if formID == Style.OrationForm then
                 if isNothing model.parent then
                     model.comment
                 else
                     ""
             else
-                --reply-form
+                --OrationReplyForm
                 model.comment
 
         textAreaDisable =
-            if formID == "oration-form" && isJust model.parent then
+            if formID == Style.OrationForm && isJust model.parent then
                 True
             else
                 False
@@ -107,14 +107,14 @@ commentForm model formID =
             ]
             []
         , div [ class [ Style.User ] ]
-            [ span [ class [ Style.Identicon ] ] [ identicon "25px" identity ]
+            [ span [ class [ Style.Identicon, Style.LeftMargin10 ] ] [ identicon "25px" identity ]
             , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
             , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
             , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
             ]
         , div [ class [ Style.Control ] ]
-            [ input [ type_ "checkbox", id "oration-preview-check", checked model.user.preview, onClick UpdatePreview ] []
-            , label [ for "oration-preview-check" ] [ text "Preview" ]
+            [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []
+            , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
             , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]
@@ -253,7 +253,7 @@ replyForm id parent model =
     case parent of
         Just val ->
             if id == val then
-                commentForm model "reply-form"
+                commentForm model Style.OrationReplyForm
             else
                 nothing
 

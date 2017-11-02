@@ -20,10 +20,17 @@ type OrationClasses
     | User
     | Control
     | Block
+    | LeftMargin10
 
 
 type OrationIds
-    = OrationComments
+    = Oration
+    | OrationComments
+    | OrationForm
+    | OrationReplyForm
+    | OrationPreviewCheck
+    | OrationCommentPreview
+    | OrationDebug
 
 
 orationNamespace : Html.CssHelpers.Namespace String class id msg
@@ -74,10 +81,11 @@ css =
             , outline zero
             , hover [ borderColor hoverColor, color hoverColor ]
             , active [ borderColor activeColor, color activeColor ]
+            , marginBottom (px 10)
             ]
         , class Response
             [ paddingLeft (px 20)
-            , paddingTop (px 10)
+            , border3 (px 1) solid (hex "F00")
             ]
         , class Control
             [ float right
@@ -103,9 +111,12 @@ css =
             [ padding (px 0)
             ]
         , class Identicon
-            [ margin2 zero (px 10)
-            , display inlineBlock
+            [ display inlineBlock
             , verticalAlign middle
+            , marginRight (px 10)
+            ]
+        , class LeftMargin10
+            [ marginLeft (px 10)
             ]
         , typeSelector "input[type=\"checkbox\"]"
             [ adjacentSiblings
@@ -160,12 +171,21 @@ css =
             , margin3 zero auto (em 3)
             ]
         , class User
-            [ children
-                [ input [ inputStyle ]
+            [ paddingTop (px 2)
+            , paddingBottom (px 5)
+            , children
+                [ input
+                    [ inputStyle
+                    , width (px 162)
+                    ]
                 ]
             ]
         , id OrationComments
             [ display block
+            ]
+        , id Oration
+            [ width (px 597)
+            , border3 (px 1) solid (hex "000")
             ]
         ]
 

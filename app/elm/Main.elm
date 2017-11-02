@@ -2,7 +2,6 @@ module Main exposing (main)
 
 import Date
 import Http
-import LocalStorage
 import Models exposing (Model)
 import Msg exposing (Msg)
 import Navigation
@@ -58,7 +57,6 @@ initialise location =
     in
     Cmd.batch
         [ Task.attempt Msg.Count loadCount
-        , Task.attempt Msg.OnKeys LocalStorage.keys
         , Task.attempt Msg.Hash loadHash
         , Task.attempt Msg.Comments loadComments
         , Task.perform Msg.NewDate Date.now

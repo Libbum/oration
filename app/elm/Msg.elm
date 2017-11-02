@@ -3,17 +3,8 @@ module Msg exposing (..)
 import Data.Comment exposing (Comment)
 import Date exposing (Date)
 import Http
-import LocalStorage
 import Navigation exposing (Location)
 import Time exposing (Time)
-
-
-type alias Key =
-    LocalStorage.Key
-
-
-type alias Value =
-    LocalStorage.Value
 
 
 type Msg
@@ -22,15 +13,9 @@ type Msg
     | UpdateEmail String
     | UpdateUrl String
     | UpdatePreview
+    | SetPreview String
     | Count (Result Http.Error String)
     | Post Location
-    | OnKeys (Result LocalStorage.Error (List Key))
-    | SetUser (List Key)
-    | OnGet Key (Result LocalStorage.Error (Maybe Value))
-    | SetUserValue Key (Maybe Value)
-    | OnVoidOp (Result LocalStorage.Error ())
-    | Refresh
-    | AfterSetValue Key Value (Result LocalStorage.Error ())
     | StoreUser
     | Title String
     | PostComment

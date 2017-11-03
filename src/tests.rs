@@ -18,7 +18,7 @@ fn db_connection() {
 #[test]
 /// Compares the session hash in the database to the one returned by /session
 fn session_hash() {
-    let (rocket, conn) = rocket();
+    let (rocket, conn, _) = rocket();
     let client = Client::new(rocket).expect("valid rocket instance");
     let mut response = client.get("/session").dispatch();
 

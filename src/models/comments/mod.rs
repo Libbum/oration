@@ -95,7 +95,7 @@ impl Comment {
     }
 
     /// Stores a new comment into the database.
-    pub fn new<'c>(
+    pub fn insert<'c>(
         conn: &SqliteConnection,
         tid: i32,
         parent: Option<i32>,
@@ -119,11 +119,7 @@ impl Comment {
         //There has to be a better way to organise this.
         let is_data = {
             let user = [&author, &email, &url];
-            if user.into_iter().any(|&v| v.is_some()) {
-                true
-            } else {
-                false
-            }
+            user.into_iter().any(|&v| v.is_some())
         };
         if is_data {
             let mut data: Vec<String> = Vec::new();
@@ -138,7 +134,7 @@ impl Comment {
             };
             hasher.input_str(&join(data.iter(), "b"));
         } else {
-            hasher.input_str(&ip_addr);
+            hasher.input_str(ip_addr);
         }
         let hash = hasher.result_str();
 
@@ -247,15 +243,12 @@ impl NestedComment {
             graph.add_node(comment.id);
 
             //Generate edges if a relationship is found, stash as a root if not
-            match comment.parent {
-                Some(parent_id) => {
+            if let Some(parent_id) = comment.parent {
                     graph.add_node(parent_id);
                     graph.add_edge(parent_id, comment.id, ());
-                }
-                None => {
+                } else {
                     top_level_ids.push(comment.id);
                 }
-            }
         }
 
         //Run over all root comments, recursively filling their children as we go
@@ -268,10 +261,11 @@ impl NestedComment {
     }
 }
 
+/// Construct a nested comment tree from the flat indexed data obtained from the database.
 fn build_tree(
     graph: &DiGraphMap<i32, ()>,
     id: i32,
-    comments: &Vec<PrintedComment>,
+    comments: &[PrintedComment],
 ) -> NestedComment {
     let children: Vec<NestedComment> = graph
         .neighbors(id)
@@ -281,7 +275,7 @@ fn build_tree(
     //We can just unwrap here since the id value is always populated from a map over contents.
     let idx: usize = comments.iter().position(|c| c.id == id).unwrap();
 
-    if children.len() > 0 {
+    if !children.is_empty() {
         NestedComment::new(&comments[idx], Some(children))
     } else {
         NestedComment::new(&comments[idx], None)

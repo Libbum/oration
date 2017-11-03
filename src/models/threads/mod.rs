@@ -97,21 +97,6 @@ fn create<'t>(
     }
 }
 
-/// Returns the id and title of a thread from the database for a given URI.
-fn get(conn: &SqliteConnection, find_uri: &str) -> Result<String> {
-    use schema::threads::dsl::*;
-
-    let thread_info = threads
-        .filter(uri.eq(find_uri.to_string()))
-        .load::<Thread>(conn)
-        .chain_err(|| ErrorKind::DBRead)?;
-    if thread_info.len() == 1 {
-        Ok(format!("{:?}", thread_info[0]))
-    } else {
-        Err(ErrorKind::NoThread(find_uri.to_string()).into())
-    }
-}
-
 /// Returns the id of a thread from the database for a given URI.
 fn get_id(conn: &SqliteConnection, find_uri: &str) -> Result<i32> {
     use schema::threads::dsl::*;
@@ -127,17 +112,3 @@ fn get_id(conn: &SqliteConnection, find_uri: &str) -> Result<i32> {
     }
 }
 
-/// Returns true if the requested URI is in the database.
-fn contains(conn: &SqliteConnection, find_uri: &str) -> Result<bool> {
-    use schema::threads::dsl::*;
-
-    let thread_info = threads
-        .filter(uri.eq(find_uri))
-        .load::<Thread>(conn)
-        .chain_err(|| ErrorKind::DBRead)?;
-    if thread_info.len() == 1 {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
-}

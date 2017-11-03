@@ -117,7 +117,7 @@ fn new_comment<'a>(
             //Get thread id from the db, create if needed
             match threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
                 Ok(tid) => {
-                    if let Err(err) = Comment::new(
+                    if let Err(err) = Comment::insert(
                         &conn,
                         tid,
                         form.parent,
@@ -204,6 +204,7 @@ struct Post {
 #[derive(Serialize)]
 /// Comments to frontend
 struct PostComments {
+    /// A nested set of comments.
     comments: Vec<NestedComment>,
 }
 
@@ -254,7 +255,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             for e in err.iter().skip(1) {
                 println!("caused by: {}", e);
             }
-            process::exit(1);
+            process::exit(1)
         }
     };
     let host = config.host.clone();

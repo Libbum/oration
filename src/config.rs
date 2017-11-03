@@ -3,7 +3,7 @@ use serde_yaml;
 use std::fs::File;
 use errors::*;
 
-// The main struct which all input data from `oration.yaml` is pushed into.
+/// The main struct which all input data from `oration.yaml` is pushed into.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     /// Top level location of the blog we are serving.

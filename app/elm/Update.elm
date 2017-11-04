@@ -129,7 +129,15 @@ update msg model =
             model ! []
 
         Comments (Ok result) ->
-            { model | comments = result } ! []
+            let
+                count =
+                    List.length result
+            in
+            { model
+                | comments = result
+                , count = count
+            }
+                ! []
 
         Comments (Err _) ->
             model ! []

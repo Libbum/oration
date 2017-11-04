@@ -43,11 +43,6 @@ init location =
 initialise : Navigation.Location -> Cmd Msg
 initialise location =
     let
-        --TODO: Count wont be needed soon, not on the main view at least.
-        loadCount =
-            Request.Comment.count location
-                |> Http.toTask
-
         loadHashes =
             Request.Init.hashes
                 |> Http.toTask
@@ -57,8 +52,7 @@ initialise location =
                 |> Http.toTask
     in
     Cmd.batch
-        [ Task.attempt Msg.Count loadCount
-        , Task.attempt Msg.Hashes loadHashes
+        [ Task.attempt Msg.Hashes loadHashes
         , Task.attempt Msg.Comments loadComments
         , Task.perform Msg.NewDate Date.now
         ]

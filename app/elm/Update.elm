@@ -114,14 +114,18 @@ update msg model =
             in
             { model | httpResponse = response } ! []
 
-        Hash (Ok result) ->
+        Hashes (Ok result) ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | iphash = Just result } } ! []
+            { model
+                | user = { user | iphash = result.userIp }
+                , blogAuthor = result.blogAuthor ? ""
+            }
+                ! []
 
-        Hash (Err _) ->
+        Hashes (Err _) ->
             model ! []
 
         Comments (Ok result) ->

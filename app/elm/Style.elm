@@ -1,7 +1,7 @@
 module Style exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (input, label, li, textarea, typeSelector, ul)
+import Css.Elements exposing (input, label, li, textarea, typeSelector)
 import Css.Namespace exposing (namespace)
 import Html.CssHelpers exposing (withNamespace)
 
@@ -11,6 +11,7 @@ type OrationClasses
     | Reply
     | Response
     | Comment
+    | BlogAuthor
     | Identicon
     | Author
     | Date
@@ -99,6 +100,8 @@ css =
         , class Block
             [ display block
             ]
+        , class BlogAuthor
+            [ backgroundColor (rgba 0 0 0 0.03) ]
         , class Author
             [ fontWeight bold
             , color (hex "555")

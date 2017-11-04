@@ -6,7 +6,7 @@ import Models exposing (Model)
 import Msg exposing (Msg)
 import Navigation
 import Request.Comment
-import Request.User
+import Request.Init
 import Task
 import Update exposing (subscriptions, update)
 import View exposing (view)
@@ -34,6 +34,7 @@ init location =
       , title = ""
       , httpResponse = ""
       , now = Nothing
+      , blogAuthor = ""
       }
     , initialise location
     )
@@ -47,8 +48,8 @@ initialise location =
             Request.Comment.count location
                 |> Http.toTask
 
-        loadHash =
-            Request.User.hash
+        loadHashes =
+            Request.Init.hashes
                 |> Http.toTask
 
         loadComments =
@@ -57,7 +58,7 @@ initialise location =
     in
     Cmd.batch
         [ Task.attempt Msg.Count loadCount
-        , Task.attempt Msg.Hash loadHash
+        , Task.attempt Msg.Hashes loadHashes
         , Task.attempt Msg.Comments loadComments
         , Task.perform Msg.NewDate Date.now
         ]

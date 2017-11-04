@@ -1,6 +1,7 @@
 module Msg exposing (..)
 
 import Data.Comment exposing (Comment)
+import Data.Init exposing (Init)
 import Date exposing (Date)
 import Http
 import Navigation exposing (Location)
@@ -20,7 +21,7 @@ type Msg
     | Title String
     | PostComment
     | ReceiveHttp (Result Http.Error String)
-    | Hash (Result Http.Error String)
+    | Hashes (Result Http.Error Init)
     | Comments (Result Http.Error (List Comment))
     | GetDate Time
     | NewDate Date

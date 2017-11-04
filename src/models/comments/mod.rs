@@ -113,30 +113,7 @@ impl Comment {
             Some(ip_addr)
         };
 
-        // Generate users sha224 hash
-        let mut hasher = Sha224::new();
-        //TODO: This section is pretty nasty at the moment.
-        //There has to be a better way to organise this.
-        let is_data = {
-            let user = [&author, &email, &url];
-            user.into_iter().any(|&v| v.is_some())
-        };
-        if is_data {
-            let mut data: Vec<String> = Vec::new();
-            if let Some(val) = author.clone() {
-                data.push(val)
-            };
-            if let Some(val) = email.clone() {
-                data.push(val)
-            };
-            if let Some(val) = url.clone() {
-                data.push(val)
-            };
-            hasher.input_str(&join(data.iter(), "b"));
-        } else {
-            hasher.input_str(ip_addr);
-        }
-        let hash = hasher.result_str();
+        let hash = gen_hash(&author, &email, &url, Some(ip_addr));
 
         let c = NewComment {
             tid: tid,
@@ -165,6 +142,47 @@ impl Comment {
             Err(ErrorKind::DBInsert.into())
         }
     }
+}
+
+/// Generates a Sha224 hash of author details. If none are set, then the possiblity of using a clients' IP address is available.
+pub fn gen_hash(
+    author: &Option<String>,
+    email: &Option<String>,
+    url: &Option<String>,
+    ip_addr: Option<&str>,
+) -> String {
+    // Generate users sha224 hash
+    let mut hasher = Sha224::new();
+    //TODO: This section is pretty nasty at the moment.
+    //There has to be a better way to organise this.
+    let is_data = {
+        //Check if any of the optional values have data in them
+        let user = [&author, &email, &url];
+        user.into_iter().any(|&v| v.is_some())
+    };
+    if is_data {
+        //Generate a set of data to hash
+        let mut data: Vec<String> = Vec::new();
+        if let Some(val) = author.clone() {
+            data.push(val)
+        };
+        if let Some(val) = email.clone() {
+            data.push(val)
+        };
+        if let Some(val) = url.clone() {
+            data.push(val)
+        };
+        //Join with 'b' since it gives the author a nice identicon
+        hasher.input_str(&join(data.iter(), "b"));
+    } else {
+        //If we have no data but an ip, hash the ip, otherwise return an empty string
+        if let Some(ip) = ip_addr {
+            hasher.input_str(ip);
+        } else {
+            return String::default();
+        }
+    }
+    hasher.result_str()
 }
 
 
@@ -244,11 +262,11 @@ impl NestedComment {
 
             //Generate edges if a relationship is found, stash as a root if not
             if let Some(parent_id) = comment.parent {
-                    graph.add_node(parent_id);
-                    graph.add_edge(parent_id, comment.id, ());
-                } else {
-                    top_level_ids.push(comment.id);
-                }
+                graph.add_node(parent_id);
+                graph.add_edge(parent_id, comment.id, ());
+            } else {
+                top_level_ids.push(comment.id);
+            }
         }
 
         //Run over all root comments, recursively filling their children as we go
@@ -262,11 +280,7 @@ impl NestedComment {
 }
 
 /// Construct a nested comment tree from the flat indexed data obtained from the database.
-fn build_tree(
-    graph: &DiGraphMap<i32, ()>,
-    id: i32,
-    comments: &[PrintedComment],
-) -> NestedComment {
+fn build_tree(graph: &DiGraphMap<i32, ()>, id: i32, comments: &[PrintedComment]) -> NestedComment {
     let children: Vec<NestedComment> = graph
         .neighbors(id)
         .map(|child_id| build_tree(graph, child_id, comments))

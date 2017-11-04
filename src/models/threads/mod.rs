@@ -111,4 +111,3 @@ fn get_id(conn: &SqliteConnection, find_uri: &str) -> Result<i32> {
         Err(ErrorKind::NoThread(find_uri.to_string()).into())
     }
 }
-

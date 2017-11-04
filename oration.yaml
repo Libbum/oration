@@ -14,3 +14,10 @@ host: http://localhost:8000/
 
 # Salt for argon2 hashing. Note this is NOT used for passwords, only for keeping things somewhat anonymous.
 salt: 3BooSGokWgZXfae7WxhGZ
+
+# Author details. Comment options out if you don't want them included in your signature.
+# At least one option must remain uncommented, but can be left blank if you want this feature disabled.
+author:
+  name:
+  email:
+  url:

@@ -223,8 +223,14 @@ printComment comment now model =
                 "close"
             else
                 "reply"
+
+        commentStyle =
+            if comment.hash == model.blogAuthor then
+                [ Style.Comment, Style.BlogAuthor ]
+            else
+                [ Style.Comment ]
     in
-    li [ name ("comment-" ++ id), class [ Style.Comment ] ]
+    li [ name ("comment-" ++ id), class commentStyle ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
         , span [ class [ Style.Author ] ] [ text author ]
         , span [ class [ Style.Spacer ] ] [ text "•" ]

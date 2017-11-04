@@ -167,16 +167,31 @@ fn new_comment<'a>(
     response
 }
 
-/// Gets a Sha224 hash from a clients IP.
-#[get("/iphash")]
-fn get_iphash(remote_addr: SocketAddr) -> String {
+/// Information sent to the client upon initialisation.
+#[derive(Serialize)]
+struct Initialise {
+    /// The clients' ip address, hashed via Sha224.
+    user_ip: String,
+    /// The Sha224 hash of the blog author to distinguish the authority on this blog.
+    blog_author: String,
+}
+
+/// Gets a Sha224 hash from a clients IP along with the blog's author hash.
+#[get("/init")]
+fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise> {
+
     let ip_addr = remote_addr.ip().to_string();
     // create a Sha224 object
     let mut hasher = Sha224::new();
     // write input message
     hasher.input_str(&ip_addr);
-    // read hash digest
-    hasher.result_str()
+
+    let to_send = Initialise {
+        user_ip: hasher.result_str(),
+        blog_author: config.author.hash.to_owned(),
+    };
+
+    Json(to_send)
 }
 
 /// Test function that returns the session hash from the database.
@@ -267,7 +282,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             index,
             static_files::files,
             new_comment,
-            get_iphash,
+            initialise,
             get_session,
             get_comment_count,
             get_comments,

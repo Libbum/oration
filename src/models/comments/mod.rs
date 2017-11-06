@@ -1,6 +1,8 @@
 use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use diesel::types::{Integer, Text};
+use diesel::expression::dsl::sql;
 use chrono::{NaiveDateTime, Utc};
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
@@ -104,6 +106,7 @@ impl Comment {
         email: Option<String>,
         url: Option<String>,
         ip_addr: &'c str,
+        nesting_limit: u32,
     ) -> Result<()> {
         let time = Utc::now().naive_utc();
 
@@ -113,11 +116,12 @@ impl Comment {
             Some(ip_addr)
         };
 
+        let parent_id = nesting_check(conn, &parent, nesting_limit)?;
         let hash = gen_hash(&author, &email, &url, Some(ip_addr));
 
         let c = NewComment {
             tid: tid,
-            parent: parent,
+            parent: parent_id,
             created: time,
             modified: None,
             mode: 0,
@@ -144,7 +148,52 @@ impl Comment {
     }
 }
 
-/// Generates a Sha224 hash of author details. If none are set, then the possiblity of using a clients' IP address is available.
+/// Checks if this comment is nested too deep based on the configuration file value.
+/// If so, don't allow this to happen and just post as a reply to the previous parent.
+fn nesting_check(
+    conn: &SqliteConnection,
+    parent: &Option<i32>,
+    nesting_limit: u32,
+) -> Result<Option<i32>> {
+    match *parent {
+        Some(pid) => {
+            //NOTE: UNION ALL and WITH RECURSIVE are currently not supported by diesel
+            //https://github.com/diesel-rs/diesel/issues/33
+            //https://github.com/diesel-rs/diesel/issues/356
+            //So this is implemented in native SQL for the moment
+            let query = sql::<Integer>(
+                "WITH RECURSIVE node_ancestors(node_id, parent_id) AS (
+                    SELECT id, id FROM comments WHERE id = ?
+                UNION ALL
+                    SELECT na.node_id, comments.parent
+                    FROM node_ancestors AS na, comments
+                    WHERE comments.id = na.parent_id AND comments.parent IS NOT NULL
+                )
+                SELECT COUNT(parent_id) AS depth FROM node_ancestors GROUP BY node_id;");
+            let parent_depth: Vec<i32> = query
+                .bind::<Text, _>(pid.to_string())
+                .load(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
+
+            if parent_depth.is_empty() || parent_depth[0] <= nesting_limit as i32 {
+                //We're fine to nest
+                Ok(Some(pid as i32))
+            } else {
+                //We've hit the limit, reply to the current parent's parent only.
+                let parents_parent: Option<i32> = comments::table
+                    .select(comments::parent)
+                    .filter(comments::id.eq(pid))
+                    .first(conn)
+                    .chain_err(|| ErrorKind::DBRead)?;
+                Ok(parents_parent)
+            }
+        }
+        None => Ok(None), //We don't need to worry about this check for new comments
+    }
+}
+
+/// Generates a Sha224 hash of author details.
+/// If none are set, then the possiblity of using a clients' IP address is available.
 pub fn gen_hash(
     author: &Option<String>,
     email: &Option<String>,

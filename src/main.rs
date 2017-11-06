@@ -126,6 +126,7 @@ fn new_comment<'a>(
                         form.email,
                         form.url,
                         &remote_addr.ip().to_string(),
+                        config.nesting_limit,
                     )
                     {
                         //Something went wrong, return a 500

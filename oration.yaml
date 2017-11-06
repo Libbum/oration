@@ -21,3 +21,7 @@ author:
   name:
   email:
   url:
+
+# Maximum thread nesting value. Depending on your layout, comments will get really bunched up and difficult
+# to read. So replies after a certain depth will no longer nest, but instead just respond to the current parent.
+nesting_limit: 6

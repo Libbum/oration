@@ -13,6 +13,8 @@ pub struct Config {
     pub salt: String,
     /// Blog Author to highlight as an authority in comments.
     pub author: Author,
+    /// Limit of thread nesting in comments.
+    pub nesting_limit: u32,
 }
 
 impl Config {

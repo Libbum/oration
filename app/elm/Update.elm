@@ -1,5 +1,6 @@
 module Update exposing (subscriptions, update)
 
+import Data.Comment as Comment
 import Date
 import Http
 import Maybe.Extra exposing ((?))
@@ -131,7 +132,7 @@ update msg model =
         Comments (Ok result) ->
             let
                 count =
-                    List.length result
+                    Comment.count result
             in
             { model
                 | comments = result

@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Responses, decoder, encode, unwrapResponses)
+module Data.Comment exposing (Comment, Responses, count, decoder, encode, unwrapResponses)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
@@ -15,7 +15,7 @@ type alias Comment =
     , hash : String
     , created : Maybe Date
     , id : Int
-    , children : Maybe Responses
+    , children : Responses
     }
 
 
@@ -30,6 +30,21 @@ unwrapResponses responses =
             comments
 
 
+count : List Comment -> Int
+count =
+    foldl (\_ acc -> acc + 1) 0
+
+
+foldl : (Comment -> b -> b) -> b -> List Comment -> b
+foldl f =
+    List.foldl
+        (\c acc ->
+            case c.children of
+                Responses responses ->
+                    foldl f (f c acc) responses
+        )
+
+
 
 -- SERIALIZATION --
 
@@ -42,7 +57,7 @@ decoder =
         |> required "hash" Decode.string
         |> required "created" (Decode.nullable DecodeExtra.date)
         |> required "id" Decode.int
-        |> required "children" (Decode.nullable decodeResponses)
+        |> required "children" decodeResponses
 
 
 decodeResponses : Decoder Responses

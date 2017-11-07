@@ -242,16 +242,11 @@ printComment comment now model =
         ]
 
 
-printResponses : Maybe Responses -> Maybe Date.Date -> Model -> Html Msg
+printResponses : Responses -> Maybe Date.Date -> Model -> Html Msg
 printResponses responses now model =
-    case responses of
-        Just responseList ->
-            ul [] <|
-                List.map (\c -> printComment c now model) <|
-                    unwrapResponses responseList
-
-        Nothing ->
-            nothing
+    ul [] <|
+        List.map (\c -> printComment c now model) <|
+            unwrapResponses responses
 
 
 replyForm : Int -> Maybe Int -> Model -> Html Msg

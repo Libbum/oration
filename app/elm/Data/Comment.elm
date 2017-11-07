@@ -15,7 +15,7 @@ type alias Comment =
     , hash : String
     , created : Maybe Date
     , id : Int
-    , children : Maybe Responses
+    , children : Responses
     }
 
 
@@ -31,26 +31,18 @@ unwrapResponses responses =
 
 
 count : List Comment -> Int
-count comments =
-    let
-        responses =
-            List.concatMap (\c -> flatList c) comments
-    in
-    List.length responses
+count =
+    foldl (\_ acc -> acc + 1) 0
 
 
-flatList : Comment -> List Comment
-flatList root =
-    let
-        rest =
-            case root.children of
-                Just responseList ->
-                    List.concatMap (\child -> flatList child) <| unwrapResponses responseList
-
-                Nothing ->
-                    []
-    in
-    root :: rest
+foldl : (Comment -> b -> b) -> b -> List Comment -> b
+foldl f =
+    List.foldl
+        (\c acc ->
+            case c.children of
+                Responses responses ->
+                    foldl f (f c acc) responses
+        )
 
 
 
@@ -65,7 +57,7 @@ decoder =
         |> required "hash" Decode.string
         |> required "created" (Decode.nullable DecodeExtra.date)
         |> required "id" Decode.int
-        |> required "children" (Decode.nullable decodeResponses)
+        |> required "children" decodeResponses
 
 
 decodeResponses : Decoder Responses

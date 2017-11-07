@@ -281,12 +281,12 @@ pub struct NestedComment {
     /// Timestamp of creation.
     created: NaiveDateTime,
     /// Comment children.
-    children: Option<Vec<NestedComment>>,
+    children: Vec<NestedComment>,
 }
 
 impl NestedComment {
     /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
-    fn new(comment: &PrintedComment, children: Option<Vec<NestedComment>>) -> NestedComment {
+    fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
@@ -339,8 +339,8 @@ fn build_tree(graph: &DiGraphMap<i32, ()>, id: i32, comments: &[PrintedComment])
     let idx: usize = comments.iter().position(|c| c.id == id).unwrap();
 
     if !children.is_empty() {
-        NestedComment::new(&comments[idx], Some(children))
+        NestedComment::new(&comments[idx], children)
     } else {
-        NestedComment::new(&comments[idx], None)
+        NestedComment::new(&comments[idx], Vec::new())
     }
 }

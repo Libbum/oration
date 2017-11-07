@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Responses, decoder, encode, unwrapResponses)
+module Data.Comment exposing (Comment, Responses, count, decoder, encode, unwrapResponses)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
@@ -28,6 +28,29 @@ unwrapResponses responses =
     case responses of
         Responses comments ->
             comments
+
+
+count : List Comment -> Int
+count comments =
+    let
+        responses =
+            List.concatMap (\c -> flatList c) comments
+    in
+    List.length responses
+
+
+flatList : Comment -> List Comment
+flatList root =
+    let
+        rest =
+            case root.children of
+                Just responseList ->
+                    List.concatMap (\child -> flatList child) <| unwrapResponses responseList
+
+                Nothing ->
+                    []
+    in
+    root :: rest
 
 
 

@@ -175,7 +175,8 @@ css =
             [ children
                 [ textarea [ inputStyle ]
                 ]
-            , margin3 zero auto (em 3)
+            , margin3 zero auto (px 10)
+            , float left
             ]
         , class User
             [ paddingTop (px 2)

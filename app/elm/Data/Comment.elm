@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Responses, count, decoder, encode, unwrapResponses)
+module Data.Comment exposing (Comment, Responses(Responses), count, decoder, encode)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
@@ -23,11 +23,8 @@ type Responses
     = Responses (List Comment)
 
 
-unwrapResponses : Responses -> List Comment
-unwrapResponses responses =
-    case responses of
-        Responses comments ->
-            comments
+
+{- TOTAL COUNT -}
 
 
 count : List Comment -> Int
@@ -46,7 +43,7 @@ foldl f =
 
 
 
--- SERIALIZATION --
+{- SERIALIZATION -}
 
 
 decoder : Decoder Comment

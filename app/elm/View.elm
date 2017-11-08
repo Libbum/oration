@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Crypto.Hash
-import Data.Comment exposing (Comment, Responses, unwrapResponses)
+import Data.Comment exposing (Comment, Responses(Responses))
 import Data.User exposing (User)
 import Date
 import Date.Distance exposing (defaultConfig, inWordsWithConfig)
@@ -243,10 +243,9 @@ printComment comment now model =
 
 
 printResponses : Responses -> Maybe Date.Date -> Model -> Html Msg
-printResponses responses now model =
+printResponses (Responses responses) now model =
     ul [] <|
-        List.map (\c -> printComment c now model) <|
-            unwrapResponses responses
+        List.map (\c -> printComment c now model) responses
 
 
 replyForm : Int -> Maybe Int -> Model -> Html Msg

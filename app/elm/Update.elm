@@ -1,7 +1,7 @@
-module Update exposing (subscriptions, update)
+module Update exposing (currentDate, subscriptions, update)
 
 import Data.Comment as Comment
-import Date
+import Date as CoreDate
 import Http
 import Maybe.Extra exposing ((?))
 import Models exposing (Model)
@@ -10,6 +10,7 @@ import Ports
 import Request.Comment
 import Task
 import Time exposing (Time, minute)
+import Time.Date exposing (Date)
 import Util exposing (stringToMaybe)
 
 
@@ -144,7 +145,7 @@ update msg model =
             model ! []
 
         GetDate _ ->
-            model ! [ Task.perform NewDate Date.now ]
+            model ! [ Task.perform NewDate currentDate ]
 
         NewDate date ->
             { model | now = Just date } ! []
@@ -183,3 +184,57 @@ dumbDecode val =
         True
     else
         False
+
+
+currentDate : Task.Task x Date
+currentDate =
+    CoreDate.now |> Task.map coreDateToDate
+
+
+coreDateToDate : CoreDate.Date -> Date
+coreDateToDate core =
+    let
+        convert =
+            ( CoreDate.year core, coreMonthToInt <| CoreDate.month core, CoreDate.day core )
+    in
+    Time.Date.fromTuple convert
+
+
+coreMonthToInt : CoreDate.Month -> Int
+coreMonthToInt month =
+    case month of
+        CoreDate.Jan ->
+            1
+
+        CoreDate.Feb ->
+            2
+
+        CoreDate.Mar ->
+            3
+
+        CoreDate.Apr ->
+            4
+
+        CoreDate.May ->
+            5
+
+        CoreDate.Jun ->
+            6
+
+        CoreDate.Jul ->
+            7
+
+        CoreDate.Aug ->
+            8
+
+        CoreDate.Sep ->
+            9
+
+        CoreDate.Oct ->
+            10
+
+        CoreDate.Nov ->
+            11
+
+        CoreDate.Dec ->
+            12

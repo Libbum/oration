@@ -2,10 +2,10 @@ module Msg exposing (..)
 
 import Data.Comment exposing (Comment)
 import Data.Init exposing (Init)
-import Date exposing (Date)
 import Http
 import Navigation exposing (Location)
 import Time exposing (Time)
+import Time.Date exposing (Date)
 
 
 type Msg

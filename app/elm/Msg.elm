@@ -5,7 +5,7 @@ import Data.Init exposing (Init)
 import Http
 import Navigation exposing (Location)
 import Time exposing (Time)
-import Time.Date exposing (Date)
+import Time.DateTime exposing (DateTime)
 
 
 type Msg
@@ -24,5 +24,5 @@ type Msg
     | Hashes (Result Http.Error Init)
     | Comments (Result Http.Error (List Comment))
     | GetDate Time
-    | NewDate Date
+    | NewDate DateTime
     | CommentReply Int

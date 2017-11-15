@@ -5,7 +5,7 @@ import Json.Decode.Extra as DecodeExtra
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode exposing (Value)
 import Json.Encode.Extra as EncodeExtra
-import Time.Date exposing (Date)
+import Time.DateTime exposing (DateTime)
 import Util exposing ((=>))
 
 
@@ -13,7 +13,7 @@ type alias Comment =
     { text : String
     , author : Maybe String
     , hash : String
-    , created : Maybe Date
+    , created : DateTime
     , id : Int
     , children : Responses
     }
@@ -52,7 +52,7 @@ decoder =
         |> required "text" Decode.string
         |> required "author" (Decode.nullable Decode.string)
         |> required "hash" Decode.string
-        |> required "created" (Decode.nullable decodeDate)
+        |> required "created" decodeDate
         |> required "id" Decode.int
         |> required "children" decodeResponses
 
@@ -62,10 +62,10 @@ decodeResponses =
     Decode.map Responses (Decode.list (Decode.lazy (\_ -> decoder)))
 
 
-decodeDate : Decoder Date
+decodeDate : Decoder DateTime
 decodeDate =
     Decode.string
-        |> Decode.andThen (Time.Date.fromISO8601 >> DecodeExtra.fromResult)
+        |> Decode.andThen (Time.DateTime.fromISO8601 >> DecodeExtra.fromResult)
 
 
 encode : Comment -> Value

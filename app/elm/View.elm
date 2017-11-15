@@ -12,7 +12,7 @@ import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Style
-import Time.Date exposing (Date)
+import Time.DateTime exposing (DateTime)
 import Util exposing (nothing)
 
 
@@ -164,7 +164,7 @@ getIdentity user =
 {- We work in UTC, so offset the users time so we can compare dates -}
 
 
-offsetNow : Maybe Date -> Maybe Date
+offsetNow : Maybe DateTime -> Maybe DateTime
 offsetNow now =
     now
 
@@ -191,25 +191,14 @@ printComments model =
 {- Format a single comment -}
 
 
-printComment : Comment -> Maybe Date -> Model -> Html Msg
+printComment : Comment -> Maybe DateTime -> Model -> Html Msg
 printComment comment now model =
     let
         author =
             comment.author ? "Anonymous"
 
         created =
-            --TODO: Can this be chained?
-            case comment.created of
-                Just val ->
-                    Time.Date.toISO8601 val
-
-                --case now of
-                --Just time ->
-                --inWordsWithConfig wordsConfig time val
-                --Nothing ->
-                --""
-                Nothing ->
-                    ""
+            Time.DateTime.toISO8601 comment.created
 
         id =
             toString comment.id
@@ -238,7 +227,7 @@ printComment comment now model =
         ]
 
 
-printResponses : Responses -> Maybe Date -> Model -> Html Msg
+printResponses : Responses -> Maybe DateTime -> Model -> Html Msg
 printResponses (Responses responses) now model =
     ul [] <|
         List.map (\c -> printComment c now model) responses

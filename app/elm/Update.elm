@@ -10,7 +10,7 @@ import Ports
 import Request.Comment
 import Task
 import Time exposing (Time, minute)
-import Time.Date exposing (Date)
+import Time.DateTime exposing (DateTime)
 import Util exposing (stringToMaybe)
 
 
@@ -186,18 +186,18 @@ dumbDecode val =
         False
 
 
-currentDate : Task.Task x Date
+currentDate : Task.Task x DateTime
 currentDate =
     CoreDate.now |> Task.map coreDateToDate
 
 
-coreDateToDate : CoreDate.Date -> Date
+coreDateToDate : CoreDate.Date -> DateTime
 coreDateToDate core =
     let
         convert =
-            ( CoreDate.year core, coreMonthToInt <| CoreDate.month core, CoreDate.day core )
+            ( CoreDate.year core, coreMonthToInt <| CoreDate.month core, CoreDate.day core, CoreDate.hour core, CoreDate.minute core, CoreDate.second core, CoreDate.millisecond core )
     in
-    Time.Date.fromTuple convert
+    Time.DateTime.fromTuple convert
 
 
 coreMonthToInt : CoreDate.Month -> Int

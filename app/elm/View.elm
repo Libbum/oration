@@ -12,7 +12,7 @@ import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Style
-import Time.DateTime exposing (DateTime)
+import Time.DateTime.Distance exposing (inWords)
 import Util exposing (nothing)
 
 
@@ -161,47 +161,26 @@ getIdentity user =
 
 
 
-{- We work in UTC, so offset the users time so we can compare dates -}
-
-
-offsetNow : DateTime -> DateTime
-offsetNow now =
-    now
-
-
-
--- let
---    offsetMinutes =
---       Maybe.map getTimezoneOffset now
---  in
--- Maybe.map (\d -> Period.add Period.Minute (offsetMinutes ? 0) d) now
 {- Format a list of comments -}
 
 
 printComments : Model -> List (Html Msg)
 printComments model =
-    let
-        utcNow =
-            offsetNow model.now
-    in
-    List.map (\c -> printComment c utcNow model) model.comments
+    List.map (\c -> printComment c model) model.comments
 
 
 
 {- Format a single comment -}
 
 
-printComment : Comment -> DateTime -> Model -> Html Msg
-printComment comment now model =
+printComment : Comment -> Model -> Html Msg
+printComment comment model =
     let
         author =
             comment.author ? "Anonymous"
 
-        now_ =
-            Time.DateTime.toISO8601 now
-
         created =
-            Time.DateTime.toISO8601 comment.created ++ " " ++ now_
+            inWords model.now comment.created
 
         id =
             toString comment.id
@@ -226,14 +205,14 @@ printComment comment now model =
         , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
         , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
         , replyForm comment.id model.parent model
-        , printResponses comment.children now model
+        , printResponses comment.children model
         ]
 
 
-printResponses : Responses -> DateTime -> Model -> Html Msg
-printResponses (Responses responses) now model =
+printResponses : Responses -> Model -> Html Msg
+printResponses (Responses responses) model =
     ul [] <|
-        List.map (\c -> printComment c now model) responses
+        List.map (\c -> printComment c model) responses
 
 
 replyForm : Int -> Maybe Int -> Model -> Html Msg

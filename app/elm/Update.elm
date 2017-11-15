@@ -8,7 +8,7 @@ import Msg exposing (Msg(..))
 import Ports
 import Request.Comment
 import Task
-import Time exposing (Time, minute)
+import Time exposing (minute)
 import Time.DateTime exposing (DateTime)
 import Util exposing (stringToMaybe)
 

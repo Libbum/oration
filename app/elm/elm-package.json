@@ -10,7 +10,6 @@
     "native-modules": true,
     "dependencies": {
         "NoRedInk/elm-decode-pipeline": "3.0.0 <= v < 4.0.0",
-        "alpacaaa/elm-date-distance": "1.1.0 <= v < 2.0.0",
         "elm-community/elm-time": "1.0.11 <= v < 2.0.0",
         "elm-community/json-extra": "2.3.0 <= v < 3.0.0",
         "elm-community/maybe-extra": "4.0.0 <= v < 5.0.0",
@@ -23,7 +22,6 @@
         "lukewestby/elm-http-builder": "5.1.0 <= v < 6.0.0",
         "pablohirafuji/elm-markdown": "2.0.4 <= v < 3.0.0",
         "pukkamustard/elm-identicon": "3.0.0 <= v < 4.0.0",
-        "rluiten/elm-date-extra": "9.2.0 <= v < 10.0.0",
         "rtfeldman/elm-css": "11.2.0 <= v < 12.0.0",
         "rtfeldman/elm-css-helpers": "2.1.0 <= v < 3.0.0",
         "scottcorgan/elm-css-normalize": "1.1.9 <= v < 2.0.0"

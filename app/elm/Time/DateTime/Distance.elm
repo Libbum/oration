@@ -55,22 +55,6 @@ inWords first second =
     fromDistance distance
 
 
-upToOneMinute : Int -> Distance
-upToOneMinute seconds =
-    if seconds < 5 then
-        LessThanXSeconds 5
-    else if seconds < 10 then
-        LessThanXSeconds 10
-    else if seconds < 20 then
-        LessThanXSeconds 20
-    else if seconds < 40 then
-        HalfAMinute
-    else if seconds < 60 then
-        LessThanXMinutes 1
-    else
-        XMinutes 1
-
-
 upToOneDay : Int -> Distance
 upToOneDay minutes =
     let
@@ -110,9 +94,6 @@ upToOneYear minutes =
 calculateDistance : DT.DateTimeDelta -> Distance
 calculateDistance delta =
     let
-        seconds =
-            delta.seconds
-
         minutes =
             delta.minutes
 

@@ -3,12 +3,6 @@ module View exposing (view)
 import Crypto.Hash
 import Data.Comment exposing (Comment, Responses(Responses))
 import Data.User exposing (User)
-import Date
-import Date.Distance exposing (defaultConfig, inWordsWithConfig)
-import Date.Distance.I18n.En as English
-import Date.Distance.Types exposing (Config)
-import Date.Extra.Create exposing (getTimezoneOffset)
-import Date.Extra.Period as Period exposing (Period(..))
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -18,6 +12,7 @@ import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Style
+import Time.DateTime.Distance exposing (inWords)
 import Util exposing (nothing)
 
 
@@ -166,54 +161,26 @@ getIdentity user =
 
 
 
-{- We work in UTC, so offset the users time so we can compare dates -}
-
-
-offsetNow : Maybe Date.Date -> Maybe Date.Date
-offsetNow now =
-    let
-        offsetMinutes =
-            Maybe.map getTimezoneOffset now
-    in
-    Maybe.map (\d -> Period.add Period.Minute (offsetMinutes ? 0) d) now
-
-
-
 {- Format a list of comments -}
 
 
 printComments : Model -> List (Html Msg)
 printComments model =
-    let
-        utcNow =
-            offsetNow model.now
-    in
-    List.map (\c -> printComment c utcNow model) model.comments
+    List.map (\c -> printComment c model) model.comments
 
 
 
 {- Format a single comment -}
 
 
-printComment : Comment -> Maybe Date.Date -> Model -> Html Msg
-printComment comment now model =
+printComment : Comment -> Model -> Html Msg
+printComment comment model =
     let
         author =
             comment.author ? "Anonymous"
 
         created =
-            --TODO: Can this be chained?
-            case comment.created of
-                Just val ->
-                    case now of
-                        Just time ->
-                            inWordsWithConfig wordsConfig time val
-
-                        Nothing ->
-                            ""
-
-                Nothing ->
-                    ""
+            inWords model.now comment.created
 
         id =
             toString comment.id
@@ -238,14 +205,14 @@ printComment comment now model =
         , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
         , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
         , replyForm comment.id model.parent model
-        , printResponses comment.children now model
+        , printResponses comment.children model
         ]
 
 
-printResponses : Responses -> Maybe Date.Date -> Model -> Html Msg
-printResponses (Responses responses) now model =
+printResponses : Responses -> Model -> Html Msg
+printResponses (Responses responses) model =
     ul [] <|
-        List.map (\c -> printComment c now model) responses
+        List.map (\c -> printComment c model) responses
 
 
 replyForm : Int -> Maybe Int -> Model -> Html Msg
@@ -259,18 +226,3 @@ replyForm id parent model =
 
         Nothing ->
             nothing
-
-
-
-{- We want to add a suffix onto our word distances.
-   This is how you do that. Not very nice, but we can extend the locale portion later this way
--}
-
-
-wordsConfig : Config
-wordsConfig =
-    let
-        localeWithSuffix =
-            English.locale { addSuffix = True }
-    in
-    { defaultConfig | locale = localeWithSuffix }

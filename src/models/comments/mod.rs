@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use diesel::types::{Integer, Text};
 use diesel::expression::dsl::sql;
-use chrono::{NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
 use itertools::join;
@@ -279,7 +279,7 @@ pub struct NestedComment {
     /// Commentors indentifier.
     hash: String,
     /// Timestamp of creation.
-    created: NaiveDateTime,
+    created: DateTime<Utc>,
     /// Comment children.
     children: Vec<NestedComment>,
 }
@@ -287,12 +287,13 @@ pub struct NestedComment {
 impl NestedComment {
     /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
     fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
+        let date_time = DateTime::<Utc>::from_utc(comment.created, Utc);
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
             author: comment.author.to_owned(),
             hash: comment.hash.to_owned(),
-            created: comment.created,
+            created: date_time,
             children: children,
         }
     }

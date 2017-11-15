@@ -1,6 +1,5 @@
 module Main exposing (main)
 
-import Date
 import Http
 import Models exposing (Model)
 import Msg exposing (Msg)
@@ -8,7 +7,8 @@ import Navigation
 import Request.Comment
 import Request.Init
 import Task
-import Update exposing (subscriptions, update)
+import Time.DateTime exposing (dateTime, zero)
+import Update exposing (currentDate, subscriptions, update)
 import View exposing (view)
 
 
@@ -33,7 +33,7 @@ init location =
       , post = location
       , title = ""
       , httpResponse = ""
-      , now = Nothing
+      , now = dateTime zero
       , blogAuthor = ""
       }
     , initialise location
@@ -54,5 +54,5 @@ initialise location =
     Cmd.batch
         [ Task.attempt Msg.Hashes loadHashes
         , Task.attempt Msg.Comments loadComments
-        , Task.perform Msg.NewDate Date.now
+        , Task.perform Msg.NewDate currentDate
         ]

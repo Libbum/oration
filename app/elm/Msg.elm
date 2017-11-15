@@ -2,10 +2,10 @@ module Msg exposing (..)
 
 import Data.Comment exposing (Comment)
 import Data.Init exposing (Init)
-import Date exposing (Date)
 import Http
 import Navigation exposing (Location)
 import Time exposing (Time)
+import Time.DateTime exposing (DateTime)
 
 
 type Msg
@@ -24,5 +24,5 @@ type Msg
     | Hashes (Result Http.Error Init)
     | Comments (Result Http.Error (List Comment))
     | GetDate Time
-    | NewDate Date
+    | NewDate DateTime
     | CommentReply Int

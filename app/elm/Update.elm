@@ -1,7 +1,6 @@
-module Update exposing (subscriptions, update)
+module Update exposing (currentDate, subscriptions, update)
 
 import Data.Comment as Comment
-import Date
 import Http
 import Maybe.Extra exposing ((?))
 import Models exposing (Model)
@@ -10,6 +9,7 @@ import Ports
 import Request.Comment
 import Task
 import Time exposing (Time, minute)
+import Time.DateTime exposing (DateTime)
 import Util exposing (stringToMaybe)
 
 
@@ -144,10 +144,10 @@ update msg model =
             model ! []
 
         GetDate _ ->
-            model ! [ Task.perform NewDate Date.now ]
+            model ! [ Task.perform NewDate currentDate ]
 
         NewDate date ->
-            { model | now = Just date } ! []
+            { model | now = date } ! []
 
         CommentReply id ->
             let
@@ -183,3 +183,13 @@ dumbDecode val =
         True
     else
         False
+
+
+currentDate : Task.Task x DateTime
+currentDate =
+    Time.now |> Task.map timeToDateTime
+
+
+timeToDateTime : Time.Time -> DateTime
+timeToDateTime =
+    Time.DateTime.fromTimestamp

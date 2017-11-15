@@ -2,8 +2,8 @@ module Models exposing (Model)
 
 import Data.Comment exposing (Comment)
 import Data.User exposing (User)
-import Date exposing (Date)
 import Navigation exposing (Location)
+import Time.DateTime exposing (DateTime)
 
 
 type alias Model =
@@ -15,6 +15,6 @@ type alias Model =
     , post : Location
     , title : String
     , httpResponse : String
-    , now : Maybe Date
+    , now : DateTime
     , blogAuthor : String
     }

@@ -1,10 +1,11 @@
 module Helpers.Dates exposing (..)
 
 import Fuzz exposing (Fuzzer, int, intRange)
-import Time.Date exposing (Date, addDays, date, isLeapYear)
+import Time.Date exposing (isLeapYear)
+import Time.DateTime exposing (DateTime, addDays, dateTime, zero)
 
 
-dateForYear : Int -> Fuzzer Date
+dateForYear : Int -> Fuzzer DateTime
 dateForYear year =
     let
         daysUpper =
@@ -14,10 +15,10 @@ dateForYear year =
                 364
     in
     intRange 0 daysUpper
-        |> Fuzz.map (\days -> addDays days (date year 1 1))
+        |> Fuzz.map (\days -> addDays days (dateTime { zero | year = year }))
 
 
-dateWithinYearRange : Int -> Int -> Fuzzer Date
+dateWithinYearRange : Int -> Int -> Fuzzer DateTime
 dateWithinYearRange lower upper =
     intRange lower upper
         |> Fuzz.andThen (\year -> dateForYear year)

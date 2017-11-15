@@ -8,7 +8,7 @@ import Helpers.Dates exposing (dateWithinYearRange)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Test exposing (..)
-import Time.Date exposing (Date)
+import Time.DateTime exposing (DateTime)
 import Util exposing (..)
 
 
@@ -46,7 +46,7 @@ user =
 -}
 
 
-dateNear : Int -> Fuzzer Date
+dateNear : Int -> Fuzzer DateTime
 dateNear y =
     dateWithinYearRange (y - 2) (y + 2)
 

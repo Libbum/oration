@@ -164,7 +164,7 @@ getIdentity user =
 {- We work in UTC, so offset the users time so we can compare dates -}
 
 
-offsetNow : Maybe DateTime -> Maybe DateTime
+offsetNow : DateTime -> DateTime
 offsetNow now =
     now
 
@@ -191,14 +191,17 @@ printComments model =
 {- Format a single comment -}
 
 
-printComment : Comment -> Maybe DateTime -> Model -> Html Msg
+printComment : Comment -> DateTime -> Model -> Html Msg
 printComment comment now model =
     let
         author =
             comment.author ? "Anonymous"
 
+        now_ =
+            Time.DateTime.toISO8601 now
+
         created =
-            Time.DateTime.toISO8601 comment.created
+            Time.DateTime.toISO8601 comment.created ++ " " ++ now_
 
         id =
             toString comment.id
@@ -227,7 +230,7 @@ printComment comment now model =
         ]
 
 
-printResponses : Responses -> Maybe DateTime -> Model -> Html Msg
+printResponses : Responses -> DateTime -> Model -> Html Msg
 printResponses (Responses responses) now model =
     ul [] <|
         List.map (\c -> printComment c now model) responses

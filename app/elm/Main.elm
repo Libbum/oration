@@ -7,6 +7,7 @@ import Navigation
 import Request.Comment
 import Request.Init
 import Task
+import Time.DateTime exposing (dateTime, zero)
 import Update exposing (currentDate, subscriptions, update)
 import View exposing (view)
 
@@ -32,7 +33,7 @@ init location =
       , post = location
       , title = ""
       , httpResponse = ""
-      , now = Nothing
+      , now = dateTime zero
       , blogAuthor = ""
       }
     , initialise location

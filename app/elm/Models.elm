@@ -15,6 +15,6 @@ type alias Model =
     , post : Location
     , title : String
     , httpResponse : String
-    , now : Maybe DateTime
+    , now : DateTime
     , blogAuthor : String
     }

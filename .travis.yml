@@ -34,9 +34,13 @@ matrix:
       node_js: node
       sudo: true
       before_install:
-        - "npm install -g elm@0.18"
+        - "npm install -g elm@0.18 elm-test elm-css"
       cache:
         directories:
           - app/elm/elm-stuff/build-artifacts
+          - app/elm/tests/elm-stuff/build-artifacts
       script:
-        - cd app/elm && elm-make --yes
+        - cd app/elm
+        - elm-make --yes
+        - elm-css Stylesheets.elm
+        - elm-test

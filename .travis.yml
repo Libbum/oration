@@ -1,10 +1,7 @@
 matrix:
   include:
     - language: rust
-      rust:
-        - nightly
-      allow_failures:
-        - rust: nightly
+      rust: nightly
       cache: cargo
       sudo: true
       dist: trusty
@@ -34,8 +31,7 @@ matrix:
               echo "Uploaded documentation"
             fi
     - language: node_js
-      node_js:
-        - "node"
+      node_js: node
       sudo: true
       before_install:
         - "npm install -g elm@0.18"

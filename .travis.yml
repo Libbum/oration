@@ -42,4 +42,4 @@ matrix:
         directories:
           - app/elm/elm-stuff/build-artifacts
       script:
-        - cd app/elm && elm make --yes
+        - cd app/elm && elm-make --yes

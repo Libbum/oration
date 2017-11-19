@@ -36,8 +36,9 @@ matrix:
     - language: node_js
       node_js:
         - "node"
+      sudo: true
       before_install:
-        - "npm install elm@0.18"
+        - "npm install -g elm@0.18"
       cache:
         directories:
           - app/elm/elm-stuff/build-artifacts

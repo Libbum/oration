@@ -34,9 +34,12 @@ matrix:
               echo "Uploaded documentation"
             fi
     - language: node_js
-      node_js: 
+      node_js:
         - "node"
       before_install:
         - "npm install elm@0.18"
+      cache:
+        directories:
+          - app/elm/elm-stuff/build-artifacts
       script:
-        - elm make --yes
+        - cd app/elm && elm make --yes

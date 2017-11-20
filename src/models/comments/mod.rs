@@ -246,6 +246,10 @@ struct PrintedComment {
     text: String,
     /// Commentors author if given.
     author: Option<String>,
+    /// Commentors email address if given.
+    email: Option<String>,
+    /// Commentors website if given.
+    url: Option<String>,
     /// Commentors indentifier.
     hash: String,
     /// Timestamp of creation.
@@ -258,7 +262,7 @@ impl PrintedComment {
         use schema::threads;
 
         let comments: Vec<PrintedComment> = comments::table
-            .select((comments::id, comments::parent, comments::text, comments::author, comments::hash, comments::created))
+            .select((comments::id, comments::parent, comments::text, comments::author, comments::email, comments::website, comments::hash, comments::created))
             .inner_join(threads::table)
             .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
             .load(conn)
@@ -288,10 +292,11 @@ impl NestedComment {
     /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
     fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
         let date_time = DateTime::<Utc>::from_utc(comment.created, Utc);
+        let author = get_author(&comment.author, &comment.email, &comment.url);
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
-            author: comment.author.to_owned(),
+            author: author,
             hash: comment.hash.to_owned(),
             created: date_time,
             children: children,
@@ -343,5 +348,28 @@ fn build_tree(graph: &DiGraphMap<i32, ()>, id: i32, comments: &[PrintedComment])
         NestedComment::new(&comments[idx], children)
     } else {
         NestedComment::new(&comments[idx], Vec::new())
+    }
+}
+
+/// Generates a value for author depending on the completeness of the author profile.
+fn get_author(author: &Option<String>, email: &Option<String>, url: &Option<String>) -> Option<String> {
+    if author.is_some() {
+        author.to_owned()
+    } else if email.is_some() {
+        //We want to parse the email address to keep it somewhat confidential.
+        let real_email = email.to_owned().unwrap();
+        let at_index = real_email.find('@').unwrap_or(real_email.len());
+        let (user, domain) = real_email.split_at(at_index);
+        let first_dot = domain.find('.').unwrap_or(domain.len());
+        let (_, trailing) = domain.split_at(first_dot);
+
+        let mut email_obf = String::new();
+        email_obf.push_str(user);
+        email_obf.push_str("@****");
+        email_obf.push_str(trailing);
+        Some(email_obf)
+    } else {
+        //This can be something or nothing, since we don't need te parse it it doesn't matter
+        url.to_owned()
     }
 }

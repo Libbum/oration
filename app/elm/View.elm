@@ -4,7 +4,7 @@ import Crypto.Hash
 import Data.Comment exposing (Comment, Responses(Responses))
 import Data.User exposing (User)
 import Html exposing (..)
-import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, method, minlength, name, placeholder, rows, type_, value)
+import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
@@ -199,7 +199,7 @@ printComment comment model =
     in
     li [ name ("comment-" ++ id), class commentStyle ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
-        , span [ class [ Style.Author ] ] [ text author ]
+        , printAuthor author
         , span [ class [ Style.Spacer ] ] [ text "•" ]
         , span [ class [ Style.Date ] ] [ text created ]
         , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
@@ -207,6 +207,14 @@ printComment comment model =
         , replyForm comment.id model.parent model
         , printResponses comment.children model
         ]
+
+
+printAuthor : String -> Html Msg
+printAuthor author =
+    if String.startsWith "http://" author || String.startsWith "https://" author then
+        a [ class [ Style.Author ], href author ] [ text author ]
+    else
+        span [ class [ Style.Author ] ] [ text author ]
 
 
 printResponses : Responses -> Model -> Html Msg

@@ -14,3 +14,14 @@ host: http://localhost:8000/
 
 # Salt for argon2 hashing. Note this is NOT used for passwords, only for keeping things somewhat anonymous.
 salt: 3BooSGokWgZXfae7WxhGZ
+
+# Author details. Comment options out if you don't want them included in your signature.
+# At least one option must remain uncommented, but can be left blank if you want this feature disabled.
+author:
+  name:
+  email:
+  url:
+
+# Maximum thread nesting value. Depending on your layout, comments will get really bunched up and difficult
+# to read. So replies after a certain depth will no longer nest, but instead just respond to the current parent.
+nesting_limit: 6

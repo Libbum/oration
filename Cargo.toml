@@ -21,8 +21,9 @@ error-chain = "0.11"
 log = "0.3"
 yansi = "0.3"
 serde_yaml = "0.7"
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 reqwest = "0.7"
 argon2rs = { version = "0.2", features = ["simd"] }
 rust-crypto = "^0.2"
 itertools = "0.6"
+petgraph = "0.4"

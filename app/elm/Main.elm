@@ -1,14 +1,14 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Http
-import LocalStorage
 import Models exposing (Model)
 import Msg exposing (Msg)
 import Navigation
 import Request.Comment
-import Request.User
+import Request.Init
 import Task
-import Update exposing (subscriptions, update)
+import Time.DateTime exposing (dateTime, zero)
+import Update exposing (currentDate, subscriptions, update)
 import View exposing (view)
 
 
@@ -20,6 +20,7 @@ main =
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
     ( { comment = ""
+      , parent = Nothing
       , user =
             { name = Nothing
             , email = Nothing
@@ -32,6 +33,8 @@ init location =
       , post = location
       , title = ""
       , httpResponse = ""
+      , now = dateTime zero
+      , blogAuthor = ""
       }
     , initialise location
     )
@@ -40,13 +43,8 @@ init location =
 initialise : Navigation.Location -> Cmd Msg
 initialise location =
     let
-        --TODO: Count wont be needed soon, not on the main view at least.
-        loadCount =
-            Request.Comment.count location
-                |> Http.toTask
-
-        loadHash =
-            Request.User.hash
+        loadHashes =
+            Request.Init.hashes
                 |> Http.toTask
 
         loadComments =
@@ -54,8 +52,7 @@ initialise location =
                 |> Http.toTask
     in
     Cmd.batch
-        [ Task.attempt Msg.Count loadCount
-        , Task.attempt Msg.OnKeys LocalStorage.keys
-        , Task.attempt Msg.Hash loadHash
+        [ Task.attempt Msg.Hashes loadHashes
         , Task.attempt Msg.Comments loadComments
+        , Task.perform Msg.NewDate currentDate
         ]

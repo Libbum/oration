@@ -33,6 +33,7 @@ extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
+extern crate petgraph;
 //extern crate argon2rs;
 extern crate crypto;
 extern crate reqwest;
@@ -66,7 +67,7 @@ use rocket::request::Form;
 use rocket::response::NamedFile;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{PrintedComment, Comment};
+use models::comments::{NestedComment, Comment};
 use models::threads;
 use std::process;
 use yansi::Paint;
@@ -86,6 +87,8 @@ fn index() -> io::Result<NamedFile> {
 struct FormInput {
     /// Comment from textarea.
     comment: String,
+    /// Parent comment if any.
+    parent: Option<i32>,
     /// Optional name.
     name: Option<String>,
     /// Optional email.
@@ -114,14 +117,16 @@ fn new_comment<'a>(
             //Get thread id from the db, create if needed
             match threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
                 Ok(tid) => {
-                    if let Err(err) = Comment::new(
+                    if let Err(err) = Comment::insert(
                         &conn,
                         tid,
+                        form.parent,
                         &form.comment,
                         form.name,
                         form.email,
                         form.url,
                         &remote_addr.ip().to_string(),
+                        config.nesting_limit,
                     )
                     {
                         //Something went wrong, return a 500
@@ -163,16 +168,31 @@ fn new_comment<'a>(
     response
 }
 
-/// Gets a Sha224 hash from a clients IP.
-#[get("/iphash")]
-fn get_iphash(remote_addr: SocketAddr) -> String {
+/// Information sent to the client upon initialisation.
+#[derive(Serialize)]
+struct Initialise {
+    /// The clients' ip address, hashed via Sha224.
+    user_ip: String,
+    /// The Sha224 hash of the blog author to distinguish the authority on this blog.
+    blog_author: String,
+}
+
+/// Gets a Sha224 hash from a clients IP along with the blog's author hash.
+#[get("/init")]
+fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise> {
+
     let ip_addr = remote_addr.ip().to_string();
     // create a Sha224 object
     let mut hasher = Sha224::new();
     // write input message
     hasher.input_str(&ip_addr);
-    // read hash digest
-    hasher.result_str()
+
+    let to_send = Initialise {
+        user_ip: hasher.result_str(),
+        blog_author: config.author.hash.to_owned(),
+    };
+
+    Json(to_send)
 }
 
 /// Test function that returns the session hash from the database.
@@ -200,14 +220,15 @@ struct Post {
 #[derive(Serialize)]
 /// Comments to frontend
 struct PostComments {
-    comments: Vec<PrintedComment>,
+    /// A nested set of comments.
+    comments: Vec<NestedComment>,
 }
 
 /// Return a json block of comment data for the requested url.
 #[get("/comments?<post>")]
 fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
     //TODO: The logic here may not 100%, need to consider / vs /index.* for example.
-    match PrintedComment::list(&conn, &post.url) {
+    match NestedComment::list(&conn, &post.url) {
         Ok(comments) => {
             //We now have a vector of comments
             let to_send = PostComments { comments: comments };
@@ -250,7 +271,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             for e in err.iter().skip(1) {
                 println!("caused by: {}", e);
             }
-            process::exit(1);
+            process::exit(1)
         }
     };
     let host = config.host.clone();
@@ -262,7 +283,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             index,
             static_files::files,
             new_comment,
-            get_iphash,
+            initialise,
             get_session,
             get_comment_count,
             get_comments,

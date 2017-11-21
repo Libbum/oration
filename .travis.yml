@@ -1,36 +1,46 @@
-language: rust
-cache: cargo
-sudo: true
-dist: trusty
-os: linux
-rust:
-  - nightly
 matrix:
-  allow_failures:
-    - rust: nightly
-addons:
-  apt:
-    packages:
-      - sqlite3
-before_script:
-  - ( cargo install clippy || true )
-  - ( cargo install diesel_cli --no-default-features --features sqlite || true )
-  - export PATH=$PATH:~/.cargo/bin
-  - echo "DATABASE_URL=oration.db" > .env
-  - diesel migration run
-script:
-  - cargo build
-  - cargo test
-  - cargo build --features="clippy"
-after_success:
-  # Upload docs
-  - |
-      if [[ "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
-        cargo rustdoc -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
-        cp logo/logo_wbl.svg target/doc/ &&
-        echo "<meta http-equiv=refresh content=0;url=oration/index.html>" > target/doc/index.html &&
-        git clone https://github.com/davisp/ghp-import.git &&
-        ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
-        echo "Uploaded documentation"
-      fi
-
+  include:
+    - language: rust
+      rust: nightly
+      cache: cargo
+      sudo: true
+      dist: trusty
+      os: linux
+      addons:
+        apt:
+          packages:
+            - sqlite3
+      before_script:
+        - ( cargo install diesel_cli --no-default-features --features sqlite || true )
+        - export PATH=$PATH:~/.cargo/bin
+        - echo "DATABASE_URL=oration.db" > .env
+        - diesel migration run
+        - cargo update
+      script:
+        - cargo build
+        - cargo test
+      after_success:
+        # Upload docs
+        - |
+            if [[ "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
+              cargo rustdoc -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
+              cp logo/logo_wbl.svg target/doc/ &&
+              echo "<meta http-equiv=refresh content=0;url=oration/index.html>" > target/doc/index.html &&
+              git clone https://github.com/davisp/ghp-import.git &&
+              ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
+              echo "Uploaded documentation"
+            fi
+    - language: node_js
+      node_js: node
+      sudo: true
+      before_install:
+        - "npm install -g elm@0.18 elm-test elm-css"
+      cache:
+        directories:
+          - app/elm/elm-stuff/build-artifacts
+          - app/elm/tests/elm-stuff/build-artifacts
+      script:
+        - cd app/elm
+        - elm-make --yes
+        - elm-css Stylesheets.elm
+        - elm-test

@@ -2,7 +2,7 @@ module Request.Comment exposing (comments, count, post)
 
 import Data.Comment as Comment exposing (Comment)
 import Http
-import HttpBuilder exposing (RequestBuilder, withExpect, withQueryParams)
+import HttpBuilder
 import Json.Decode as Decode
 import Models exposing (Model)
 import Navigation exposing (Location)
@@ -36,7 +36,8 @@ post model =
     "/"
         |> HttpBuilder.post
         |> HttpBuilder.withUrlEncodedBody
-            (prependMaybe body "name" model.user.name
+            (prependMaybe body "parent" (Maybe.map toString model.parent)
+                ++ prependMaybe body "name" model.user.name
                 ++ prependMaybe body "email" model.user.email
                 ++ prependMaybe body "url" model.user.url
             )

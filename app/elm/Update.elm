@@ -1,49 +1,71 @@
-module Update exposing (..)
+module Update exposing (currentDate, subscriptions, update)
 
+import Data.Comment as Comment
 import Http
-import LocalStorage
-import Maybe.Extra exposing ((?), isNothing)
+import Maybe.Extra exposing ((?))
 import Models exposing (Model)
 import Msg exposing (Msg(..))
-import Ports exposing (title)
+import Ports
 import Request.Comment
 import Task
+import Time exposing (minute)
+import Time.DateTime exposing (DateTime)
 import Util exposing (stringToMaybe)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Comment comment ->
+        UpdateComment comment ->
             { model | comment = comment } ! []
 
-        Name name ->
+        UpdateName name ->
             let
                 user =
                     model.user
             in
             { model | user = { user | name = stringToMaybe name } } ! []
 
-        Email email ->
+        UpdateEmail email ->
             let
                 user =
                     model.user
             in
             { model | user = { user | email = stringToMaybe email } } ! []
 
-        Url url ->
+        UpdateUrl url ->
             let
                 user =
                     model.user
             in
             { model | user = { user | url = stringToMaybe url } } ! []
 
-        Preview ->
+        UpdatePreview ->
             let
                 user =
                     model.user
             in
             { model | user = { user | preview = not model.user.preview } } ! []
+
+        SetPreview strPreview ->
+            let
+                user =
+                    model.user
+
+                preview_ =
+                    dumbDecode strPreview
+            in
+            { model | user = { user | preview = preview_ } } ! []
+
+        StoreUser ->
+            model
+                ! [ Cmd.batch
+                        [ Ports.setName (model.user.name ? "")
+                        , Ports.setEmail (model.user.email ? "")
+                        , Ports.setUrl (model.user.url ? "")
+                        , Ports.setPreview (toString model.user.preview)
+                        ]
+                  ]
 
         Count (Ok strCount) ->
             let
@@ -63,100 +85,13 @@ update msg model =
         Post location ->
             { model | post = location } ! []
 
-        OnKeys result ->
-            case result of
-                Ok keys ->
-                    update (SetUser keys) model
-
-                Err _ ->
-                    --We don't care if the pull fails, we just set keep defaults
-                    model ! []
-
-        SetUser keys ->
-            model ! [ requestValues keys ]
-
-        OnGet key result ->
-            case result of
-                Ok maybeValue ->
-                    update (SetUserValue key maybeValue) model
-
-                Err _ ->
-                    model ! []
-
-        OnVoidOp result ->
-            case result of
-                Ok _ ->
-                    update Refresh model
-
-                Err err ->
-                    model ! []
-
-        Refresh ->
-            model ! [ Task.attempt OnKeys LocalStorage.keys ]
-
-        AfterSetValue key val result ->
-            case result of
-                Ok _ ->
-                    update (SetUserValue key (Just val)) model
-
-                Err err ->
-                    model ! []
-
-        SetUserValue key valueMaybe ->
-            case valueMaybe of
-                Just value ->
-                    let
-                        user =
-                            model.user
-
-                        --TODO: Would be nice if this was cleaner, but I'm not sure how atm.
-                        name_ =
-                            if key == "name" then
-                                stringToMaybe value
-                            else
-                                model.user.name
-
-                        email_ =
-                            if key == "email" then
-                                stringToMaybe value
-                            else
-                                model.user.email
-
-                        url_ =
-                            if key == "url" then
-                                stringToMaybe value
-                            else
-                                model.user.url
-
-                        preview_ =
-                            if key == "preview" then
-                                dumbDecode value
-                            else
-                                model.user.preview
-                    in
-                    { model
-                        | user =
-                            { user
-                                | name = name_
-                                , email = email_
-                                , url = url_
-                                , preview = preview_
-                            }
-                    }
-                        ! []
-
-                Nothing ->
-                    model ! []
-
-        StoreUser ->
-            model ! [ storeUser model ]
-
         Title value ->
             { model | title = value } ! []
 
         PostComment ->
             { model
                 | comment = ""
+                , parent = Nothing
                 , count = model.count + 1
             }
                 ! [ let
@@ -175,40 +110,74 @@ update msg model =
                         Ok val ->
                             val
 
-                        Err err ->
+                        Err _ ->
                             "Error!"
             in
             { model | httpResponse = response } ! []
 
-        Hash (Ok result) ->
+        Hashes (Ok result) ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | iphash = Just result } } ! []
+            { model
+                | user = { user | iphash = result.userIp }
+                , blogAuthor = result.blogAuthor ? ""
+            }
+                ! []
 
-        Hash (Err _) ->
+        Hashes (Err _) ->
             model ! []
 
         Comments (Ok result) ->
             let
-                comments =
-                    model.comments
+                count =
+                    Comment.count result
             in
-            { model | comments = result } ! []
+            { model
+                | comments = result
+                , count = count
+            }
+                ! []
 
         Comments (Err _) ->
             model ! []
 
+        GetDate _ ->
+            model ! [ Task.perform NewDate currentDate ]
+
+        NewDate date ->
+            { model | now = date } ! []
+
+        CommentReply id ->
+            let
+                current =
+                    model.parent
+
+                value =
+                    if current == Just id then
+                        Nothing
+                    else
+                        Just id
+            in
+            { model | parent = value } ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    title Title
+    Sub.batch
+        [ Ports.title Title
+        , Ports.name UpdateName
+        , Ports.email UpdateEmail
+        , Ports.url UpdateUrl
+        , Ports.preview SetPreview
+        , Time.every minute GetDate
+        ]
 
 
 {-| localStorage values are always strings. We store the preview bool via toString, so this will be good enough as a decoder.
 -}
-dumbDecode : Msg.Value -> Bool
+dumbDecode : String -> Bool
 dumbDecode val =
     if val == "True" then
         True
@@ -216,32 +185,11 @@ dumbDecode val =
         False
 
 
-{-| Request the users' information from localstorage.
--}
-requestValues : List LocalStorage.Key -> Cmd Msg
-requestValues keys =
-    let
-        requestKey key =
-            Task.attempt (OnGet key) (LocalStorage.get key)
-    in
-    Cmd.batch <| List.map requestKey keys
+currentDate : Task.Task x DateTime
+currentDate =
+    Time.now |> Task.map timeToDateTime
 
 
-{-| Store user information to localstorage
--}
-storeUser : Model -> Cmd Msg
-storeUser model =
-    let
-        storeData key value =
-            Task.attempt (AfterSetValue key value) (LocalStorage.set key value)
-
-        preview_ =
-            toString model.user.preview
-
-        keys =
-            [ "name", "email", "url", "preview" ]
-
-        values =
-            [ model.user.name ? "", model.user.email ? "", model.user.url ? "", preview_ ]
-    in
-    Cmd.batch <| List.map2 storeData keys values
+timeToDateTime : Time.Time -> DateTime
+timeToDateTime =
+    Time.DateTime.fromTimestamp

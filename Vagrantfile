@@ -4,8 +4,7 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/jessie64"
 
-  config.vm.hostname = 'oration.local'
-  config.vm.network "private_network", type: "dhcp"
+  config.vm.network :forwarded_port, guest: 80, host: 8600
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "ansible/staging.yml"
@@ -13,4 +12,6 @@ Vagrant.configure("2") do |config|
     ansible.limit = "all"
     ansible.verbose = "v"
   end
+
+  config.vm.post_up_message = "The Oration test service is now available at http://localhost:8600"
 end

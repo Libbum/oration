@@ -42,30 +42,38 @@
         url: https://sh.rustup.rs
         dest: /tmp/rustup.sh
         mode: "+x"
-      when: is_rust == False
+      when: is_rust.stat.exists == False
 
     - name: Rust | Install
       command: /tmp/rustup.sh -y --default-toolchain=nightly
       become: false
-      when: is_rust == False
-
-    - name: Diesel | Checking if installed
-      stat:
-        path: ~/.cargo/bin/diesel
-      become: false
-      register: is_diesel
+      when: is_rust.stat.exists == False
 
     - name: Diesel | Install
       command: ~/.cargo/bin/cargo install diesel_cli --no-default-features --features sqlite
       become: false
-      when: is_diesel == False
+      args:
+        creates: ~/.cargo/bin/diesel
+
+    - name: Database | Set Environment
+      command: echo DATABASE_URL=oration.db > /vagrant/.env
+      become: false
+      args:
+        creates: /vagrant/.env
+
+    - name: Database | Provision oration.db
+      command: diesel migration run
+      become: false
+      args:
+        chdir: /vagrant
+        creates: /vagrant/oration.db
 
     - name: Build | Backend (Update)
       command: ~/.cargo/bin/cargo update
       become: false
       args:
         chdir: /vagrant
-    
+
     - name: Build | Backend
       command: ~/.cargo/bin/cargo build
       become: false
@@ -78,11 +86,11 @@
       args:
         chdir: /vagrant/app/elm
 
-    - name: Build | Frontend
-      command: /usr/local/lib/npm/bin/brunch build
-      become: false
-      args:
-        chdir: /vagrant/app
+        # - name: Build | Frontend
+        # command: /usr/local/lib/npm/bin/brunch build
+        # become: false
+        # args:
+        # chdir: /vagrant/app
 
     - name: nginx | Deploy nginx.conf
       copy:

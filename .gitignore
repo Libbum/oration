@@ -10,3 +10,4 @@ Cargo.lock
 *.db
 .env
 .vagrant
+ansible/roles

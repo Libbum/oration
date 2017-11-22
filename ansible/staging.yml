@@ -86,11 +86,22 @@
       args:
         chdir: /vagrant/app/elm
 
-        # - name: Build | Frontend
-        # command: /usr/local/lib/npm/bin/brunch build
-        # become: false
-        # args:
-        # chdir: /vagrant/app
+    - name: Build | Frontend
+      command: /usr/local/lib/npm/bin/brunch build
+      become: false
+      args:
+        chdir: /vagrant/app
+
+    - name: Oration | Deploy service file
+      copy:
+        src: config/oration.service
+        dest: /etc/systemd/system/oration.service
+
+    - name: Oration | Restart service daemon
+      service:
+        name: oration
+        state: restarted
+        enabled: yes
 
     - name: nginx | Deploy nginx.conf
       copy:

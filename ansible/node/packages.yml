@@ -1,3 +1,5 @@
 nodejs_npm_global_packages:
   - name: brunch
   - name: elm
+  - name: elm-css
+  - name: elm-test

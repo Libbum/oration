@@ -58,13 +58,11 @@ mod errors;
 #[cfg(test)]
 mod tests;
 
-use std::io;
 use std::net::SocketAddr;
 use std::io::Cursor;
 use rocket::http::Status;
 use rocket::{State, Response};
 use rocket::request::Form;
-use rocket::response::NamedFile;
 use rocket_contrib::Json;
 use models::preferences::Preference;
 use models::comments::{NestedComment, Comment};

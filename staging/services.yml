@@ -1,0 +1,19 @@
+---
+
+- name: Oration Staging Server Services
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Oration | Restart service daemon
+      service:
+        name: oration
+        state: restarted
+        enabled: yes
+
+    - name: nginx | Restart service daemon
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+

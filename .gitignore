@@ -9,6 +9,7 @@ app/js/main.js
 app/package-lock.json
 Cargo.lock
 *.db
+*.retry
 .env
 .vagrant
-ansible/roles
+staging/deploy

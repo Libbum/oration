@@ -1,0 +1,62 @@
+---
+
+- name: Oration Staging Server
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Apt | Update and Upgrade
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+
+    - name: Apt | Install
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - apt-transport-https
+        - build-essential
+        - pkg-config
+        - libssl-dev
+        - curl
+        - git
+        - nginx
+        - vim
+        - sqlite3
+        - libsqlite3-dev
+
+    - name: Oration | Deploy service file
+      copy:
+        src: config/oration.service
+        dest: /etc/systemd/system/oration.service
+
+    - name: nginx | Deploy nginx.conf
+      copy:
+        src: config/nginx.conf
+        dest: /etc/nginx/nginx.conf
+
+    - name: nginx | Delete default vhost
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: nginx | Deploy vhost config
+      copy:
+        src: config/nginx.vhost.conf
+        dest: /etc/nginx/sites-available/oration.conf
+
+    - name: nginx | Enable vhost
+      file:
+        src: /etc/nginx/sites-available/oration.conf
+        dest: /etc/nginx/sites-enabled/000-oration
+        state: link
+
+    - name: nginx | Chmod logfile
+      file:
+        path: /var/log/nginx
+        mode: "a+rx"
+        state: directory
+        recurse: true
+

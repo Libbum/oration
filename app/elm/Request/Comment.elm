@@ -12,7 +12,7 @@ import Navigation exposing (Location)
 -}
 count : Location -> Http.Request String
 count location =
-    "/count"
+    "/oration/count"
         |> HttpBuilder.get
         |> HttpBuilder.withQueryParams [ ( "url", location.pathname ) ]
         |> HttpBuilder.withExpect Http.expectString
@@ -33,7 +33,7 @@ post model =
 
         --User details are only sent if they exist
     in
-    "/"
+    "/oration"
         |> HttpBuilder.post
         |> HttpBuilder.withUrlEncodedBody
             (prependMaybe body "parent" (Maybe.map toString model.parent)
@@ -55,7 +55,7 @@ comments location =
                 |> Decode.field "comments"
                 |> Http.expectJson
     in
-    "/comments"
+    "/oration/comments"
         |> HttpBuilder.get
         |> HttpBuilder.withQueryParams [ ( "url", location.pathname ) ]
         |> HttpBuilder.withExpect expect

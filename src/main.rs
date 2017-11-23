@@ -58,6 +58,8 @@ mod errors;
 #[cfg(test)]
 mod tests;
 
+use std::io;
+use rocket::response::NamedFile;
 use std::net::SocketAddr;
 use std::io::Cursor;
 use rocket::http::Status;
@@ -72,6 +74,13 @@ use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
+
+/// Serve up the index file. This is only useful for development. Should not be used in a release.
+//TODO: Serve this some other way, we don't want oration doing this work.
+#[get("/")]
+fn index() -> io::Result<NamedFile> {
+    NamedFile::open("public/index.html")
+}
 
 //NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
 #[derive(Debug, FromForm)]
@@ -272,6 +281,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
     let rocket = rocket::ignite().manage(pool).manage(config).mount(
         "/",
         routes![
+            index, //TODO: index and static_files should not be managed by oration
             static_files::files,
             new_comment,
             initialise,

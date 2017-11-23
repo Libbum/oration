@@ -14,7 +14,7 @@ hashes =
             Init.decoder
                 |> Http.expectJson
     in
-    "/init"
+    "/oration/init"
         |> HttpBuilder.get
         |> HttpBuilder.withExpect expect
         |> HttpBuilder.toRequest

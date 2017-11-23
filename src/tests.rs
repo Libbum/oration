@@ -20,7 +20,7 @@ fn db_connection() {
 fn session_hash() {
     let (rocket, conn, _) = rocket();
     let client = Client::new(rocket).expect("valid rocket instance");
-    let mut response = client.get("/session").dispatch();
+    let mut response = client.get("/oration/session").dispatch();
 
     let session_key: Vec<String> = preferences
         .filter(key.eq("session-key"))

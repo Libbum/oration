@@ -58,13 +58,11 @@ mod errors;
 #[cfg(test)]
 mod tests;
 
-use std::io;
 use std::net::SocketAddr;
 use std::io::Cursor;
 use rocket::http::Status;
 use rocket::{State, Response};
 use rocket::request::Form;
-use rocket::response::NamedFile;
 use rocket_contrib::Json;
 use models::preferences::Preference;
 use models::comments::{NestedComment, Comment};
@@ -74,12 +72,6 @@ use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
-
-/// Serve up the index file, which ultimately launches the Elm app.
-#[get("/")]
-fn index() -> io::Result<NamedFile> {
-    NamedFile::open("public/index.html")
-}
 
 //NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
 #[derive(Debug, FromForm)]
@@ -102,7 +94,7 @@ struct FormInput {
 }
 
 /// Process comment input from form.
-#[post("/", data = "<comment>")]
+#[post("/oration", data = "<comment>")]
 fn new_comment<'a>(
     conn: db::Conn,
     comment: Result<Form<FormInput>, Option<String>>,
@@ -178,7 +170,7 @@ struct Initialise {
 }
 
 /// Gets a Sha224 hash from a clients IP along with the blog's author hash.
-#[get("/init")]
+#[get("/oration/init")]
 fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise> {
 
     let ip_addr = remote_addr.ip().to_string();
@@ -196,7 +188,7 @@ fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise
 }
 
 /// Test function that returns the session hash from the database.
-#[get("/session")]
+#[get("/oration/session")]
 fn get_session(conn: db::Conn) -> String {
     match Preference::get_session(&conn) {
         Ok(s) => s,
@@ -225,7 +217,7 @@ struct PostComments {
 }
 
 /// Return a json block of comment data for the requested url.
-#[get("/comments?<post>")]
+#[get("/oration/comments?<post>")]
 fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
     //TODO: The logic here may not 100%, need to consider / vs /index.* for example.
     match NestedComment::list(&conn, &post.url) {
@@ -245,7 +237,7 @@ fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
 }
 
 /// Returns the comment count for a given post from the database.
-#[get("/count?<post>")]
+#[get("/oration/count?<post>")]
 fn get_comment_count(conn: db::Conn, post: Post) -> String {
     //TODO: The logic here may not 100%, need to consider / vs /index.* for example.
     match Comment::count(&conn, &post.url) {
@@ -280,7 +272,6 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
     let rocket = rocket::ignite().manage(pool).manage(config).mount(
         "/",
         routes![
-            index,
             static_files::files,
             new_comment,
             initialise,

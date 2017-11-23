@@ -10,7 +10,7 @@
 #                       Configuration File
 
 # Top level location of your blog
-host: http://localhost:8000/
+host: http://localhost:8600/
 
 # Salt for argon2 hashing. Note this is NOT used for passwords, only for keeping things somewhat anonymous.
 salt: 3BooSGokWgZXfae7WxhGZ

@@ -1,0 +1,41 @@
+---
+
+- name: Oration Staging Build
+  hosts: all
+  tasks:
+
+    - name: Backend | Build production executable
+      command: cargo build --release --target=x86_64-unknown-linux-musl
+      environment:
+        OPENSSL_DIR: /usr/
+
+    - name: Backend | Check for deployment directory
+      file:
+        path: deploy
+        state: directory
+
+    - name: Backend | Ready configuration file
+      copy:
+        src: ../oration.yaml
+        dest: deploy/oration.yaml
+
+    - name: Backend | Ready executable file
+      copy:
+        src: ../target/x86_64-unknown-linux-musl/release/oration
+        dest: deploy/oration
+        mode: u+rwx,g-wx,o-rwx
+
+    - name: Database | Environment file
+      copy:
+        src: ../.env
+        dest: deploy/.env
+
+    - name: Database | Ready database
+      copy:
+        src: ../oration.db
+        dest: deploy/oration.db
+
+    - name: Frontend | Build Elm app
+      command: npm run deploy
+      args:
+        chdir: ../app

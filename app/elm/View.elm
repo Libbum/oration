@@ -13,7 +13,7 @@ import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Style
 import Time.DateTime.Distance exposing (inWords)
-import Util exposing (nothing)
+import Util exposing (nothing, parseMath)
 
 
 {- Sync up stylsheets -}
@@ -27,7 +27,7 @@ view : Model -> Html Msg
 view model =
     let
         markdown =
-            markdownContent model.comment model.user.preview
+            markdownContent model.comment model.user.preview |> parseMath
 
         count =
             toString model.count
@@ -128,7 +128,7 @@ setButtonDisabled comment =
 
 
 
-{- Renders comments to markdown -}
+{- Markdown preview box information -}
 
 
 markdownContent : String -> Bool -> String

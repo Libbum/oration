@@ -1,6 +1,9 @@
-module Util exposing ((=>), nothing, pair, stringToMaybe)
+module Util exposing ((=>), nothing, pair, parseMath, stringToMaybe)
 
 import Html exposing (Html, text)
+import Katex exposing (Latex, display, human, inline)
+import Maybe.Extra exposing ((?))
+import Regex exposing (regex, replace)
 
 
 (=>) : a -> b -> ( a, b )
@@ -37,3 +40,43 @@ stringToMaybe val =
 nothing : Html msg
 nothing =
     text ""
+
+
+
+{- Identify math strings and use Katex to parse them.
+   Note, we still return a string here rather than HTML, since this
+   will go through the markdown parser next, which handles raw HTML.
+-}
+
+
+parseMath : String -> String
+parseMath =
+    parseInline
+
+
+parseDisplay : String -> String
+parseDisplay =
+    replace Regex.All (regex "^\\$\\$(.+?)\\$\\$") separateDisplay
+
+
+separateDisplay : Regex.Match -> String
+separateDisplay match =
+    let
+        result =
+            (List.head match.submatches ? Just "") ? ""
+    in
+    Katex.print (display result)
+
+
+parseInline : String -> String
+parseInline =
+    replace Regex.All (regex "\\$(?!\\$)(.+?)\\$(?!\\$)") separateInline
+
+
+separateInline : Regex.Match -> String
+separateInline match =
+    let
+        result =
+            (List.head match.submatches ? Just "") ? ""
+    in
+    Katex.print (inline result)

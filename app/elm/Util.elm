@@ -49,14 +49,14 @@ nothing =
 -}
 
 
-parseMath : String -> String
+parseMath : List String -> List String
 parseMath =
-    parseInline
+    parseInline >> parseDisplay
 
 
-parseDisplay : String -> String
+parseDisplay : List String -> List String
 parseDisplay =
-    replace Regex.All (regex "^\\$\\$(.+?)\\$\\$") separateDisplay
+    List.map (replace (Regex.AtMost 1) (regex "^\\${2}(.+?)\\${2}") separateDisplay)
 
 
 separateDisplay : Regex.Match -> String
@@ -68,9 +68,9 @@ separateDisplay match =
     Katex.print (display result)
 
 
-parseInline : String -> String
+parseInline : List String -> List String
 parseInline =
-    replace Regex.All (regex "\\$(?!\\$)(.+?)\\$(?!\\$)") separateInline
+    List.map (replace Regex.All (regex "\\$([^\\$]+?)\\$(?!\\$)") separateInline)
 
 
 separateInline : Regex.Match -> String

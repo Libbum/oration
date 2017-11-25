@@ -27,7 +27,10 @@ view : Model -> Html Msg
 view model =
     let
         markdown =
-            markdownContent model.comment model.user.preview |> parseMath
+            markdownContent model.comment model.user.preview
+                |> String.lines
+                |> parseMath
+                >> String.join "\n"
 
         count =
             toString model.count

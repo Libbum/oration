@@ -13,7 +13,7 @@ import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Style
 import Time.DateTime.Distance exposing (inWords)
-import Util exposing (nothing, parseMath)
+import Util exposing (nothing, parseMath, viewKatex)
 
 
 {- Sync up stylsheets -}
@@ -28,10 +28,8 @@ view model =
     let
         markdown =
             markdownContent model.comment model.user.preview
-                |> String.lines
-                |> parseMath
-                >> String.join "\n"
 
+        -- >> String.join "\n"
         count =
             toString model.count
                 ++ (if model.count /= 1 then
@@ -46,6 +44,7 @@ view model =
         , div [ id Style.OrationDebug ] [ text model.httpResponse ]
         , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
+        , div [] <| parseMath markdown
         , ul [ id Style.OrationComments ] <| printComments model
         ]
 
@@ -199,13 +198,16 @@ printComment comment model =
                 [ Style.Comment, Style.BlogAuthor ]
             else
                 [ Style.Comment ]
+
+        markedUpComment =
+            comment.text
     in
     li [ name ("comment-" ++ id), class commentStyle ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
         , printAuthor author
         , span [ class [ Style.Spacer ] ] [ text "•" ]
         , span [ class [ Style.Date ] ] [ text created ]
-        , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
+        , span [ class [ Style.Content ] ] <| parseMath markedUpComment
         , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
         , replyForm comment.id model.parent model
         , printResponses comment.children model

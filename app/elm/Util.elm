@@ -1,9 +1,9 @@
-module Util exposing ((=>), nothing, pair, parseMath, stringToMaybe)
+module Util exposing ((=>), nothing, pair, parseMath, stringToMaybe, viewKatex)
 
-import Html exposing (Html, text)
+import Html exposing (Html, div, span, text)
 import Katex exposing (Latex, display, human, inline)
 import Maybe.Extra exposing ((?))
-import Regex exposing (regex, replace)
+import Regex exposing (regex, replace, split)
 
 
 (=>) : a -> b -> ( a, b )
@@ -49,9 +49,13 @@ nothing =
 -}
 
 
-parseMath : List String -> List String
-parseMath =
-    parseInline >> parseDisplay
+parseMath : String -> List (Html msg)
+parseMath data =
+    let
+        inlines =
+            parseInline data
+    in
+    List.map viewKatex inlines
 
 
 parseDisplay : List String -> List String
@@ -68,15 +72,57 @@ separateDisplay match =
     Katex.print (display result)
 
 
-parseInline : List String -> List String
-parseInline =
-    List.map (replace Regex.All (regex "\\$([^\\$]+?)\\$(?!\\$)") separateInline)
-
-
-separateInline : Regex.Match -> String
-separateInline match =
+parseInline : String -> List (List Latex)
+parseInline data =
     let
-        result =
-            (List.head match.submatches ? Just "") ? ""
+        inlines =
+            findInlines data
     in
-    Katex.print (inline result)
+    List.map (\results -> separateInline results data) inlines
+
+
+findInlines : String -> List Regex.Match
+findInlines =
+    Regex.find Regex.All (regex "\\$([^\\$]+?)\\$(?!\\$)")
+
+
+separateInline : Regex.Match -> String -> List Latex
+separateInline match data =
+    let
+        begin =
+            String.left match.index data
+
+        matched =
+            (List.head match.submatches ? Just "") ? ""
+
+        end =
+            String.right (match.index + String.length match.match) data
+    in
+    [ human begin
+    , inline matched
+    ]
+
+
+passage : List Latex
+passage =
+    [ human "We denote by "
+    , inline "\\phi"
+    , human " the formula for which "
+    , display "\\Gamma \\vDash \\phi"
+    ]
+
+
+viewKatex : List Latex -> Html msg
+viewKatex result =
+    let
+        htmlGenerator isDisplayMode stringLatex =
+            case isDisplayMode of
+                Just True ->
+                    div [] [ text stringLatex ]
+
+                _ ->
+                    span [] [ text stringLatex ]
+    in
+    result
+        |> List.map (Katex.generate htmlGenerator)
+        |> div []

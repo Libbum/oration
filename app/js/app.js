@@ -39,4 +39,13 @@ if (elmDiv) {
     app.ports.setPreview.subscribe(function(state) {
         localStorage.setItem('preview', state);
     });
+
+    setTimeout(function () {
+        renderMathInElement(document.body,
+            {delimiters:
+                [{left: "$begin-inline$", right: "$end-inline$", display: false},
+                 {left: "$begin-display$", right: "$end-display$", display: true}]
+            });
+    }, 0);
 }
+

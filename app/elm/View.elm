@@ -4,9 +4,10 @@ import Crypto.Hash
 import Data.Comment exposing (Comment, Responses(Responses))
 import Data.User exposing (User)
 import Html exposing (..)
-import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
+import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, property, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
+import Json.Encode exposing (string)
 import Markdown
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
@@ -43,6 +44,7 @@ view model =
         , div [ id Style.OrationDebug ] [ text model.httpResponse ]
         , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
+        , div [ property "innerHTML" <| string model.math ] []
         , ul [ id Style.OrationComments ] <| printComments model
         ]
 
@@ -110,6 +112,7 @@ commentForm model formID =
         , div [ class [ Style.Control ] ]
             [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []
             , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
+            , input [ type_ "button", value "Math", onClick GetMath ] []
             , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]

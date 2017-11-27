@@ -17,4 +17,5 @@ type alias Model =
     , httpResponse : String
     , now : DateTime
     , blogAuthor : String
+    , math : String
     }

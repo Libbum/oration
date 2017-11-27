@@ -39,4 +39,8 @@ if (elmDiv) {
     app.ports.setPreview.subscribe(function(state) {
         localStorage.setItem('preview', state);
     });
+    app.ports.renderMath.subscribe(function(state) {
+        var html = katex.renderToString(state);
+        app.ports.parsedMath.send(html);
+    });
 }

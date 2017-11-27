@@ -149,6 +149,12 @@ update msg model =
         NewDate date ->
             { model | now = date } ! []
 
+        Math newMath ->
+            { model | math = newMath } ! []
+
+        GetMath ->
+            model ! [ Ports.renderMath model.comment ]
+
         CommentReply id ->
             let
                 current =
@@ -171,6 +177,7 @@ subscriptions model =
         , Ports.email UpdateEmail
         , Ports.url UpdateUrl
         , Ports.preview SetPreview
+        , Ports.parsedMath Math
         , Time.every minute GetDate
         ]
 

@@ -35,6 +35,7 @@ init location =
       , httpResponse = ""
       , now = dateTime zero
       , blogAuthor = ""
+      , math = ""
       }
     , initialise location
     )

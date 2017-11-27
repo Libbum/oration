@@ -1,4 +1,4 @@
-port module Ports exposing (email, name, preview, setEmail, setName, setPreview, setUrl, title, url)
+port module Ports exposing (email, name, parsedMath, preview, renderMath, setEmail, setName, setPreview, setUrl, title, url)
 
 {- port for listening for document title from JavaScript -}
 
@@ -44,3 +44,13 @@ port preview : (String -> msg) -> Sub msg
 
 
 port setPreview : String -> Cmd msg
+
+
+
+{- Run Katex interop -}
+
+
+port renderMath : String -> Cmd msg
+
+
+port parsedMath : (String -> msg) -> Sub msg

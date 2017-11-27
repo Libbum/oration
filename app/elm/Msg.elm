@@ -26,3 +26,5 @@ type Msg
     | GetDate Time
     | NewDate DateTime
     | CommentReply Int
+    | Math String
+    | GetMath

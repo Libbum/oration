@@ -7,7 +7,8 @@ import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
-import Markdown
+import Markdown.Block as Block exposing (Block(..))
+import Markdown.Inline as Inline exposing (Inline(..))
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
@@ -42,7 +43,14 @@ view model =
         , commentForm model Style.OrationForm
         , div [ id Style.OrationDebug ] [ text model.httpResponse ]
         , div [ id Style.OrationCommentPreview ] <|
-            Markdown.toHtml Nothing markdown
+            (markdown
+                |> Block.parse Nothing
+                -- using Config.defaultOptions
+                |> List.map customHtmlBlock
+                |> List.concat
+            )
+
+        --Markdown.toHtml Nothing markdown
         , ul [ id Style.OrationComments ] <| printComments model
         ]
 
@@ -139,6 +147,57 @@ markdownContent content preview =
         ""
 
 
+customHtmlBlock : Block b i -> List (Html msg)
+customHtmlBlock block =
+    case block of
+        BlockQuote blocks ->
+            List.map customHtmlBlock blocks
+                |> List.concat
+                |> details []
+                |> flip (::) []
+
+        _ ->
+            Block.defaultHtml
+                (Just customHtmlBlock)
+                (Just customHtmlInline)
+                block
+
+
+customHtmlInline : Inline i -> Html msg
+customHtmlInline inline =
+    case inline of
+        Image url maybeTitle inlines ->
+            figure []
+                [ img
+                    [ Html.Attributes.alt (Inline.extractText inlines)
+                    , Html.Attributes.src url
+                    , Html.Attributes.title (Maybe.withDefault "" maybeTitle)
+                    ]
+                    []
+                , figcaption []
+                    [ text (Inline.extractText inlines) ]
+                ]
+
+        Link url maybeTitle inlines ->
+            if String.startsWith "http://elm-lang.org" url then
+                a
+                    [ Html.Attributes.href url
+                    , Html.Attributes.title (Maybe.withDefault "" maybeTitle)
+                    ]
+                    (List.map customHtmlInline inlines)
+            else
+                a
+                    [ Html.Attributes.href url
+                    , Html.Attributes.title (Maybe.withDefault "" maybeTitle)
+                    , Html.Attributes.target "_blank"
+                    , Html.Attributes.rel "noopener noreferrer"
+                    ]
+                    (List.map customHtmlInline inlines)
+
+        _ ->
+            Inline.defaultHtml (Just customHtmlInline) inline
+
+
 
 {- Hashes user information depending on available data -}
 
@@ -202,7 +261,15 @@ printComment comment model =
         , printAuthor author
         , span [ class [ Style.Spacer ] ] [ text "•" ]
         , span [ class [ Style.Date ] ] [ text created ]
-        , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
+        , span [ class [ Style.Content ] ] <|
+            (comment.text
+                |> Block.parse Nothing
+                -- using Config.defaultOptions
+                |> List.map customHtmlBlock
+                |> List.concat
+            )
+
+        --Markdown.toHtml Nothing comment.text
         , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
         , replyForm comment.id model.parent model
         , printResponses comment.children model

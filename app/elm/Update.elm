@@ -162,6 +162,13 @@ update msg model =
             in
             { model | parent = value } ! []
 
+        ToggleCommentVisibility id ->
+            let
+                comments =
+                    Comment.toggleVisible id model.comments
+            in
+            { model | comments = comments } ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

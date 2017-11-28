@@ -26,3 +26,4 @@ type Msg
     | GetDate Time
     | NewDate DateTime
     | CommentReply Int
+    | ToggleCommentVisibility Int

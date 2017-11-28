@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Crypto.Hash
-import Data.Comment exposing (Comment, Responses(Responses))
+import Data.Comment exposing (Comment, Responses(Responses), count)
 import Data.User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
@@ -191,21 +191,36 @@ printComment comment model =
             else
                 "reply"
 
-        commentStyle =
+        headerStyle =
             if comment.hash == model.blogAuthor then
-                [ Style.Comment, Style.BlogAuthor ]
+                [ Style.Header, Style.BlogAuthor ]
             else
-                [ Style.Comment ]
+                [ Style.Header ]
+
+        contentStyle =
+            if comment.visible then
+                [ Style.Content ]
+            else
+                [ Style.Hidden ]
+
+        visibleButtonText =
+            if comment.visible then
+                "[–]"
+            else
+                "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
-    li [ name ("comment-" ++ id), class commentStyle ]
+    li [ name ("comment-" ++ id), class headerStyle ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
         , printAuthor author
         , span [ class [ Style.Spacer ] ] [ text "•" ]
         , span [ class [ Style.Date ] ] [ text created ]
-        , span [ class [ Style.Content ] ] <| Markdown.toHtml Nothing comment.text
-        , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
-        , replyForm comment.id model.parent model
-        , printResponses comment.children model
+        , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
+        , div [ class contentStyle ]
+            [ div [] <| Markdown.toHtml Nothing comment.text
+            , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
+            , replyForm comment.id model.parent model
+            , printResponses comment.children model
+            ]
         ]
 
 

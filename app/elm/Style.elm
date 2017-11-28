@@ -10,7 +10,7 @@ type OrationClasses
     = Submit
     | Reply
     | Response
-    | Comment
+    | Header
     | BlogAuthor
     | Identicon
     | Author
@@ -22,6 +22,8 @@ type OrationClasses
     | Control
     | Block
     | LeftMargin10
+    | Hidden
+    | Toggle
 
 
 type OrationIds
@@ -77,14 +79,9 @@ css =
             , marginLeft (px 20)
             ]
         , class Reply
-            [ color primaryColor
-            , cursor pointer
-            , backgroundColor (rgba 0 0 0 0)
+            [ clickableStyle
             , border3 (px 1) solid primaryColor
             , borderRadius (px 15)
-            , outline zero
-            , hover [ borderColor hoverColor, color hoverColor ]
-            , active [ borderColor activeColor, color activeColor ]
             , marginBottom (px 10)
             , fontSize (pt 10)
             ]
@@ -99,6 +96,13 @@ css =
             ]
         , class Block
             [ display block
+            ]
+        , class Hidden
+            [ display none
+            ]
+        , class Toggle
+            [ clickableStyle
+            , border zero
             ]
         , class BlogAuthor
             [ backgroundColor (rgba 0 0 0 0.03) ]
@@ -217,4 +221,16 @@ inputStyle =
         , lineHeight (em 1.4)
         , border3 (px 1) solid (rgba 0 0 0 0.2)
         , boxShadow4 zero (px 1) (px 2) (rgba 0 0 0 0.1)
+        ]
+
+
+clickableStyle : Style
+clickableStyle =
+    batch
+        [ backgroundColor (rgba 0 0 0 0)
+        , color primaryColor
+        , cursor pointer
+        , outline zero
+        , hover [ borderColor hoverColor, color hoverColor ]
+        , active [ borderColor activeColor, color activeColor ]
         ]

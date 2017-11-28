@@ -1,7 +1,7 @@
 module Style exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (input, label, li, textarea, typeSelector)
+import Css.Elements exposing (input, label, li, p, textarea, typeSelector)
 import Css.Namespace exposing (namespace)
 import Html.CssHelpers exposing (withNamespace)
 
@@ -10,7 +10,7 @@ type OrationClasses
     = Submit
     | Reply
     | Response
-    | Header
+    | Thread
     | BlogAuthor
     | Identicon
     | Author
@@ -120,6 +120,14 @@ css =
             ]
         , class Content
             [ padding (px 0)
+            , children
+                [ p
+                    [ firstOfType
+                        [ marginTop (em 0.5) ]
+                    , lastOfType
+                        [ marginBottom (em 0.25) ]
+                    ]
+                ]
             ]
         , class Identicon
             [ display inlineBlock

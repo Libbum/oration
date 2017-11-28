@@ -193,9 +193,9 @@ printComment comment model =
 
         headerStyle =
             if comment.hash == model.blogAuthor then
-                [ Style.Header, Style.BlogAuthor ]
+                [ Style.Thread, Style.BlogAuthor ]
             else
-                [ Style.Header ]
+                [ Style.Thread ]
 
         contentStyle =
             if comment.visible then
@@ -215,12 +215,12 @@ printComment comment model =
         , span [ class [ Style.Spacer ] ] [ text "•" ]
         , span [ class [ Style.Date ] ] [ text created ]
         , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-        , div [ class contentStyle ]
-            [ div [] <| Markdown.toHtml Nothing comment.text
-            , button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
-            , replyForm comment.id model.parent model
-            , printResponses comment.children model
-            ]
+        , div [ class contentStyle ] <|
+            Markdown.toHtml Nothing comment.text
+                ++ [ button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
+                   , replyForm comment.id model.parent model
+                   , printResponses comment.children model
+                   ]
         ]
 
 

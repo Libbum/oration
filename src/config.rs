@@ -9,12 +9,16 @@ use errors::*;
 pub struct Config {
     /// Top level location of the blog we are serving.
     pub host: String,
+    /// Name of the blog we are serving.
+    pub blog_name: String,
     /// A salt for slightly more anonymous `anonymous` user identification.
     pub salt: String,
     /// Blog Author to highlight as an authority in comments.
     pub author: Author,
     /// Limit of thread nesting in comments.
     pub nesting_limit: u32,
+    /// Notification system and connection details.
+    pub notifications: Notifications,
 }
 
 impl Config {
@@ -43,6 +47,21 @@ impl Config {
         if handle != Some("http") {
             return Err(ErrorKind::NoHTTPHandle.into());
         }
+
+        if self.notifications.new_comment {
+            // Empty values are parsed as ~, so we want to check for those
+            if self.notifications.smtp_server.into_iter().any(|x| {
+                x.is_empty() || x == "~"
+            })
+            {
+                return Err(ErrorKind::EmptySMTP.into());
+            }
+            if self.notifications.recipient.email.is_empty() ||
+                self.notifications.recipient.email == "~"
+            {
+                return Err(ErrorKind::EmptyRecipientEmail.into());
+            }
+        }
         Ok(())
     }
 }
@@ -66,4 +85,70 @@ impl Author {
     fn gen_hash(&mut self) {
         self.hash = gen_hash(&self.name, &self.email, &self.url, None);
     }
+}
+
+/// Details of the email notification system.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Notifications {
+    /// Toggle if an email is to be sent when a new comment is posted.
+    pub new_comment: bool,
+    /// SMTP connection details.
+    pub smtp_server: SMTPServer,
+    /// Who to send the notification to.
+    pub recipient: Recipient,
+}
+
+
+/// Details of the SMTP server which the notification system should connect to.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SMTPServer {
+    /// SMTP host url. (No need for a protocol header).
+    pub host: String,
+    /// Username for authentication.
+    pub user_name: String,
+    /// Password for authentication.
+    pub password: String,
+}
+
+impl<'a> IntoIterator for &'a SMTPServer {
+    type Item = &'a str;
+    type IntoIter = SMTPServerIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        SMTPServerIterator {
+            server: self,
+            index: 0,
+        }
+    }
+}
+
+/// Iterator helper for `SMTPServer`
+pub struct SMTPServerIterator<'a> {
+    /// The SMTPServer struct.
+    server: &'a SMTPServer,
+    /// A helper index.
+    index: usize,
+}
+
+impl<'a> Iterator for SMTPServerIterator<'a> {
+    type Item = &'a str;
+    fn next(&mut self) -> Option<&'a str> {
+        let result = match self.index {
+            0 => &self.server.host,
+            1 => &self.server.user_name,
+            2 => &self.server.password,
+            _ => return None,
+        };
+        self.index += 1;
+        Some(result)
+    }
+}
+
+/// Details of a person to email the notifications to.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Recipient {
+    /// Recipient's email address.
+    pub email: String,
+    /// Recipient's name.
+    pub name: String,
 }

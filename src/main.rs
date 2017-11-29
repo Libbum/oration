@@ -35,10 +35,15 @@ extern crate r2d2;
 extern crate yansi;
 extern crate petgraph;
 //extern crate argon2rs;
+extern crate lettre;
+extern crate lettre_email;
 extern crate crypto;
 extern crate reqwest;
 extern crate serde_yaml;
 extern crate itertools;
+#[macro_use]
+extern crate lazy_static;
+extern crate regex;
 #[macro_use(log)]
 extern crate log;
 
@@ -57,6 +62,10 @@ mod errors;
 /// Tests for the Rocket side of the app.
 #[cfg(test)]
 mod tests;
+/// Sends notification emails to admin.
+mod notify;
+/// Houses Data Structures that are needed in multiple modules.
+mod data;
 
 use std::io;
 use rocket::response::NamedFile;
@@ -74,32 +83,13 @@ use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
+use data::FormInput;
 
 /// Serve up the index file. This is only useful for development. Should not be used in a release.
 //TODO: Serve this some other way, we don't want oration doing this work.
 #[get("/")]
 fn index() -> io::Result<NamedFile> {
     NamedFile::open("public/index.html")
-}
-
-//NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
-#[derive(Debug, FromForm)]
-/// Incoming data from the web based form for a new comment.
-struct FormInput {
-    /// Comment from textarea.
-    comment: String,
-    /// Parent comment if any.
-    parent: Option<i32>,
-    /// Optional name.
-    name: Option<String>,
-    /// Optional email.
-    email: Option<String>,
-    /// Optional website.
-    url: Option<String>,
-    /// Title of post.
-    title: String,
-    /// Path of post.
-    path: String,
 }
 
 /// Process comment input from form.
@@ -115,18 +105,15 @@ fn new_comment<'a>(
         Ok(f) => {
             //If the comment form data is valid, proceed to comment insertion
             let form = f.into_inner();
+            let ip_addr = remote_addr.ip().to_string();
             //Get thread id from the db, create if needed
             match threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
                 Ok(tid) => {
                     if let Err(err) = Comment::insert(
                         &conn,
                         tid,
-                        form.parent,
-                        &form.comment,
-                        form.name,
-                        form.email,
-                        form.url,
-                        &remote_addr.ip().to_string(),
+                        &form,
+                        &ip_addr,
                         config.nesting_limit,
                     )
                     {
@@ -140,6 +127,33 @@ fn new_comment<'a>(
                         //All good, 200
                         response.set_status(Status::Ok);
                         response.set_sized_body(Cursor::new("Comment recieved."));
+                        //Send notification to admin
+                        if config.notifications.new_comment {
+                            match notify::send_notification(
+                                &form,
+                                &config.notifications,
+                                &config.host,
+                                &config.blog_name,
+                                &ip_addr,
+                            ) {
+                                Ok(_) => {
+                                    log::info!(
+                                        "📧  {}",
+                                        Paint::blue("New comment email notification sent.")
+                                    )
+                                }
+                                Err(err) => {
+                                    log::warn!("{}", &err);
+                                    for e in err.iter().skip(1) {
+                                        log::warn!(
+                                            "    {} {}",
+                                            Paint::white("=> Caused by:"),
+                                            Paint::red(&e)
+                                        );
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 Err(err) => {
@@ -322,7 +336,6 @@ fn main() {
         Paint::blue("Oration will serve comments to"),
         host
     );
-
 
     //Start the web service
     rocket.launch();

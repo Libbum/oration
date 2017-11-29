@@ -27,3 +27,7 @@ argon2rs = { version = "0.2", features = ["simd"] }
 rust-crypto = "^0.2"
 itertools = "0.6"
 petgraph = "0.4"
+lettre = "0.7"
+lettre_email = "0.7"
+lazy_static = "0.2"
+regex = "0.2"

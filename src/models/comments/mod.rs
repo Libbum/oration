@@ -10,6 +10,7 @@ use itertools::join;
 use petgraph::graphmap::DiGraphMap;
 
 use schema::comments;
+use data::FormInput;
 use errors::*;
 
 #[derive(Queryable, Debug)]
@@ -100,11 +101,7 @@ impl Comment {
     pub fn insert<'c>(
         conn: &SqliteConnection,
         tid: i32,
-        parent: Option<i32>,
-        data: &'c str,
-        author: Option<String>,
-        email: Option<String>,
-        url: Option<String>,
+        form: &FormInput,
         ip_addr: &'c str,
         nesting_limit: u32,
     ) -> Result<()> {
@@ -116,8 +113,8 @@ impl Comment {
             Some(ip_addr)
         };
 
-        let parent_id = nesting_check(conn, &parent, nesting_limit)?;
-        let hash = gen_hash(&author, &email, &url, Some(ip_addr));
+        let parent_id = nesting_check(conn, &form.parent, nesting_limit)?;
+        let hash = gen_hash(&form.name, &form.email, &form.url, Some(ip_addr));
 
         let c = NewComment {
             tid: tid,
@@ -126,10 +123,10 @@ impl Comment {
             modified: None,
             mode: 0,
             remote_addr: ip,
-            text: data,
-            author: author,
-            email: email,
-            website: url,
+            text: &form.comment,
+            author: form.name.clone(),
+            email: form.email.clone(),
+            website: form.url.clone(),
             hash: hash,
             likes: None,
             dislikes: None,
@@ -169,7 +166,8 @@ fn nesting_check(
                     FROM node_ancestors AS na, comments
                     WHERE comments.id = na.parent_id AND comments.parent IS NOT NULL
                 )
-                SELECT COUNT(parent_id) AS depth FROM node_ancestors GROUP BY node_id;");
+                SELECT COUNT(parent_id) AS depth FROM node_ancestors GROUP BY node_id;",
+            );
             let parent_depth: Vec<i32> = query
                 .bind::<Text, _>(pid.to_string())
                 .load(conn)
@@ -223,13 +221,11 @@ pub fn gen_hash(
         };
         //Join with 'b' since it gives the author a nice identicon
         hasher.input_str(&join(data.iter(), "b"));
-    } else {
+    } else if let Some(ip) = ip_addr {
         //If we have no data but an ip, hash the ip, otherwise return an empty string
-        if let Some(ip) = ip_addr {
-            hasher.input_str(ip);
-        } else {
-            return String::default();
-        }
+        hasher.input_str(ip);
+    } else {
+        return String::default();
     }
     hasher.result_str()
 }
@@ -352,15 +348,19 @@ fn build_tree(graph: &DiGraphMap<i32, ()>, id: i32, comments: &[PrintedComment])
 }
 
 /// Generates a value for author depending on the completeness of the author profile.
-fn get_author(author: &Option<String>, email: &Option<String>, url: &Option<String>) -> Option<String> {
+fn get_author(
+    author: &Option<String>,
+    email: &Option<String>,
+    url: &Option<String>,
+) -> Option<String> {
     if author.is_some() {
         author.to_owned()
     } else if email.is_some() {
         //We want to parse the email address to keep it somewhat confidential.
         let real_email = email.to_owned().unwrap();
-        let at_index = real_email.find('@').unwrap_or(real_email.len());
+        let at_index = real_email.find('@').unwrap_or_else(|| real_email.len());
         let (user, domain) = real_email.split_at(at_index);
-        let first_dot = domain.find('.').unwrap_or(domain.len());
+        let first_dot = domain.find('.').unwrap_or_else(|| domain.len());
         let (_, trailing) = domain.split_at(first_dot);
 
         let mut email_obf = String::new();

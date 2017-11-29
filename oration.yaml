@@ -11,6 +11,8 @@
 
 # Top level location of your blog
 host: http://localhost:8600/
+# Name of your blog
+blog_name: Testing ground
 
 # Salt for argon2 hashing. Note this is NOT used for passwords, only for keeping things somewhat anonymous.
 salt: 3BooSGokWgZXfae7WxhGZ
@@ -25,3 +27,17 @@ author:
 # Maximum thread nesting value. Depending on your layout, comments will get really bunched up and difficult
 # to read. So replies after a certain depth will no longer nest, but instead just respond to the current parent.
 nesting_limit: 6
+
+# Email notifications can be sent to you when certain events occur. Toggle each boolean value you wish to be
+# notified of here, and set up your smtp server details below. These values are sent encrypted by default.
+# For now, your pasword will be plain text in this file, so make sure your permissions are tight. In future
+# versions of Oration an init script will save your password in a strongly encrypted format in the database.
+notifications:
+  new_comment: false
+  smtp_server:
+    host:
+    user_name:
+    password:
+  recipient:
+    email:
+    name:

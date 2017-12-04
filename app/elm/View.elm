@@ -51,8 +51,21 @@ view model =
 {- Comment form. Can be used as the main form or in a reply. -}
 
 
-commentForm : Model -> Style.OrationIds -> Html Msg
-commentForm model formID =
+type alias CommentFormModel =
+    { identity : String
+    , name : String
+    , email : String
+    , url : String
+    , textAreaValue : String
+    , textAreaDisable : Bool
+    , buttonDisable : Bool
+    , id : Style.OrationIds
+    , preview : Bool
+    }
+
+
+commentFormSelector : Model -> Style.OrationIds -> CommentFormModel
+commentFormSelector model formId =
     let
         identity =
             getIdentity model.user
@@ -67,7 +80,7 @@ commentForm model formID =
             model.user.url ? ""
 
         textAreaValue =
-            if formID == Style.OrationForm then
+            if formId == Style.OrationForm then
                 if isNothing model.parent then
                     model.comment
                 else
@@ -77,7 +90,7 @@ commentForm model formID =
                 model.comment
 
         textAreaDisable =
-            if formID == Style.OrationForm && isJust model.parent then
+            if formId == Style.OrationForm && isJust model.parent then
                 True
             else
                 False
@@ -88,31 +101,50 @@ commentForm model formID =
             else
                 setButtonDisabled model.comment
     in
-    Html.form [ method "post", id formID, class [ Style.Form ], onSubmit PostComment ]
+    { identity = getIdentity model.user
+    , name = model.user.name ? ""
+    , email = model.user.email ? ""
+    , url = model.user.url ? ""
+    , textAreaValue = textAreaValue
+    , textAreaDisable = textAreaDisable
+    , buttonDisable = buttonDisable
+    , id = formId
+    , preview = model.user.preview
+    }
+
+
+commentFormView : CommentFormModel -> Html Msg
+commentFormView cfm =
+    Html.form [ method "post", id cfm.id, class [ Style.Form ], onSubmit PostComment ]
         [ textarea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
-            , value textAreaValue
+            , value cfm.textAreaValue
             , minlength 3
             , cols 80
             , rows 4
             , onInput UpdateComment
-            , disabled textAreaDisable
+            , disabled cfm.textAreaDisable
             , class [ Style.Block ]
             ]
             []
         , div [ class [ Style.User ] ]
-            [ span [ class [ Style.Identicon, Style.LeftMargin10 ] ] [ identicon "25px" identity ]
-            , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput UpdateName ] []
-            , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput UpdateEmail ] []
-            , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput UpdateUrl ] []
+            [ span [ class [ Style.Identicon, Style.LeftMargin10 ] ] [ identicon "25px" cfm.identity ]
+            , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue cfm.name, autocomplete True, onInput UpdateName ] []
+            , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue cfm.email, autocomplete True, onInput UpdateEmail ] []
+            , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue cfm.url, onInput UpdateUrl ] []
             ]
         , div [ class [ Style.Control ] ]
-            [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []
+            [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked cfm.preview, onClick UpdatePreview ] []
             , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
-            , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
+            , input [ type_ "submit", class [ Style.Submit ], disabled cfm.buttonDisable, value "Comment", onClick StoreUser ] []
             ]
         ]
+
+
+commentForm : Model -> Style.OrationIds -> Html Msg
+commentForm model id =
+    commentFormView <| commentFormSelector model id
 
 
 
@@ -173,18 +205,24 @@ printComments model =
 {- Format a single comment -}
 
 
-printComment : Comment -> Model -> Html Msg
-printComment comment model =
+type alias PrintCommentModel =
+    { author : String
+    , hash : String
+    , created : String
+    , id : Int
+    , parent : Maybe Int
+    , children : Responses
+    , text : String
+    , buttonText : String
+    , headerStyle : List Style.OrationClasses
+    , contentStyle : List Style.OrationClasses
+    , visibleButtonText : String
+    }
+
+
+printCommentSelector : Comment -> Model -> PrintCommentModel
+printCommentSelector comment model =
     let
-        author =
-            comment.author ? "Anonymous"
-
-        created =
-            inWords model.now comment.created
-
-        id =
-            toString comment.id
-
         buttonText =
             if model.parent == Just comment.id then
                 "close"
@@ -209,19 +247,41 @@ printComment comment model =
             else
                 "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
-    li [ name ("comment-" ++ id), class headerStyle ]
-        [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
-        , printAuthor author
+    { author = comment.author ? "Anonymous"
+    , hash = comment.hash
+    , created = inWords model.now comment.created
+    , id = comment.id
+    , parent = model.parent
+    , children = comment.children
+    , text = comment.text
+    , buttonText = buttonText
+    , headerStyle = headerStyle
+    , contentStyle = contentStyle
+    , visibleButtonText = visibleButtonText
+    }
+
+
+printCommentView : PrintCommentModel -> Html Msg
+printCommentView cm =
+    li [ name ("comment-" ++ toString cm.id), class cm.headerStyle ]
+        [ span [ class [ Style.Identicon ] ] [ identicon "25px" cm.hash ]
+        , printAuthor cm.author
         , span [ class [ Style.Spacer ] ] [ text "•" ]
-        , span [ class [ Style.Date ] ] [ text created ]
-        , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-        , div [ class contentStyle ] <|
-            Markdown.toHtml Nothing comment.text
-                ++ [ button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
-                   , replyForm comment.id model.parent model
-                   , printResponses comment.children model
+        , span [ class [ Style.Date ] ] [ text cm.created ]
+        , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility cm.id) ] [ text cm.visibleButtonText ]
+        , div [ class cm.contentStyle ] <|
+            Markdown.toHtml Nothing cm.text
+                ++ [ button [ onClick (CommentReply cm.id), class [ Style.Reply ] ] [ text cm.buttonText ]
+                   , replyForm cm.id cm.parent
+
+                   --, printResponses cm.children
                    ]
         ]
+
+
+printComment : Comment -> Model -> Html Msg
+printComment comment model =
+    printCommentView <| printCommentSelector comment model
 
 
 printAuthor : String -> Html Msg

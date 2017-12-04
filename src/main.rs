@@ -99,7 +99,7 @@ fn new_comment<'a>(
     comment: Result<Form<FormInput>, Option<String>>,
     config: State<Config>,
     remote_addr: SocketAddr,
-) -> Response<'a> {
+) -> Result<Json<NestedComment>, Response<'a>> {
     let mut response = Response::new();
     match comment {
         Ok(f) => {
@@ -109,50 +109,49 @@ fn new_comment<'a>(
             //Get thread id from the db, create if needed
             match threads::gen_or_get_id(&conn, &config.host, &form.title, &form.path) {
                 Ok(tid) => {
-                    if let Err(err) = Comment::insert(
-                        &conn,
-                        tid,
-                        &form,
-                        &ip_addr,
-                        config.nesting_limit,
-                    )
-                    {
-                        //Something went wrong, return a 500
-                        log::warn!("{}", &err);
-                        for e in err.iter().skip(1) {
-                            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+                    match Comment::insert(&conn, tid, &form, &ip_addr, config.nesting_limit) {
+                        Err(err) => {
+                            //Something went wrong, return a 500
+                            log::warn!("{}", &err);
+                            for e in err.iter().skip(1) {
+                                log::warn!(
+                                    "    {} {}",
+                                    Paint::white("=> Caused by:"),
+                                    Paint::red(&e)
+                                );
+                            }
+                            response.set_status(Status::InternalServerError);
                         }
-                        response.set_status(Status::InternalServerError);
-                    } else {
-                        //All good, 200
-                        response.set_status(Status::Ok);
-                        response.set_sized_body(Cursor::new("Comment recieved."));
-                        //Send notification to admin
-                        if config.notifications.new_comment {
-                            match notify::send_notification(
-                                &form,
-                                &config.notifications,
-                                &config.host,
-                                &config.blog_name,
-                                &ip_addr,
-                            ) {
-                                Ok(_) => {
-                                    log::info!(
-                                        "📧  {}",
-                                        Paint::blue("New comment email notification sent.")
-                                    )
-                                }
-                                Err(err) => {
-                                    log::warn!("{}", &err);
-                                    for e in err.iter().skip(1) {
-                                        log::warn!(
-                                            "    {} {}",
-                                            Paint::white("=> Caused by:"),
-                                            Paint::red(&e)
-                                        );
+                        Ok(comment) => {
+                            //All good, return the comment
+                            //Send notification to admin
+                            if config.notifications.new_comment {
+                                match notify::send_notification(
+                                    &form,
+                                    &config.notifications,
+                                    &config.host,
+                                    &config.blog_name,
+                                    &ip_addr,
+                                ) {
+                                    Ok(_) => {
+                                        log::info!(
+                                            "📧  {}",
+                                            Paint::blue("New comment email notification sent.")
+                                        )
+                                    }
+                                    Err(err) => {
+                                        log::warn!("{}", &err);
+                                        for e in err.iter().skip(1) {
+                                            log::warn!(
+                                                "    {} {}",
+                                                Paint::white("=> Caused by:"),
+                                                Paint::red(&e)
+                                            );
+                                        }
                                     }
                                 }
                             }
+                            return Ok(Json(comment));
                         }
                     }
                 }
@@ -180,7 +179,7 @@ fn new_comment<'a>(
             response.set_sized_body(Cursor::new("Form input was invalid UTF8."));
         }
     }
-    response
+    Err(response)
 }
 
 /// Information sent to the client upon initialisation.

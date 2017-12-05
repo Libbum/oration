@@ -76,7 +76,7 @@ use rocket::{State, Response};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{NestedComment, Comment};
+use models::comments::{InsertedComment, NestedComment, Comment};
 use models::threads;
 use std::process;
 use yansi::Paint;
@@ -99,7 +99,7 @@ fn new_comment<'a>(
     comment: Result<Form<FormInput>, Option<String>>,
     config: State<Config>,
     remote_addr: SocketAddr,
-) -> Result<Json<NestedComment>, Response<'a>> {
+) -> Result<Json<InsertedComment>, Response<'a>> {
     let mut response = Response::new();
     match comment {
         Ok(f) => {

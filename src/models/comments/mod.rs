@@ -104,7 +104,7 @@ impl Comment {
         form: &FormInput,
         ip_addr: &'c str,
         nesting_limit: u32,
-    ) -> Result<NestedComment> {
+    ) -> Result<InsertedComment> {
         let time = Utc::now().naive_utc();
 
         let ip = if ip_addr.is_empty() {
@@ -145,8 +145,7 @@ impl Comment {
                 .first::<i32>(conn)
                 .chain_err(|| ErrorKind::DBRead)?;
             let comment = PrintedComment::get(conn, comment_id)?;
-            //Since this comment was just created, we know it has no children to return
-            Ok(NestedComment::new(&comment, Vec::new()))
+            Ok(InsertedComment::new(&comment))
         } else {
             Err(ErrorKind::DBInsert.into())
         }
@@ -291,6 +290,30 @@ impl PrintedComment {
             .first(conn)
             .chain_err(|| ErrorKind::DBRead)?;
         Ok(comment)
+    }
+}
+
+#[derive(Serialize, Debug)]
+/// Subset of the comment which was just inserted. This data is needed to populate the frontend
+/// without calling for a complete refresh.
+pub struct InsertedComment {
+    /// Primary key.
+    id: i32,
+    /// Parent comment.
+    parent: Option<i32>,
+    /// Commentors details.
+    author: Option<String>,
+}
+
+impl InsertedComment {
+    /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
+    fn new(comment: &PrintedComment) -> InsertedComment {
+        let author = get_author(&comment.author, &comment.email, &comment.url);
+        InsertedComment {
+            id: comment.id,
+            parent: comment.parent,
+            author: author,
+        }
     }
 }
 

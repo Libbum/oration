@@ -1,6 +1,6 @@
 module Models exposing (Model)
 
-import Data.Comment exposing (Comment)
+import Data.Comment exposing (Comment, Inserted)
 import Data.User exposing (User)
 import Navigation exposing (Location)
 import Time.DateTime exposing (DateTime)
@@ -14,7 +14,7 @@ type alias Model =
     , count : Int
     , post : Location
     , title : String
-    , httpResponse : String
+    , debug : String
     , now : DateTime
     , blogAuthor : String
     }

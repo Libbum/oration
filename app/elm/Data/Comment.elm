@@ -1,10 +1,11 @@
-module Data.Comment exposing (Comment, Responses(Responses), count, decoder, encode, toggleVisible)
+module Data.Comment exposing (Comment, Inserted, Responses(Responses), count, decoder, encode, insertDecoder, insertNew, toggleVisible)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
 import Json.Decode.Pipeline exposing (decode, hardcoded, required)
 import Json.Encode as Encode exposing (Value)
 import Json.Encode.Extra as EncodeExtra
+import Maybe.Extra exposing ((?), isNothing)
 import Time.DateTime exposing (DateTime)
 import Util exposing ((=>))
 
@@ -24,6 +25,13 @@ type Responses
     = Responses (List Comment)
 
 
+type alias Inserted =
+    { id : Int
+    , parent : Maybe Int
+    , author : Maybe String
+    }
+
+
 
 {- TOTAL COUNT -}
 
@@ -35,6 +43,44 @@ count =
 
 
 {- STRUCTURE UPDATES -}
+
+
+insertNew : Inserted -> ( String, String, DateTime, List Comment ) -> List Comment
+insertNew insert current =
+    let
+        ( commentText, hash, now, comments ) =
+            current
+
+        newComment =
+            { text = commentText
+            , author = insert.author
+            , hash = hash
+            , created = now
+            , id = insert.id
+            , children = Responses []
+            , visible = True
+            }
+    in
+    if isNothing insert.parent then
+        comments ++ List.singleton newComment
+    else
+        List.map (\comment -> injectNew insert newComment comment) comments
+
+
+injectNew : Inserted -> Comment -> Comment -> Comment
+injectNew insert newComment comment =
+    let
+        children =
+            if comment.id == insert.parent ? -1 then
+                case comment.children of
+                    Responses responses ->
+                        Responses <| responses ++ List.singleton newComment
+            else
+                case comment.children of
+                    Responses responses ->
+                        Responses <| List.map (\response -> injectNew insert newComment response) responses
+    in
+    { comment | children = children }
 
 
 toggleVisible : Int -> List Comment -> List Comment
@@ -110,3 +156,11 @@ encode comment =
         , "author" => EncodeExtra.maybe Encode.string comment.author
         , "hash" => Encode.string comment.hash
         ]
+
+
+insertDecoder : Decoder Inserted
+insertDecoder =
+    decode Inserted
+        |> required "id" Decode.int
+        |> required "parent" (Decode.nullable Decode.int)
+        |> required "author" (Decode.nullable Decode.string)

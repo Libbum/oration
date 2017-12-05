@@ -104,7 +104,7 @@ impl Comment {
         form: &FormInput,
         ip_addr: &'c str,
         nesting_limit: u32,
-    ) -> Result<()> {
+    ) -> Result<InsertedComment> {
         let time = Utc::now().naive_utc();
 
         let ip = if ip_addr.is_empty() {
@@ -138,7 +138,14 @@ impl Comment {
             .execute(conn)
             .is_ok();
         if result {
-            Ok(())
+            //Return a NestedComment formated result of this entry to the front end
+            let comment_id = comments::table
+                .select(comments::id)
+                .order(comments::id.desc())
+                .first::<i32>(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
+            let comment = PrintedComment::get(conn, comment_id)?;
+            Ok(InsertedComment::new(&comment))
         } else {
             Err(ErrorKind::DBInsert.into())
         }
@@ -270,6 +277,49 @@ impl PrintedComment {
             .load(conn)
             .chain_err(|| ErrorKind::DBRead)?;
         Ok(comments)
+    }
+
+    /// Returns a comment based on its' unique ID.
+    pub fn get(conn: &SqliteConnection, id: i32) -> Result<PrintedComment> {
+        let comment: PrintedComment = comments::table
+            .select((
+                comments::id,
+                comments::parent,
+                comments::text,
+                comments::author,
+                comments::email,
+                comments::website,
+                comments::hash,
+                comments::created,
+            ))
+            .filter(comments::id.eq(id))
+            .first(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        Ok(comment)
+    }
+}
+
+#[derive(Serialize, Debug)]
+/// Subset of the comment which was just inserted. This data is needed to populate the frontend
+/// without calling for a complete refresh.
+pub struct InsertedComment {
+    /// Primary key.
+    id: i32,
+    /// Parent comment.
+    parent: Option<i32>,
+    /// Commentors details.
+    author: Option<String>,
+}
+
+impl InsertedComment {
+    /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
+    fn new(comment: &PrintedComment) -> InsertedComment {
+        let author = get_author(&comment.author, &comment.email, &comment.url);
+        InsertedComment {
+            id: comment.id,
+            parent: comment.parent,
+            author: author,
+        }
     }
 }
 

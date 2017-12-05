@@ -1,6 +1,6 @@
 module Request.Comment exposing (comments, count, post)
 
-import Data.Comment as Comment exposing (Comment)
+import Data.Comment as Comment exposing (Comment, Inserted)
 import Http
 import HttpBuilder
 import Json.Decode as Decode
@@ -21,7 +21,7 @@ count location =
 
 {-| We want to override the default post behaviour of the form and send this data seemlessly to the backend
 -}
-post : Model -> Http.Request String
+post : Model -> Http.Request Inserted
 post model =
     let
         --These values will always be sent
@@ -32,6 +32,9 @@ post model =
             ]
 
         --User details are only sent if they exist
+        expect =
+            Comment.insertDecoder
+                |> Http.expectJson
     in
     "/oration"
         |> HttpBuilder.post
@@ -41,7 +44,7 @@ post model =
                 ++ prependMaybe body "email" model.user.email
                 ++ prependMaybe body "url" model.user.url
             )
-        |> HttpBuilder.withExpect Http.expectString
+        |> HttpBuilder.withExpect expect
         |> HttpBuilder.toRequest
 
 

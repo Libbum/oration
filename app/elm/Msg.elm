@@ -1,6 +1,6 @@
 module Msg exposing (..)
 
-import Data.Comment exposing (Comment)
+import Data.Comment exposing (Comment, Inserted)
 import Data.Init exposing (Init)
 import Http
 import Navigation exposing (Location)
@@ -20,7 +20,7 @@ type Msg
     | StoreUser
     | Title String
     | PostComment
-    | ReceiveHttp (Result Http.Error String)
+    | PostConfirm (Result Http.Error Inserted)
     | Hashes (Result Http.Error Init)
     | Comments (Result Http.Error (List Comment))
     | GetDate Time

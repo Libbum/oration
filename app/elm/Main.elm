@@ -32,7 +32,7 @@ init location =
       , count = 0
       , post = location
       , title = ""
-      , httpResponse = ""
+      , debug = ""
       , now = dateTime zero
       , blogAuthor = ""
       }

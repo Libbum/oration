@@ -1,14 +1,13 @@
 module View exposing (view)
 
-import Crypto.Hash
 import Data.Comment exposing (Comment, Responses(Responses), count)
-import Data.User exposing (User)
+import Data.User exposing (User, getIdentity)
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
-import Maybe.Extra exposing ((?), isJust, isNothing)
+import Maybe.Extra exposing ((?), isJust)
 import Models exposing (Model)
 import Msg exposing (Msg(..))
 import Style
@@ -40,7 +39,7 @@ view model =
     div [ id Style.Oration ]
         [ h2 [] [ text count ]
         , commentForm model Style.OrationForm
-        , div [ id Style.OrationDebug ] [ text model.httpResponse ]
+        , div [ id Style.OrationDebug ] [ text model.debug ]
         , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
         , ul [ id Style.OrationComments ] <| printComments model
@@ -68,10 +67,10 @@ commentForm model formID =
 
         textAreaValue =
             if formID == Style.OrationForm then
-                if isNothing model.parent then
-                    model.comment
-                else
+                if isJust model.parent then
                     ""
+                else
+                    model.comment
             else
                 --OrationReplyForm
                 model.comment
@@ -140,27 +139,6 @@ markdownContent content preview =
 
 
 
-{- Hashes user information depending on available data -}
-
-
-getIdentity : User -> String
-getIdentity user =
-    let
-        data =
-            [ user.name, user.email, user.url ]
-
-        --I think Maybe.Extra.values could also be used here
-        unwrapped =
-            List.filterMap identity data
-    in
-    if List.all isNothing data then
-        user.iphash ? ""
-    else
-        -- Join with b since it gives the authors' credentials a cool identicon
-        Crypto.Hash.sha224 (String.join "b" unwrapped)
-
-
-
 {- Format a list of comments -}
 
 
@@ -182,8 +160,8 @@ printComment comment model =
         created =
             inWords model.now comment.created
 
-        id =
-            toString comment.id
+        commentId =
+            "comment-" ++ toString comment.id
 
         buttonText =
             if model.parent == Just comment.id then
@@ -209,7 +187,7 @@ printComment comment model =
             else
                 "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
-    li [ name ("comment-" ++ id), class headerStyle ]
+    li [ id commentId, class headerStyle ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
         , printAuthor author
         , span [ class [ Style.Spacer ] ] [ text "•" ]

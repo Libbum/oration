@@ -1,6 +1,7 @@
 module Update exposing (currentDate, subscriptions, update)
 
 import Data.Comment as Comment
+import Data.User exposing (getIdentity)
 import Http
 import Maybe.Extra exposing ((?))
 import Models exposing (Model)
@@ -79,8 +80,8 @@ update msg model =
             in
             { model | count = intCount } ! []
 
-        Count (Err _) ->
-            model ! []
+        Count (Err error) ->
+            { model | debug = toString error } ! []
 
         Post location ->
             { model | post = location } ! []
@@ -89,31 +90,37 @@ update msg model =
             { model | title = value } ! []
 
         PostComment ->
-            { model
-                | comment = ""
-                , parent = Nothing
-                , count = model.count + 1
-            }
+            model
                 ! [ let
                         postReq =
                             Request.Comment.post model
                                 |> Http.toTask
                     in
-                    Task.attempt ReceiveHttp postReq
+                    Task.attempt PostConfirm postReq
                   ]
 
-        --TODO: Proper responses are needed
-        ReceiveHttp result ->
+        PostConfirm (Ok result) ->
             let
-                response =
-                    case result of
-                        Ok val ->
-                            val
+                author =
+                    getIdentity model.user
 
-                        Err _ ->
-                            "Error!"
+                comments =
+                    Comment.insertNew result ( model.comment, author, model.now, model.comments )
             in
-            { model | httpResponse = response } ! []
+            { model
+                | comment = ""
+                , parent = Nothing
+                , count = model.count + 1
+                , debug = toString result
+                , comments = comments
+            }
+                ! []
+
+        --! [ Ports.scrollTo ("comment-" ++ toString result.id) ]
+        --! [ Dom.focus "comment-30" |> Task.attempt (always NoOp) ]
+        --! [ toTop ("comment-" ++ toString result.id) |> Task.attempt ScrollResult ]
+        PostConfirm (Err error) ->
+            { model | debug = toString error } ! []
 
         Hashes (Ok result) ->
             let
@@ -126,8 +133,8 @@ update msg model =
             }
                 ! []
 
-        Hashes (Err _) ->
-            model ! []
+        Hashes (Err error) ->
+            { model | debug = toString error } ! []
 
         Comments (Ok result) ->
             let
@@ -140,8 +147,8 @@ update msg model =
             }
                 ! []
 
-        Comments (Err _) ->
-            model ! []
+        Comments (Err error) ->
+            { model | debug = toString error } ! []
 
         GetDate _ ->
             model ! [ Task.perform NewDate currentDate ]

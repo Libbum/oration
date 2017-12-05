@@ -15,9 +15,8 @@ pub type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 pub fn init_pool() -> Pool {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let config = r2d2::Config::default();
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);
-    r2d2::Pool::new(config, manager).expect("db pool")
+    r2d2::Pool::new(manager).expect("db pool")
 }
 
 /// Connection request guard type: a wrapper around an r2d2 pooled connection.

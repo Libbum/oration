@@ -1,7 +1,7 @@
 use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
-use diesel::types::{Integer, Text};
+use diesel::types::Integer;
 use diesel::expression::dsl::sql;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use crypto::digest::Digest;
@@ -133,8 +133,8 @@ impl Comment {
             voters: "1".to_string(),
         };
 
-        let result = diesel::insert(&c)
-            .into(comments::table)
+        let result = diesel::insert_into(comments::table)
+            .values(&c)
             .execute(conn)
             .is_ok();
         if result {
@@ -158,9 +158,16 @@ fn nesting_check(
             //https://github.com/diesel-rs/diesel/issues/33
             //https://github.com/diesel-rs/diesel/issues/356
             //So this is implemented in native SQL for the moment
-            let query = sql::<Integer>(
+            //TODO: since SqlLiteral#bind is depreciated, we should be using `sql_query`
+            //here. However: we're building a virtual table and pulling a count from it.
+            //Diesel for the moment AFAIK is not a happy camper about this.
+            let mut query = String::from(
                 "WITH RECURSIVE node_ancestors(node_id, parent_id) AS (
-                    SELECT id, id FROM comments WHERE id = ?
+                    SELECT id, id FROM comments WHERE id = ",
+            );
+            query.push_str(&pid.to_string());
+            query.push_str(
+                "
                 UNION ALL
                     SELECT na.node_id, comments.parent
                     FROM node_ancestors AS na, comments
@@ -168,10 +175,9 @@ fn nesting_check(
                 )
                 SELECT COUNT(parent_id) AS depth FROM node_ancestors GROUP BY node_id;",
             );
-            let parent_depth: Vec<i32> = query
-                .bind::<Text, _>(pid.to_string())
-                .load(conn)
-                .chain_err(|| ErrorKind::DBRead)?;
+            let parent_depth: Vec<i32> = sql::<Integer>(&query).load(conn).chain_err(
+                || ErrorKind::DBRead,
+            )?;
 
             if parent_depth.is_empty() || parent_depth[0] <= nesting_limit as i32 {
                 //We're fine to nest

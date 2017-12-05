@@ -73,25 +73,25 @@ fn create<'t>(
     new_url: &'t str,
     new_title: Option<&'t str>,
 ) -> Result<i32> {
-    use schema::threads::dsl::{threads, id};
+    use schema::threads;
 
     let new_thread = NewThread {
         uri: new_url,
         title: new_title,
     };
 
-    let result = diesel::insert(&new_thread)
-        .into(threads)
+    let result = diesel::insert_into(threads::table)
+        .values(&new_thread)
         .execute(conn)
         .is_ok();
 
     if result {
-        let thread_info = threads.order(id.desc()).first::<Thread>(conn).chain_err(
-            || {
-                ErrorKind::DBRead
-            },
-        )?;
-        Ok(thread_info.id)
+        let thread_id = threads::table
+            .select(threads::id)
+            .order(threads::id.desc())
+            .first::<i32>(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        Ok(thread_id)
     } else {
         Err(ErrorKind::DBInsert.into())
     }

@@ -23,13 +23,10 @@ extern crate error_chain;
 extern crate rand;
 extern crate rocket;
 extern crate rocket_contrib;
-//extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate diesel;
-#[macro_use]
-extern crate diesel_codegen;
 extern crate r2d2_diesel;
 extern crate r2d2;
 extern crate yansi;
@@ -291,7 +288,13 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
     };
     let host = config.host.clone();
     let pool = db::init_pool();
-    let conn = db::Conn(pool.get().expect("database connection for initialisation"));
+    let conn = match pool.get() {
+        Ok(p) => db::Conn(p),
+        Err(err) => {
+            println!("Could not connect to database: {}", err);
+            process::exit(1)
+        }
+    };
     let rocket = rocket::ignite().manage(pool).manage(config).mount(
         "/",
         routes![

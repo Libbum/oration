@@ -1,6 +1,7 @@
 module Update exposing (currentDate, subscriptions, update)
 
 import Data.Comment as Comment
+import Data.User exposing (getIdentity)
 import Http
 import Maybe.Extra exposing ((?))
 import Models exposing (Model)
@@ -99,16 +100,24 @@ update msg model =
                   ]
 
         PostConfirm (Ok result) ->
+            let
+                author =
+                    getIdentity model.user
+
+                comments =
+                    Comment.insertNew result ( model.comment, author, model.now, model.comments )
+            in
             { model
                 | comment = ""
                 , parent = Nothing
                 , count = model.count + 1
-                , postResponse = result
+                , debug = toString result
+                , comments = comments
             }
                 ! []
 
         PostConfirm (Err error) ->
-            { model | postResponse = toString error } ! []
+            { model | debug = toString error } ! []
 
         Hashes (Ok result) ->
             let
@@ -121,8 +130,8 @@ update msg model =
             }
                 ! []
 
-        Hashes (Err _) ->
-            model ! []
+        Hashes (Err error) ->
+            { model | debug = toString error } ! []
 
         Comments (Ok result) ->
             let
@@ -135,8 +144,8 @@ update msg model =
             }
                 ! []
 
-        Comments (Err _) ->
-            model ! []
+        Comments (Err error) ->
+            { model | debug = toString error } ! []
 
         GetDate _ ->
             model ! [ Task.perform NewDate currentDate ]

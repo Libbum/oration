@@ -80,8 +80,8 @@ update msg model =
             in
             { model | count = intCount } ! []
 
-        Count (Err _) ->
-            model ! []
+        Count (Err error) ->
+            { model | debug = toString error } ! []
 
         Post location ->
             { model | post = location } ! []
@@ -116,6 +116,9 @@ update msg model =
             }
                 ! []
 
+        --! [ Ports.scrollTo ("comment-" ++ toString result.id) ]
+        --! [ Dom.focus "comment-30" |> Task.attempt (always NoOp) ]
+        --! [ toTop ("comment-" ++ toString result.id) |> Task.attempt ScrollResult ]
         PostConfirm (Err error) ->
             { model | debug = toString error } ! []
 

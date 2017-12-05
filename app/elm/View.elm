@@ -160,8 +160,8 @@ printComment comment model =
         created =
             inWords model.now comment.created
 
-        id =
-            toString comment.id
+        commentId =
+            "comment-" ++ toString comment.id
 
         buttonText =
             if model.parent == Just comment.id then
@@ -187,7 +187,7 @@ printComment comment model =
             else
                 "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
-    li [ name ("comment-" ++ id), class headerStyle ]
+    li [ id commentId, class headerStyle ]
         [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
         , printAuthor author
         , span [ class [ Style.Spacer ] ] [ text "•" ]

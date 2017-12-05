@@ -89,31 +89,26 @@ update msg model =
             { model | title = value } ! []
 
         PostComment ->
-            { model
-                | comment = ""
-                , parent = Nothing
-                , count = model.count + 1
-            }
+            model
                 ! [ let
                         postReq =
                             Request.Comment.post model
                                 |> Http.toTask
                     in
-                    Task.attempt ReceiveHttp postReq
+                    Task.attempt PostConfirm postReq
                   ]
 
-        --TODO: Proper responses are needed
-        ReceiveHttp result ->
-            let
-                response =
-                    case result of
-                        Ok val ->
-                            val
+        PostConfirm (Ok result) ->
+            { model
+                | comment = ""
+                , parent = Nothing
+                , count = model.count + 1
+                , postResponse = result
+            }
+                ! []
 
-                        Err _ ->
-                            "Error!"
-            in
-            { model | httpResponse = response } ! []
+        PostConfirm (Err error) ->
+            { model | postResponse = toString error } ! []
 
         Hashes (Ok result) ->
             let

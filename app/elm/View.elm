@@ -40,7 +40,7 @@ view model =
     div [ id Style.Oration ]
         [ h2 [] [ text count ]
         , commentForm model Style.OrationForm
-        , div [ id Style.OrationDebug ] [ text model.httpResponse ]
+        , div [ id Style.OrationDebug ] [ text model.postResponse ]
         , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
         , ul [ id Style.OrationComments ] <| printComments model

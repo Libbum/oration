@@ -14,7 +14,7 @@ type alias Model =
     , count : Int
     , post : Location
     , title : String
-    , httpResponse : String
+    , postResponse : String
     , now : DateTime
     , blogAuthor : String
     }

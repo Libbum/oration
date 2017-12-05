@@ -20,7 +20,7 @@ type Msg
     | StoreUser
     | Title String
     | PostComment
-    | ReceiveHttp (Result Http.Error String)
+    | PostConfirm (Result Http.Error String)
     | Hashes (Result Http.Error Init)
     | Comments (Result Http.Error (List Comment))
     | GetDate Time

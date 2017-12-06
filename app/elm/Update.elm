@@ -169,6 +169,38 @@ update msg model =
             in
             { model | parent = value } ! []
 
+        CommentEdit id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.edit id model
+                                |> Http.toTask
+                    in
+                    Task.attempt EditConfirm postReq
+                  ]
+
+        EditConfirm (Ok result) ->
+            { model | debug = toString result } ! []
+
+        EditConfirm (Err error) ->
+            { model | debug = toString error } ! []
+
+        CommentDelete id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.delete id
+                                |> Http.toTask
+                    in
+                    Task.attempt DeleteConfirm postReq
+                  ]
+
+        DeleteConfirm (Ok result) ->
+            { model | debug = toString result } ! []
+
+        DeleteConfirm (Err error) ->
+            { model | debug = toString error } ! []
+
         ToggleCommentVisibility id ->
             let
                 comments =

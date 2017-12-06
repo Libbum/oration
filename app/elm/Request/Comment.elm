@@ -1,4 +1,4 @@
-module Request.Comment exposing (comments, count, post)
+module Request.Comment exposing (comments, count, delete, edit, post)
 
 import Data.Comment as Comment exposing (Comment, Inserted)
 import Http
@@ -45,6 +45,46 @@ post model =
                 ++ prependMaybe body "url" model.user.url
             )
         |> HttpBuilder.withExpect expect
+        |> HttpBuilder.toRequest
+
+
+
+{- Request to edit a given comment -}
+
+
+edit : Int -> Model -> Http.Request String
+edit id model =
+    let
+        --Only the comment itself and possibly author details can be edited
+        --We need to send new author info, but the old hash to verify the edit
+        body =
+            [ ( "comment", model.comment ) ]
+
+        --We post here since we are only sending a few pieces of information
+        --See https://stormpath.com/blog/put-or-post
+    in
+    "/oration/edit"
+        |> HttpBuilder.post
+        |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
+        |> HttpBuilder.withUrlEncodedBody
+            (prependMaybe body "name" model.user.name
+                ++ prependMaybe body "email" model.user.email
+                ++ prependMaybe body "url" model.user.url
+            )
+        |> HttpBuilder.withExpect Http.expectString
+        |> HttpBuilder.toRequest
+
+
+
+{- Request to delete a given comment -}
+
+
+delete : Int -> Http.Request String
+delete id =
+    "/oration/delete"
+        |> HttpBuilder.delete
+        |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
+        |> HttpBuilder.withExpect Http.expectString
         |> HttpBuilder.toRequest
 
 

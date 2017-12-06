@@ -26,4 +26,8 @@ type Msg
     | GetDate Time
     | NewDate DateTime
     | CommentReply Int
+    | CommentEdit Int
+    | CommentDelete Int
+    | EditConfirm (Result Http.Error String)
+    | DeleteConfirm (Result Http.Error String)
     | ToggleCommentVisibility Int

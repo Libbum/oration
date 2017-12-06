@@ -1,14 +1,14 @@
 module Style exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (input, label, li, p, textarea, typeSelector)
+import Css.Elements exposing (button, input, label, li, p, textarea, typeSelector)
 import Css.Namespace exposing (namespace)
 import Html.CssHelpers exposing (withNamespace)
 
 
 type OrationClasses
     = Submit
-    | Reply
+    | Footer
     | Response
     | Thread
     | BlogAuthor
@@ -78,12 +78,17 @@ css =
             , padding2 (px 10) (px 20)
             , marginLeft (px 20)
             ]
-        , class Reply
-            [ clickableStyle
-            , border3 (px 1) solid primaryColor
-            , borderRadius (px 15)
-            , marginBottom (px 10)
-            , fontSize (pt 10)
+        , class Footer
+            [ children
+                [ button
+                    [ clickableStyle
+                    , border3 (px 1) solid primaryColor
+                    , borderRadius (px 15)
+                    , marginBottom (px 10)
+                    , marginRight (px 10)
+                    , fontSize (pt 10)
+                    ]
+                ]
             ]
         , class Response
             [ paddingLeft (px 20)

@@ -163,12 +163,6 @@ printComment comment model =
         commentId =
             "comment-" ++ toString comment.id
 
-        buttonText =
-            if model.parent == Just comment.id then
-                "close"
-            else
-                "reply"
-
         headerStyle =
             if comment.hash == model.blogAuthor then
                 [ Style.Thread, Style.BlogAuthor ]
@@ -195,7 +189,7 @@ printComment comment model =
         , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
         , div [ class contentStyle ] <|
             Markdown.toHtml Nothing comment.text
-                ++ [ button [ onClick (CommentReply comment.id), class [ Style.Reply ] ] [ text buttonText ]
+                ++ [ printFooter model.parent comment
                    , replyForm comment.id model.parent model
                    , printResponses comment.children model
                    ]
@@ -208,6 +202,34 @@ printAuthor author =
         a [ class [ Style.Author ], href author ] [ text author ]
     else
         span [ class [ Style.Author ] ] [ text author ]
+
+
+printFooter : Maybe Int -> Comment -> Html Msg
+printFooter parent comment =
+    let
+        replyText =
+            if parent == Just comment.id then
+                "close"
+            else
+                "reply"
+
+        edit =
+            if comment.editable then
+                button [ onClick (CommentEdit comment.id) ] [ text "edit" ]
+            else
+                nothing
+
+        delete =
+            if comment.editable then
+                button [ onClick (CommentDelete comment.id) ] [ text "delete" ]
+            else
+                nothing
+    in
+    span [ class [ Style.Footer ] ]
+        [ edit
+        , delete
+        , button [ onClick (CommentReply comment.id) ] [ text replyText ]
+        ]
 
 
 printResponses : Responses -> Model -> Html Msg

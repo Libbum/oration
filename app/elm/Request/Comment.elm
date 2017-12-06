@@ -79,12 +79,12 @@ edit id model =
 {- Request to delete a given comment -}
 
 
-delete : Int -> Http.Request String
+delete : Int -> Http.Request Int
 delete id =
     "/oration/delete"
         |> HttpBuilder.delete
         |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
-        |> HttpBuilder.withExpect Http.expectString
+        |> HttpBuilder.withExpect (Http.expectStringResponse (\response -> Ok (Result.withDefault -1 (String.toInt response.body))))
         |> HttpBuilder.toRequest
 
 

@@ -29,5 +29,5 @@ type Msg
     | CommentEdit Int
     | CommentDelete Int
     | EditConfirm (Result Http.Error String)
-    | DeleteConfirm (Result Http.Error String)
+    | DeleteConfirm (Result Http.Error Int)
     | ToggleCommentVisibility Int

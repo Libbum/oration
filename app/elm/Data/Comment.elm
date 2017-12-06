@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Inserted, Responses(Responses), count, decoder, encode, insertDecoder, insertNew, toggleVisible)
+module Data.Comment exposing (Comment, Inserted, Responses(Responses), count, decoder, delete, encode, insertDecoder, insertNew, toggleVisible)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
@@ -108,6 +108,12 @@ switchVisible id comment =
         | visible = visible
         , children = children
     }
+
+
+delete : Int -> List Comment -> List Comment
+delete id comments =
+    --Pure deletes only happen on comments with no children, no need to go deeper here
+    List.filter (\comment -> comment.id /= id) comments
 
 
 

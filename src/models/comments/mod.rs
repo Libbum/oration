@@ -150,6 +150,15 @@ impl Comment {
             Err(ErrorKind::DBInsert.into())
         }
     }
+
+    /// Requests to delete a comment.
+    pub fn request_delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
+        //TODO: actually make thia a request, not a given
+        diesel::delete(comments::table.filter(comments::id.eq(id)))
+                            .execute(conn)
+                            .chain_err(|| ErrorKind::DBRead)?;
+        Ok(())
+    }
 }
 
 /// Checks if this comment is nested too deep based on the configuration file value.

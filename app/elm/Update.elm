@@ -196,7 +196,15 @@ update msg model =
                   ]
 
         DeleteConfirm (Ok result) ->
-            { model | debug = toString result } ! []
+            let
+                comments =
+                    Comment.delete result model.comments
+            in
+            { model
+                | debug = toString result
+                , comments = comments
+            }
+                ! []
 
         DeleteConfirm (Err error) ->
             { model | debug = toString error } ! []

@@ -226,9 +226,9 @@ printFooter parent comment =
                 nothing
     in
     span [ class [ Style.Footer ] ]
-        [ edit
+        [ button [ onClick (CommentReply comment.id) ] [ text replyText ]
+        , edit
         , delete
-        , button [ onClick (CommentReply comment.id) ] [ text replyText ]
         ]
 
 

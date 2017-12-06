@@ -65,11 +65,11 @@ mod notify;
 mod data;
 
 use std::io;
-use rocket::response::NamedFile;
-use std::net::SocketAddr;
 use std::io::Cursor;
-use rocket::http::Status;
-use rocket::{State, Response};
+use std::net::SocketAddr;
+use rocket::State;
+use rocket::response::{Response, NamedFile};
+use rocket::http::{Status, ContentType};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
@@ -206,6 +206,36 @@ fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise
     Json(to_send)
 }
 
+#[derive(FromForm)]
+/// Used in conjuction with `/delete?`.
+struct CommentId{
+    /// The id of the requested comment.
+    id: i32,
+}
+
+/// Requests comment deletion from a user, may or may not actually delete the comment
+/// based on a number of possibilities: authentication issues, over time, etc.
+/// Secondarily, the method of deletion may differ. If the comment has children it
+/// is not deleted entirely, but flagged so that the rest of the conversation is not
+/// automatically pruned.
+#[delete("/oration/delete?<identifier>")]
+fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<Response<'d>, Status> {
+    match Comment::request_delete(&conn, &identifier.id) {
+        Ok(_) => Response::build()
+                    .status(Status::Ok)
+                    .sized_body(Cursor::new(identifier.id.to_string()))
+                    .header(ContentType::Plain)
+                    .ok(),
+        Err(err) => {
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            }
+            //TODO: It may be more than just a 404, perhaps 410 also.
+            Err(Status::NotFound)
+        }
+    }
+}
 /// Test function that returns the session hash from the database.
 #[get("/oration/session")]
 fn get_session(conn: db::Conn) -> String {
@@ -300,6 +330,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             index, //TODO: index and static_files should not be managed by oration
             static_files::files,
             new_comment,
+            delete_comment,
             initialise,
             get_session,
             get_comment_count,

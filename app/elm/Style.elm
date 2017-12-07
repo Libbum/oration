@@ -87,6 +87,10 @@ css =
                     , marginBottom (px 10)
                     , marginRight (px 10)
                     , fontSize (pt 10)
+                    , disabled
+                        [ cursor default
+                        , color (hex "ccc")
+                        ]
                     ]
                 ]
             ]

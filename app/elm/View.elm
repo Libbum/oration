@@ -221,7 +221,7 @@ printComment comment model =
         , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
         , div [ class contentStyle ] <|
             Markdown.toHtml Nothing comment.text
-                ++ [ printFooter model.parent comment
+                ++ [ printFooter model.status comment
                    , replyForm comment.id model
                    , printResponses comment.children model
                    ]
@@ -236,29 +236,63 @@ printAuthor author =
         span [ class [ Style.Author ] ] [ text author ]
 
 
-printFooter : Maybe Int -> Comment -> Html Msg
-printFooter parent comment =
+printFooter : Status -> Comment -> Html Msg
+printFooter status comment =
     let
         replyText =
-            if parent == Just comment.id then
-                "close"
-            else
-                "reply"
+            case status of
+                Replying ->
+                    "close"
+
+                _ ->
+                    "reply"
+
+        editText =
+            case status of
+                Editing ->
+                    "close"
+
+                _ ->
+                    "edit"
+
+        replyDisabled =
+            case status of
+                Editing ->
+                    True
+
+                _ ->
+                    False
+
+        editDisabled =
+            case status of
+                Replying ->
+                    True
+
+                _ ->
+                    False
+
+        deleteDisabled =
+            case status of
+                Commenting ->
+                    False
+
+                _ ->
+                    True
 
         edit =
             if comment.editable then
-                button [ onClick (CommentEdit comment.id) ] [ text "edit" ]
+                button [ onClick (CommentEdit comment.id), disabled editDisabled ] [ text editText ]
             else
                 nothing
 
         delete =
             if comment.editable then
-                button [ onClick (CommentDelete comment.id) ] [ text "delete" ]
+                button [ onClick (CommentDelete comment.id), disabled deleteDisabled ] [ text "delete" ]
             else
                 nothing
     in
     span [ class [ Style.Footer ] ]
-        [ button [ onClick (CommentReply comment.id) ] [ text replyText ]
+        [ button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
         , edit
         , delete
         ]

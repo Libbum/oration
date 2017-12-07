@@ -161,10 +161,16 @@ update msg model =
                         Nothing
                     else
                         Just id
+
+                status =
+                    if model.parent == Just id then
+                        Commenting
+                    else
+                        Replying
             in
             { model
                 | parent = value
-                , status = Replying
+                , status = status
             }
                 ! []
 
@@ -176,13 +182,22 @@ update msg model =
                     else
                         Just id
 
+                status =
+                    if model.parent == Just id then
+                        Commenting
+                    else
+                        Editing
+
                 comment =
-                    Comment.getText id model.comments
+                    if model.parent == Just id then
+                        ""
+                    else
+                        Comment.getText id model.comments
             in
             { model
                 | parent = value
                 , comment = comment
-                , status = Editing
+                , status = status
             }
                 ! []
 

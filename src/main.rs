@@ -73,14 +73,14 @@ use rocket::http::{Status, ContentType};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{InsertedComment, NestedComment, Comment};
+use models::comments::{InsertedComment, NestedComment, Comment, CommentEdits};
 use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
-use data::FormInput;
+use data::{FormInput, FormEdit};
 
 /// Serve up the index file. This is only useful for development. Should not be used in a release.
 //TODO: Serve this some other way, we don't want oration doing this work.
@@ -207,8 +207,8 @@ fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise
 }
 
 #[derive(FromForm)]
-/// Used in conjuction with `/delete?`.
-struct CommentId{
+/// Used in conjuction with `/delete?` and `/edit?`.
+struct CommentId {
     /// The id of the requested comment.
     id: i32,
 }
@@ -221,11 +221,13 @@ struct CommentId{
 #[delete("/oration/delete?<identifier>")]
 fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<Response<'d>, Status> {
     match Comment::request_delete(&conn, &identifier.id) {
-        Ok(_) => Response::build()
-                    .status(Status::Ok)
-                    .sized_body(Cursor::new(identifier.id.to_string()))
-                    .header(ContentType::Plain)
-                    .ok(),
+        Ok(_) => {
+            Response::build()
+                .status(Status::Ok)
+                .sized_body(Cursor::new(identifier.id.to_string()))
+                .header(ContentType::Plain)
+                .ok()
+        }
         Err(err) => {
             log::warn!("{}", err);
             for e in err.iter().skip(1) {
@@ -236,6 +238,40 @@ fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<Response<
         }
     }
 }
+
+
+/// Requests an update to a comment from a user, which may or may not occur
+/// based on a number of possibilities: authentication issues, over time, etc.
+#[post("/oration/edit?<identifier>", data = "<edits>")]
+fn edit_comment(
+    conn: db::Conn,
+    identifier: CommentId,
+    edits: Result<Form<FormEdit>, Option<String>>,
+    remote_addr: SocketAddr,
+) -> Result<Json<CommentEdits>, Status> {
+    match edits {
+        Ok(f) => {
+            //If the comment form data is valid, proceed to updating the comment
+            let form = f.into_inner();
+            let ip_addr = remote_addr.ip().to_string();
+            match Comment::request_update(&conn, &identifier.id, &form, &ip_addr) {
+                Ok(edits) => Ok(Json(edits)),
+                Err(err) => {
+                    log::warn!("{}", err);
+                    for e in err.iter().skip(1) {
+                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+                    }
+                    Err(Status::NotFound)
+                }
+            }
+        }
+        Err(_) => {
+            //The form request was malformed or not UTF8 encoded: 400
+            Err(Status::BadRequest)
+        }
+    }
+}
+
 /// Test function that returns the session hash from the database.
 #[get("/oration/session")]
 fn get_session(conn: db::Conn) -> String {
@@ -331,6 +367,7 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             static_files::files,
             new_comment,
             delete_comment,
+            edit_comment,
             initialise,
             get_session,
             get_comment_count,

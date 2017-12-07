@@ -7,8 +7,8 @@ import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disa
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown
-import Maybe.Extra exposing ((?), isJust)
-import Models exposing (Model)
+import Maybe.Extra exposing ((?), isJust, isNothing)
+import Models exposing (Model, Status(..))
 import Msg exposing (Msg(..))
 import Style
 import Time.DateTime.Distance exposing (inWords)
@@ -38,7 +38,7 @@ view model =
     in
     div [ id Style.Oration ]
         [ h2 [] [ text count ]
-        , commentForm model Style.OrationForm
+        , commentForm model Nothing
         , div [ id Style.OrationDebug ] [ text model.debug ]
         , div [ id Style.OrationCommentPreview ] <|
             Markdown.toHtml Nothing markdown
@@ -50,8 +50,8 @@ view model =
 {- Comment form. Can be used as the main form or in a reply. -}
 
 
-commentForm : Model -> Style.OrationIds -> Html Msg
-commentForm model formID =
+commentForm : Model -> Maybe Int -> Html Msg
+commentForm model commentId =
     let
         identity =
             getIdentity model.user
@@ -66,17 +66,26 @@ commentForm model formID =
             model.user.url ? ""
 
         textAreaValue =
-            if formID == Style.OrationForm then
-                if isJust model.parent then
-                    ""
-                else
+            case model.status of
+                Commenting ->
+                    if isNothing model.parent then
+                        model.comment
+                    else
+                        ""
+
+                _ ->
                     model.comment
-            else
-                --OrationReplyForm
-                model.comment
+
+        formID =
+            case model.status of
+                Commenting ->
+                    Style.OrationForm
+
+                _ ->
+                    Style.OrationReplyForm
 
         textAreaDisable =
-            if formID == Style.OrationForm && isJust model.parent then
+            if isNothing commentId && isJust model.parent then
                 True
             else
                 False
@@ -86,8 +95,31 @@ commentForm model formID =
                 True
             else
                 setButtonDisabled model.comment
+
+        submitText =
+            if isNothing commentId then
+                "Comment"
+                --The main form is never a reply or update
+            else
+                case model.status of
+                    Commenting ->
+                        "Comment"
+
+                    Editing ->
+                        "Update"
+
+                    Replying ->
+                        "Reply"
+
+        submitCmd =
+            case model.status of
+                Editing ->
+                    SendEdit (commentId ? -1)
+
+                _ ->
+                    PostComment
     in
-    Html.form [ method "post", id formID, class [ Style.Form ], onSubmit PostComment ]
+    Html.form [ method "post", id formID, class [ Style.Form ], onSubmit submitCmd ]
         [ textarea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
@@ -109,7 +141,7 @@ commentForm model formID =
         , div [ class [ Style.Control ] ]
             [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []
             , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
-            , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value "Comment", onClick StoreUser ] []
+            , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value submitText, onClick StoreUser ] []
             ]
         ]
 
@@ -190,7 +222,7 @@ printComment comment model =
         , div [ class contentStyle ] <|
             Markdown.toHtml Nothing comment.text
                 ++ [ printFooter model.parent comment
-                   , replyForm comment.id model.parent model
+                   , replyForm comment.id model
                    , printResponses comment.children model
                    ]
         ]
@@ -238,14 +270,19 @@ printResponses (Responses responses) model =
         List.map (\c -> printComment c model) responses
 
 
-replyForm : Int -> Maybe Int -> Model -> Html Msg
-replyForm id parent model =
-    case parent of
-        Just val ->
-            if id == val then
-                commentForm model Style.OrationReplyForm
-            else
-                nothing
-
-        Nothing ->
+replyForm : Int -> Model -> Html Msg
+replyForm id model =
+    case model.status of
+        Commenting ->
             nothing
+
+        _ ->
+            case model.parent of
+                Just val ->
+                    if id == val then
+                        commentForm model (Just id)
+                    else
+                        nothing
+
+                Nothing ->
+                    nothing

@@ -4,7 +4,7 @@ import Data.Comment as Comment
 import Data.User exposing (getIdentity)
 import Http
 import Maybe.Extra exposing ((?))
-import Models exposing (Model)
+import Models exposing (Model, Status(..))
 import Msg exposing (Msg(..))
 import Ports
 import Request.Comment
@@ -113,12 +113,10 @@ update msg model =
                 , count = model.count + 1
                 , debug = toString result
                 , comments = comments
+                , status = Commenting
             }
                 ! []
 
-        --! [ Ports.scrollTo ("comment-" ++ toString result.id) ]
-        --! [ Dom.focus "comment-30" |> Task.attempt (always NoOp) ]
-        --! [ toTop ("comment-" ++ toString result.id) |> Task.attempt ScrollResult ]
         PostConfirm (Err error) ->
             { model | debug = toString error } ! []
 
@@ -158,18 +156,37 @@ update msg model =
 
         CommentReply id ->
             let
-                current =
-                    model.parent
-
                 value =
-                    if current == Just id then
+                    if model.parent == Just id then
                         Nothing
                     else
                         Just id
             in
-            { model | parent = value } ! []
+            { model
+                | parent = value
+                , status = Replying
+            }
+                ! []
 
         CommentEdit id ->
+            let
+                value =
+                    if model.parent == Just id then
+                        Nothing
+                    else
+                        Just id
+
+                comment =
+                    Comment.getText id model.comments
+            in
+            { model
+                | parent = value
+                , comment = comment
+                , status = Editing
+            }
+                ! []
+
+        SendEdit id ->
             model
                 ! [ let
                         postReq =
@@ -180,7 +197,18 @@ update msg model =
                   ]
 
         EditConfirm (Ok result) ->
-            { model | debug = toString result } ! []
+            let
+                comments =
+                    Comment.update result model.comments
+            in
+            { model
+                | debug = toString result
+                , status = Commenting
+                , comments = comments
+                , comment = ""
+                , parent = Nothing
+            }
+                ! []
 
         EditConfirm (Err error) ->
             { model | debug = toString error } ! []

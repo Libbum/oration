@@ -1,4 +1,3 @@
-
 //NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
 #[derive(Debug, FromForm)]
 /// Incoming data from the web based form for a new comment.
@@ -33,4 +32,17 @@ impl FormInput {
             || "noreply@dev.null".to_string(),
         )
     }
+}
+
+#[derive(Debug, FromForm)]
+/// Incoming data from the web based form for an edited comment.
+pub struct FormEdit {
+    /// Comment from textarea.
+    pub comment: String,
+    /// Optional name.
+    pub name: Option<String>,
+    /// Optional email.
+    pub email: Option<String>,
+    /// Optional website.
+    pub url: Option<String>,
 }

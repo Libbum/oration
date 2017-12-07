@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Http
-import Models exposing (Model)
+import Models exposing (Model, Status(Commenting))
 import Msg exposing (Msg)
 import Navigation
 import Request.Comment
@@ -35,6 +35,7 @@ init location =
       , debug = ""
       , now = dateTime zero
       , blogAuthor = ""
+      , status = Commenting
       }
     , initialise location
     )

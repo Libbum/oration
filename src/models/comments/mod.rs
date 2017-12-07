@@ -10,7 +10,7 @@ use itertools::join;
 use petgraph::graphmap::DiGraphMap;
 
 use schema::comments;
-use data::FormInput;
+use data::{FormInput, FormEdit};
 use errors::*;
 
 #[derive(Queryable, Debug)]
@@ -155,11 +155,30 @@ impl Comment {
     pub fn request_delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
         //TODO: actually make thia a request, not a given
         diesel::delete(comments::table.filter(comments::id.eq(id)))
-                            .execute(conn)
-                            .chain_err(|| ErrorKind::DBRead)?;
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
         Ok(())
     }
+
+    /// Requests an update to a comment.
+    pub fn request_update<'c>(conn: &SqliteConnection, id: &i32, data: &FormEdit, ip_addr: &'c str) -> Result<CommentEdits> {
+        let target = comments::table.filter(comments::id.eq(id));
+        let hash = gen_hash(&data.name, &data.email, &data.url, Some(ip_addr));
+        diesel::update(target)
+            .set((
+                comments::text.eq(data.comment.to_owned()),
+                comments::author.eq(data.name.to_owned()),
+                comments::email.eq(data.email.to_owned()),
+                comments::website.eq(data.url.to_owned()),
+                comments::hash.eq(hash),
+            ))
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        let comment = PrintedComment::get(conn, *id)?;
+        Ok(CommentEdits::new(&comment))
+    }
 }
+
 
 /// Checks if this comment is nested too deep based on the configuration file value.
 /// If so, don't allow this to happen and just post as a reply to the previous parent.
@@ -328,6 +347,33 @@ impl InsertedComment {
             id: comment.id,
             parent: comment.parent,
             author: author,
+        }
+    }
+}
+
+#[derive(Serialize, Debug)]
+/// Subset of the comment which was just edited. This data is needed to populate the frontend
+/// without calling for a complete refresh.
+pub struct CommentEdits {
+    /// Primary key.
+    id: i32,
+    /// Commentors details.
+    author: Option<String>,
+    /// Actual comment.
+    text: String,
+    /// Commentors indentifier.
+    hash: String,
+}
+
+impl CommentEdits {
+    /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
+    fn new(comment: &PrintedComment) -> CommentEdits {
+        let author = get_author(&comment.author, &comment.email, &comment.url);
+        CommentEdits {
+            id: comment.id,
+            author: author,
+            text: comment.text.to_owned(),
+            hash: comment.hash.to_owned(),
         }
     }
 }

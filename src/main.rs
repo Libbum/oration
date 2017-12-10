@@ -65,11 +65,10 @@ mod notify;
 mod data;
 
 use std::io;
-use rocket::response::NamedFile;
 use std::net::SocketAddr;
-use std::io::Cursor;
+use rocket::State;
 use rocket::http::Status;
-use rocket::{State, Response};
+use rocket::response::{Failure, NamedFile};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
@@ -91,13 +90,12 @@ fn index() -> io::Result<NamedFile> {
 
 /// Process comment input from form.
 #[post("/oration", data = "<comment>")]
-fn new_comment<'a>(
+fn new_comment(
     conn: db::Conn,
     comment: Result<Form<FormInput>, Option<String>>,
     config: State<Config>,
     remote_addr: SocketAddr,
-) -> Result<Json<InsertedComment>, Response<'a>> {
-    let mut response = Response::new();
+) -> Result<Json<InsertedComment>, Failure> {
     match comment {
         Ok(f) => {
             //If the comment form data is valid, proceed to comment insertion
@@ -117,7 +115,7 @@ fn new_comment<'a>(
                                     Paint::red(&e)
                                 );
                             }
-                            response.set_status(Status::InternalServerError);
+                            return Err(Failure(Status::InternalServerError));
                         }
                         Ok(comment) => {
                             //All good, return the comment
@@ -158,25 +156,18 @@ fn new_comment<'a>(
                         errors::Error(errors::ErrorKind::PathCheckFailed, _) => {
                             //The requsted path doesn't exist on the server
                             //Most likely an attempt at injecting junk into the db through the post method
-                            response.set_status(Status::Forbidden)
+                            return Err(Failure(Status::Forbidden));
                         }
-                        _ => response.set_status(Status::InternalServerError),
+                        _ => return Err(Failure(Status::InternalServerError)),
                     }
                 }
             }
         }
-        Err(Some(f)) => {
+        Err(_) => {
             //The form request was malformed, 400
-            response.set_status(Status::BadRequest);
-            response.set_sized_body(Cursor::new(format!("Invalid form input: {}", f)));
-        }
-        Err(None) => {
-            //Not UTF-8 encoded
-            response.set_status(Status::BadRequest);
-            response.set_sized_body(Cursor::new("Form input was invalid UTF8."));
+            return Err(Failure(Status::BadRequest));
         }
     }
-    Err(response)
 }
 
 /// Information sent to the client upon initialisation.

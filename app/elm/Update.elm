@@ -101,8 +101,11 @@ update msg model =
 
         PostConfirm (Ok result) ->
             let
+                user =
+                    model.user
+
                 author =
-                    getIdentity model.user
+                    getIdentity user
 
                 comments =
                     Comment.insertNew result ( model.comment, author, model.now, model.comments )
@@ -114,6 +117,7 @@ update msg model =
                 , debug = toString result
                 , comments = comments
                 , status = Commenting
+                , user = { user | identity = author }
             }
                 ! []
 
@@ -126,7 +130,11 @@ update msg model =
                     model.user
             in
             { model
-                | user = { user | iphash = result.userIp }
+                | user =
+                    { user
+                        | iphash = result.userIp
+                        , identity = getIdentity user
+                    }
                 , blogAuthor = result.blogAuthor ? ""
             }
                 ! []
@@ -213,6 +221,9 @@ update msg model =
 
         EditConfirm (Ok result) ->
             let
+                user =
+                    model.user
+
                 comments =
                     Comment.update result model.comments
             in
@@ -222,6 +233,7 @@ update msg model =
                 , comments = comments
                 , comment = ""
                 , parent = Nothing
+                , user = { user | identity = getIdentity user }
             }
                 ! []
 

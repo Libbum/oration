@@ -68,6 +68,7 @@ edit id model =
     in
     "/oration/edit"
         |> HttpBuilder.post
+        |> HttpBuilder.withHeader "x-auth-hash" model.user.identity
         |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
         |> HttpBuilder.withUrlEncodedBody
             (prependMaybe body "name" model.user.name

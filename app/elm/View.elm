@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Data.Comment exposing (Comment, Responses(Responses), count)
-import Data.User exposing (User, getIdentity)
+import Data.User exposing (getIdentity)
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -53,6 +53,8 @@ view model =
 commentForm : Model -> Maybe Int -> Html Msg
 commentForm model commentId =
     let
+        -- Even though we have model.user.identity, this is a semi-persistent copy
+        -- for editing and deleting authorisation. Here, we want up-to-date identicons
         identity =
             getIdentity model.user
 

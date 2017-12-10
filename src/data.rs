@@ -1,3 +1,7 @@
+use rocket::Outcome;
+use rocket::http::Status;
+use rocket::request::{self, Request, FromRequest};
+
 //NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
 #[derive(Debug, FromForm)]
 /// Incoming data from the web based form for a new comment.
@@ -45,4 +49,30 @@ pub struct FormEdit {
     pub email: Option<String>,
     /// Optional website.
     pub url: Option<String>,
+}
+
+
+/// Hash of the user which wants to edit/delete a comment
+#[derive(PartialEq)]
+pub struct AuthHash(String);
+
+impl<'a, 'r> FromRequest<'a, 'r> for AuthHash {
+    type Error = ();
+
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<AuthHash, ()> {
+        let keys: Vec<_> = request.headers().get("x-auth-hash").collect();
+        if keys.len() != 1 {
+            return Outcome::Failure((Status::BadRequest, ()));
+        }
+
+        let key = keys[0];
+        return Outcome::Success(AuthHash(key.to_string()));
+    }
+}
+
+impl AuthHash {
+    pub fn matches(&self, compare: &str) -> bool {
+        let &AuthHash(ref hash) = self;
+        if hash == compare { true } else { false }
+    }
 }

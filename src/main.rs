@@ -65,11 +65,10 @@ mod notify;
 mod data;
 
 use std::io;
-use std::io::Cursor;
 use std::net::SocketAddr;
 use rocket::State;
-use rocket::response::{Response, NamedFile};
-use rocket::http::{Status, ContentType};
+use rocket::response::{Failure, NamedFile};
+use rocket::http::Status;
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
@@ -80,7 +79,7 @@ use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
-use data::{FormInput, FormEdit};
+use data::{FormInput, FormEdit, AuthHash};
 
 /// Serve up the index file. This is only useful for development. Should not be used in a release.
 //TODO: Serve this some other way, we don't want oration doing this work.
@@ -91,13 +90,12 @@ fn index() -> io::Result<NamedFile> {
 
 /// Process comment input from form.
 #[post("/oration", data = "<comment>")]
-fn new_comment<'a>(
+fn new_comment(
     conn: db::Conn,
     comment: Result<Form<FormInput>, Option<String>>,
     config: State<Config>,
     remote_addr: SocketAddr,
-) -> Result<Json<InsertedComment>, Response<'a>> {
-    let mut response = Response::new();
+) -> Result<Json<InsertedComment>, Failure> {
     match comment {
         Ok(f) => {
             //If the comment form data is valid, proceed to comment insertion
@@ -117,7 +115,7 @@ fn new_comment<'a>(
                                     Paint::red(&e)
                                 );
                             }
-                            response.set_status(Status::InternalServerError);
+                            return Err(Failure(Status::InternalServerError));
                         }
                         Ok(comment) => {
                             //All good, return the comment
@@ -158,25 +156,18 @@ fn new_comment<'a>(
                         errors::Error(errors::ErrorKind::PathCheckFailed, _) => {
                             //The requsted path doesn't exist on the server
                             //Most likely an attempt at injecting junk into the db through the post method
-                            response.set_status(Status::Forbidden)
+                            return Err(Failure(Status::Forbidden));
                         }
-                        _ => response.set_status(Status::InternalServerError),
+                        _ => return Err(Failure(Status::InternalServerError)),
                     }
                 }
             }
         }
-        Err(Some(f)) => {
+        Err(_) => {
             //The form request was malformed, 400
-            response.set_status(Status::BadRequest);
-            response.set_sized_body(Cursor::new(format!("Invalid form input: {}", f)));
-        }
-        Err(None) => {
-            //Not UTF-8 encoded
-            response.set_status(Status::BadRequest);
-            response.set_sized_body(Cursor::new("Form input was invalid UTF8."));
+            return Err(Failure(Status::BadRequest));
         }
     }
-    Err(response)
 }
 
 /// Information sent to the client upon initialisation.
@@ -219,22 +210,15 @@ struct CommentId {
 /// is not deleted entirely, but flagged so that the rest of the conversation is not
 /// automatically pruned.
 #[delete("/oration/delete?<identifier>")]
-fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<Response<'d>, Status> {
+fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<String, Failure> {
     match Comment::request_delete(&conn, &identifier.id) {
-        Ok(_) => {
-            Response::build()
-                .status(Status::Ok)
-                .sized_body(Cursor::new(identifier.id.to_string()))
-                .header(ContentType::Plain)
-                .ok()
-        }
+        Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             log::warn!("{}", err);
             for e in err.iter().skip(1) {
                 log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
             }
-            //TODO: It may be more than just a 404, perhaps 410 also.
-            Err(Status::NotFound)
+            Err(Failure(Status::NotFound))
         }
     }
 }
@@ -246,9 +230,17 @@ fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<Response<
 fn edit_comment(
     conn: db::Conn,
     identifier: CommentId,
+    hash: AuthHash,
     edits: Result<Form<FormEdit>, Option<String>>,
     remote_addr: SocketAddr,
-) -> Result<Json<CommentEdits>, Status> {
+) -> Result<Json<CommentEdits>, Failure> {
+    if let Err(err) = models::comments::is_valid_hash(&conn, &hash, &identifier.id) {
+        log::warn!("{}", err);
+        for e in err.iter().skip(1) {
+            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+        }
+        return Err(Failure(Status::Unauthorized));
+    };
     match edits {
         Ok(f) => {
             //If the comment form data is valid, proceed to updating the comment
@@ -261,13 +253,13 @@ fn edit_comment(
                     for e in err.iter().skip(1) {
                         log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
                     }
-                    Err(Status::NotFound)
+                    Err(Failure(Status::NotFound))
                 }
             }
         }
         Err(_) => {
             //The form request was malformed or not UTF8 encoded: 400
-            Err(Status::BadRequest)
+            Err(Failure(Status::BadRequest))
         }
     }
 }

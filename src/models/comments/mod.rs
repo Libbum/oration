@@ -10,7 +10,7 @@ use itertools::join;
 use petgraph::graphmap::DiGraphMap;
 
 use schema::comments;
-use data::{FormInput, FormEdit};
+use data::{FormInput, FormEdit, AuthHash};
 use errors::*;
 
 #[derive(Queryable, Debug)]
@@ -161,7 +161,12 @@ impl Comment {
     }
 
     /// Requests an update to a comment.
-    pub fn request_update<'c>(conn: &SqliteConnection, id: &i32, data: &FormEdit, ip_addr: &'c str) -> Result<CommentEdits> {
+    pub fn request_update<'c>(
+        conn: &SqliteConnection,
+        id: &i32,
+        data: &FormEdit,
+        ip_addr: &'c str,
+    ) -> Result<CommentEdits> {
         let target = comments::table.filter(comments::id.eq(id));
         let hash = gen_hash(&data.name, &data.email, &data.url, Some(ip_addr));
         diesel::update(target)
@@ -271,6 +276,18 @@ pub fn gen_hash(
     hasher.result_str()
 }
 
+pub fn is_valid_hash(conn: &SqliteConnection, hash: &AuthHash, id: &i32) -> Result<()> {
+    let stored_hash = comments::table
+        .select(comments::hash)
+        .filter(comments::id.eq(*id))
+        .first::<String>(conn)
+        .chain_err(|| ErrorKind::DBRead)?;
+    if hash.matches(&stored_hash) {
+        Ok(())
+    } else {
+        Err(ErrorKind::Unauthorized.into())
+    }
+}
 
 #[derive(Serialize, Queryable, Debug)]
 /// Subset of the comments table which is to be sent to the frontend.

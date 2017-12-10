@@ -2,7 +2,7 @@ module Data.User exposing (User, decoder, encode, getIdentity)
 
 import Crypto.Hash
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline exposing (decode, required)
+import Json.Decode.Pipeline exposing (decode, optional, required)
 import Json.Encode as Encode exposing (Value)
 import Json.Encode.Extra as EncodeExtra
 import Maybe.Extra exposing ((?), isNothing)
@@ -15,6 +15,7 @@ type alias User =
     , url : Maybe String
     , iphash : Maybe String
     , preview : Bool
+    , identity : String
     }
 
 
@@ -51,6 +52,7 @@ decoder =
         |> required "url" (Decode.nullable Decode.string)
         |> required "iphash" (Decode.nullable Decode.string)
         |> required "preview" Decode.bool
+        |> optional "identity" Decode.string ""
 
 
 encode : User -> Value

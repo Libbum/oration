@@ -27,6 +27,7 @@ init location =
             , url = Nothing
             , preview = False
             , iphash = Nothing
+            , identity = ""
             }
       , comments = []
       , count = 0

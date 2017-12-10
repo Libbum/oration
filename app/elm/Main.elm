@@ -35,6 +35,7 @@ init location =
       , title = ""
       , debug = ""
       , now = dateTime zero
+      , editTimeout = 120
       , blogAuthor = ""
       , status = Commenting
       }

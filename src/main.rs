@@ -177,6 +177,8 @@ struct Initialise {
     user_ip: String,
     /// The Sha224 hash of the blog author to distinguish the authority on this blog.
     blog_author: String,
+    /// Time frame in which users can edit thier own comments.
+    edit_timeout: f32,
 }
 
 /// Gets a Sha224 hash from a clients IP along with the blog's author hash.
@@ -192,6 +194,7 @@ fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise
     let to_send = Initialise {
         user_ip: hasher.result_str(),
         blog_author: config.author.hash.to_owned(),
+        edit_timeout: config.edit_timeout,
     };
 
     Json(to_send)

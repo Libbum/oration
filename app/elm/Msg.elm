@@ -32,3 +32,4 @@ type Msg
     | EditConfirm (Result Http.Error Edited)
     | DeleteConfirm (Result Http.Error Int)
     | ToggleCommentVisibility Int
+    | HardenEdit Int

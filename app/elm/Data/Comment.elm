@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, editDecoder, encode, getText, insertDecoder, insertNew, toggleVisible, update)
+module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, editDecoder, encode, getText, insertDecoder, insertNew, readOnly, toggleVisible, update)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
@@ -105,6 +105,7 @@ injectUpdates edit comment =
             | text = edit.text
             , author = edit.author
             , hash = edit.hash
+            , editable = True
         }
     else
         let
@@ -166,6 +167,31 @@ filterComment id comment =
                         Responses <| values <| List.map (\response -> filterComment id response) responses
         in
         Just { comment | children = children }
+
+
+readOnly : Int -> List Comment -> List Comment
+readOnly id comments =
+    List.map (\comment -> removeEditable id comment) comments
+
+
+removeEditable : Int -> Comment -> Comment
+removeEditable id comment =
+    let
+        value =
+            if comment.id == id then
+                False
+            else
+                comment.editable
+
+        children =
+            case comment.children of
+                Responses responses ->
+                    Responses <| List.map (\response -> removeEditable id response) responses
+    in
+    { comment
+        | editable = value
+        , children = children
+    }
 
 
 

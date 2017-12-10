@@ -63,4 +63,5 @@ encode user =
         , "url" => EncodeExtra.maybe Encode.string user.url
         , "iphash" => EncodeExtra.maybe Encode.string user.iphash
         , "preview" => Encode.bool user.preview
+        , "identity" => Encode.string user.identity
         ]

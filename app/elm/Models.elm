@@ -16,6 +16,7 @@ type alias Model =
     , title : String
     , debug : String
     , now : DateTime
+    , editTimeout : Float
     , blogAuthor : String
     , status : Status
     }

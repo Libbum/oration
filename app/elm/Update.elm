@@ -11,7 +11,7 @@ import Request.Comment
 import Task
 import Time exposing (minute)
 import Time.DateTime exposing (DateTime)
-import Util exposing (stringToMaybe)
+import Util exposing (delay, stringToMaybe)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -119,7 +119,7 @@ update msg model =
                 , status = Commenting
                 , user = { user | identity = author }
             }
-                ! []
+                ! [ delay (Time.second * model.editTimeout) <| HardenEdit result.id ]
 
         PostConfirm (Err error) ->
             { model | debug = toString error } ! []
@@ -136,6 +136,7 @@ update msg model =
                         , identity = getIdentity user
                     }
                 , blogAuthor = result.blogAuthor ? ""
+                , editTimeout = result.editTimeout
             }
                 ! []
 
@@ -207,7 +208,7 @@ update msg model =
                 , comment = comment
                 , status = status
             }
-                ! []
+                ! [ delay (Time.second * model.editTimeout) <| HardenEdit id ]
 
         SendEdit id ->
             model
@@ -235,7 +236,7 @@ update msg model =
                 , parent = Nothing
                 , user = { user | identity = getIdentity user }
             }
-                ! []
+                ! [ delay (Time.second * model.editTimeout) <| HardenEdit result.id ]
 
         EditConfirm (Err error) ->
             { model | debug = toString error } ! []
@@ -263,6 +264,18 @@ update msg model =
 
         DeleteConfirm (Err error) ->
             { model | debug = toString error } ! []
+
+        HardenEdit id ->
+            let
+                comments =
+                    case model.status of
+                        Editing ->
+                            model.comments
+
+                        _ ->
+                            Comment.readOnly id model.comments
+            in
+            { model | comments = comments } ! []
 
         ToggleCommentVisibility id ->
             let

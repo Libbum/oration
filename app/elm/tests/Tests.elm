@@ -20,6 +20,7 @@ user =
         (maybe string)
         (maybe string)
         bool
+        |> Fuzz.andMap string
 
 
 

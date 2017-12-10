@@ -1,6 +1,9 @@
-module Util exposing ((=>), nothing, pair, stringToMaybe)
+module Util exposing ((=>), delay, nothing, pair, stringToMaybe)
 
 import Html exposing (Html, text)
+import Process
+import Task
+import Time exposing (Time)
 
 
 (=>) : a -> b -> ( a, b )
@@ -37,3 +40,14 @@ stringToMaybe val =
 nothing : Html msg
 nothing =
     text ""
+
+
+
+{- Invoke a time delay for an action -}
+
+
+delay : Time -> msg -> Cmd msg
+delay time msg =
+    Process.sleep time
+        |> Task.andThen (always <| Task.succeed msg)
+        |> Task.perform identity

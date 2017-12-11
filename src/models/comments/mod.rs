@@ -151,17 +151,17 @@ impl Comment {
         }
     }
 
-    /// Requests to delete a comment.
-    pub fn request_delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
-        //TODO: actually make thia a request, not a given
+    /// Deletes a comment if there is no children, marks as deleted if there are children.
+    pub fn delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
+        //TODO: Don't delete if there are children
         diesel::delete(comments::table.filter(comments::id.eq(id)))
             .execute(conn)
             .chain_err(|| ErrorKind::DBRead)?;
         Ok(())
     }
 
-    /// Requests an update to a comment.
-    pub fn request_update<'c>(
+    /// Updates a comment.
+    pub fn update<'c>(
         conn: &SqliteConnection,
         id: &i32,
         data: &FormEdit,
@@ -169,6 +169,7 @@ impl Comment {
     ) -> Result<CommentEdits> {
         let target = comments::table.filter(comments::id.eq(id));
         let hash = gen_hash(&data.name, &data.email, &data.url, Some(ip_addr));
+        let time = Utc::now().naive_utc();
         diesel::update(target)
             .set((
                 comments::text.eq(data.comment.to_owned()),
@@ -176,6 +177,7 @@ impl Comment {
                 comments::email.eq(data.email.to_owned()),
                 comments::website.eq(data.url.to_owned()),
                 comments::hash.eq(hash),
+                comments::modified.eq(Some(time)),
             ))
             .execute(conn)
             .chain_err(|| ErrorKind::DBRead)?;
@@ -276,13 +278,25 @@ pub fn gen_hash(
     hasher.result_str()
 }
 
-pub fn is_valid_hash(conn: &SqliteConnection, hash: &AuthHash, id: &i32) -> Result<()> {
-    let stored_hash = comments::table
-        .select(comments::hash)
+pub fn update_authorised(conn: &SqliteConnection, hash: &AuthHash, id: &i32, offset: &f32) -> Result<()> {
+    let (stored_hash, created, modified) = comments::table
+        .select((comments::hash, comments::created, comments::modified))
         .filter(comments::id.eq(*id))
-        .first::<String>(conn)
+        .first::<(String, NaiveDateTime, Option<NaiveDateTime>)>(conn)
         .chain_err(|| ErrorKind::DBRead)?;
-    if hash.matches(&stored_hash) {
+
+    // Check we haven't timed out
+    let now_timestamp = Utc::now().naive_utc().timestamp();
+
+    let updated_timestamp = {
+        if let Some(mod_time) = modified {
+            mod_time.timestamp()
+        } else {
+            created.timestamp()
+        }
+    };
+
+    if hash.matches(&stored_hash) & (now_timestamp - updated_timestamp < (*offset as i64)) {
         Ok(())
     } else {
         Err(ErrorKind::Unauthorized.into())

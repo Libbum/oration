@@ -119,7 +119,7 @@ update msg model =
                 , status = Commenting
                 , user = { user | identity = author }
             }
-                ! [ delay (Time.second * model.editTimeout) <| HardenEdit result.id ]
+                ! [ timeoutEdits model.editTimeout result.id ]
 
         PostConfirm (Err error) ->
             { model | debug = toString error } ! []
@@ -208,7 +208,7 @@ update msg model =
                 , comment = comment
                 , status = status
             }
-                ! [ delay (Time.second * model.editTimeout) <| HardenEdit id ]
+                ! [ timeoutEdits model.editTimeout id ]
 
         SendEdit id ->
             model
@@ -236,7 +236,7 @@ update msg model =
                 , parent = Nothing
                 , user = { user | identity = getIdentity user }
             }
-                ! [ delay (Time.second * model.editTimeout) <| HardenEdit result.id ]
+                ! [ timeoutEdits model.editTimeout result.id ]
 
         EditConfirm (Err error) ->
             { model | debug = toString error } ! []
@@ -315,3 +315,8 @@ currentDate =
 timeToDateTime : Time.Time -> DateTime
 timeToDateTime =
     Time.DateTime.fromTimestamp
+
+
+timeoutEdits : Float -> Int -> Cmd Msg
+timeoutEdits timeout id =
+    delay (Time.second * timeout) <| HardenEdit id

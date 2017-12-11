@@ -72,7 +72,7 @@ use rocket::http::Status;
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{InsertedComment, NestedComment, Comment, CommentEdits};
+use models::comments::{self, InsertedComment, NestedComment, Comment, CommentEdits};
 use models::threads;
 use std::process;
 use yansi::Paint;
@@ -213,8 +213,15 @@ struct CommentId {
 /// is not deleted entirely, but flagged so that the rest of the conversation is not
 /// automatically pruned.
 #[delete("/oration/delete?<identifier>")]
-fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<String, Failure> {
-    match Comment::request_delete(&conn, &identifier.id) {
+fn delete_comment<'d>(conn: db::Conn, config: State<Config>, identifier: CommentId, hash: AuthHash) -> Result<String, Failure> {
+    if let Err(err) = comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout) {
+        log::warn!("{}", err);
+        for e in err.iter().skip(1) {
+            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+        }
+        return Err(Failure(Status::Unauthorized));
+    };
+    match Comment::delete(&conn, &identifier.id) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             log::warn!("{}", err);
@@ -232,12 +239,13 @@ fn delete_comment<'d>(conn: db::Conn, identifier: CommentId) -> Result<String, F
 #[post("/oration/edit?<identifier>", data = "<edits>")]
 fn edit_comment(
     conn: db::Conn,
+    config: State<Config>,
     identifier: CommentId,
     hash: AuthHash,
     edits: Result<Form<FormEdit>, Option<String>>,
     remote_addr: SocketAddr,
 ) -> Result<Json<CommentEdits>, Failure> {
-    if let Err(err) = models::comments::is_valid_hash(&conn, &hash, &identifier.id) {
+    if let Err(err) = comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout) {
         log::warn!("{}", err);
         for e in err.iter().skip(1) {
             log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
@@ -249,7 +257,7 @@ fn edit_comment(
             //If the comment form data is valid, proceed to updating the comment
             let form = f.into_inner();
             let ip_addr = remote_addr.ip().to_string();
-            match Comment::request_update(&conn, &identifier.id, &form, &ip_addr) {
+            match Comment::update(&conn, &identifier.id, &form, &ip_addr) {
                 Ok(edits) => Ok(Json(edits)),
                 Err(err) => {
                     log::warn!("{}", err);

@@ -245,7 +245,7 @@ update msg model =
             model
                 ! [ let
                         postReq =
-                            Request.Comment.delete id
+                            Request.Comment.delete id model.user.identity
                                 |> Http.toTask
                     in
                     Task.attempt DeleteConfirm postReq

@@ -213,8 +213,19 @@ struct CommentId {
 /// is not deleted entirely, but flagged so that the rest of the conversation is not
 /// automatically pruned.
 #[delete("/oration/delete?<identifier>")]
-fn delete_comment<'d>(conn: db::Conn, config: State<Config>, identifier: CommentId, hash: AuthHash) -> Result<String, Failure> {
-    if let Err(err) = comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout) {
+fn delete_comment<'d>(
+    conn: db::Conn,
+    config: State<Config>,
+    identifier: CommentId,
+    hash: AuthHash,
+) -> Result<String, Failure> {
+    if let Err(err) = comments::update_authorised(
+        &conn,
+        &hash,
+        &identifier.id,
+        &config.edit_timeout,
+    )
+    {
         log::warn!("{}", err);
         for e in err.iter().skip(1) {
             log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
@@ -245,7 +256,13 @@ fn edit_comment(
     edits: Result<Form<FormEdit>, Option<String>>,
     remote_addr: SocketAddr,
 ) -> Result<Json<CommentEdits>, Failure> {
-    if let Err(err) = comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout) {
+    if let Err(err) = comments::update_authorised(
+        &conn,
+        &hash,
+        &identifier.id,
+        &config.edit_timeout,
+    )
+    {
         log::warn!("{}", err);
         for e in err.iter().skip(1) {
             log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));

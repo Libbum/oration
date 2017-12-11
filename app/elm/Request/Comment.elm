@@ -83,10 +83,11 @@ edit id model =
 {- Request to delete a given comment -}
 
 
-delete : Int -> Http.Request Int
-delete id =
+delete : Int -> String -> Http.Request Int
+delete id identity =
     "/oration/delete"
         |> HttpBuilder.delete
+        |> HttpBuilder.withHeader "x-auth-hash" identity
         |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
         |> HttpBuilder.withExpect (Http.expectStringResponse (\response -> Ok (Result.withDefault -1 (String.toInt response.body))))
         |> HttpBuilder.toRequest

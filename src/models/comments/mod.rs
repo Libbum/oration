@@ -60,7 +60,11 @@ struct NewComment<'c> {
     created: NaiveDateTime,
     /// Date modified it that's happened.
     modified: Option<NaiveDateTime>,
-    /// If the comment is live or under review.
+    /// If the comment is live or under review. By default an active comment has mode 0.
+    /// If the admin has reviews turned on, all new comments will be flagged as mode 1, or
+    /// will be set with a default mode 0 if this feature is not enabled. A comment with mode
+    /// 2 indicates this comment is `deleted`, although it contains responses below it. The
+    /// deleted comment with therefore be handled differently.
     mode: i32,
     /// Remote IP.
     remote_addr: Option<&'c str>,
@@ -153,10 +157,48 @@ impl Comment {
 
     /// Deletes a comment if there is no children, marks as deleted if there are children.
     pub fn delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
-        //TODO: Don't delete if there are children
-        diesel::delete(comments::table.filter(comments::id.eq(id)))
-            .execute(conn)
+        let children_count = comments::table
+            .filter(comments::parent.eq(id))
+            .count()
+            .first::<i64>(conn)
             .chain_err(|| ErrorKind::DBRead)?;
+        if children_count == 0 {
+            //We can safely delete this comment entirely
+            diesel::delete(comments::table.filter(comments::id.eq(id)))
+                .execute(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
+        } else {
+            //This comment must be flagged as deleted instead
+            let target = comments::table.filter(comments::id.eq(id));
+            diesel::update(target)
+                .set(&ModeDelete {
+                    mode: 2,
+                    remote_addr: None,
+                    text: String::new(),
+                    author: None,
+                    email: None,
+                    website: None,
+                    hash: String::new(),
+                    likes: None,
+                    dislikes: None,
+                    voters: String::new(),
+                })
+                .execute(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
+        }
+        //Deleted comments may have had children before, but this request may have just
+        //removed the last one of them. In that case we can completely remove the node
+
+        //TODO: Below should be fine for this, but I think there's a bug in the `IntoUpdateTarget` trait
+        //Raw SQL should be:
+        //DELETE FROM comments WHERE mode=2 AND id NOT IN
+        //  (SELECT parent FROM comments WHERE parent IS NOT NULL);
+
+        //let child = comments::table.select(comments::parent).filter(comments::parent.is_not_null());
+        //let target = comments::table.filter(comments::mode.eq(2)).filter(comments::id.ne_any(child));
+        //diesel::delete(target)
+        //    .execute(conn)
+        //    .chain_err(|| ErrorKind::DBRead)?;
         Ok(())
     }
 
@@ -186,6 +228,32 @@ impl Comment {
     }
 }
 
+#[derive(AsChangeset)]
+#[table_name = "comments"]
+#[changeset_options(treat_none_as_null = "true")]
+/// Changes required when we must use the flagged delete option.
+struct ModeDelete {
+    /// If the comment is live or under review.
+    mode: i32,
+    /// Remote IP.
+    remote_addr: Option<String>,
+    /// Actual comment.
+    text: String,
+    /// Commentors author if given.
+    author: Option<String>,
+    /// Commentors email address if given.
+    email: Option<String>,
+    /// Commentors website if given.
+    website: Option<String>,
+    /// Commentors idenifier hash.
+    hash: String,
+    /// Number of likes a comment has recieved.
+    likes: Option<i32>,
+    /// Number of dislikes a comment has recieved.
+    dislikes: Option<i32>,
+    /// Who are the voters on this comment.
+    voters: String,
+}
 
 /// Checks if this comment is nested too deep based on the configuration file value.
 /// If so, don't allow this to happen and just post as a reply to the previous parent.
@@ -278,7 +346,12 @@ pub fn gen_hash(
     hasher.result_str()
 }
 
-pub fn update_authorised(conn: &SqliteConnection, hash: &AuthHash, id: &i32, offset: &f32) -> Result<()> {
+pub fn update_authorised(
+    conn: &SqliteConnection,
+    hash: &AuthHash,
+    id: &i32,
+    offset: &f32,
+) -> Result<()> {
     let (stored_hash, created, modified) = comments::table
         .select((comments::hash, comments::created, comments::modified))
         .filter(comments::id.eq(*id))
@@ -330,9 +403,22 @@ impl PrintedComment {
         use schema::threads;
 
         let comments: Vec<PrintedComment> = comments::table
-            .select((comments::id, comments::parent, comments::text, comments::author, comments::email, comments::website, comments::hash, comments::created))
+            .select((
+                comments::id,
+                comments::parent,
+                comments::text,
+                comments::author,
+                comments::email,
+                comments::website,
+                comments::hash,
+                comments::created,
+            ))
             .inner_join(threads::table)
-            .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
+            .filter(threads::uri.eq(path).and(comments::mode.eq(0).or(
+                comments::mode.eq(
+                    2,
+                ),
+            )))
             .load(conn)
             .chain_err(|| ErrorKind::DBRead)?;
         Ok(comments)

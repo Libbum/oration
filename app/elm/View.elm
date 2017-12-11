@@ -188,6 +188,12 @@ printComments model =
 printComment : Comment -> Model -> Html Msg
 printComment comment model =
     let
+        notDeleted =
+            if String.isEmpty comment.text && String.isEmpty comment.hash then
+                False
+            else
+                True
+
         author =
             comment.author ? "Anonymous"
 
@@ -198,7 +204,7 @@ printComment comment model =
             "comment-" ++ toString comment.id
 
         headerStyle =
-            if comment.hash == model.blogAuthor then
+            if comment.hash == model.blogAuthor && notDeleted then
                 [ Style.Thread, Style.BlogAuthor ]
             else
                 [ Style.Thread ]
@@ -215,19 +221,28 @@ printComment comment model =
             else
                 "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
-    li [ id commentId, class headerStyle ]
-        [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
-        , printAuthor author
-        , span [ class [ Style.Spacer ] ] [ text "•" ]
-        , span [ class [ Style.Date ] ] [ text created ]
-        , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-        , div [ class contentStyle ] <|
-            Markdown.toHtml Nothing comment.text
-                ++ [ printFooter model.status comment
-                   , replyForm comment.id model
-                   , printResponses comment.children model
-                   ]
-        ]
+    if notDeleted then
+        li [ id commentId, class headerStyle ]
+            [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
+            , printAuthor author
+            , span [ class [ Style.Spacer ] ] [ text "•" ]
+            , span [ class [ Style.Date ] ] [ text created ]
+            , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
+            , div [ class contentStyle ] <|
+                Markdown.toHtml Nothing comment.text
+                    ++ [ printFooter model.status comment
+                       , replyForm comment.id model
+                       , printResponses comment.children model
+                       ]
+            ]
+    else
+        li [ id commentId, class headerStyle ]
+            [ span [ class [ Style.Deleted ] ] [ text "Deleted comment" ]
+            , span [ class [ Style.Spacer ] ] [ text "•" ]
+            , span [ class [ Style.Date ] ] [ text created ]
+            , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
+            , div [ class contentStyle ] [ printResponses comment.children model ]
+            ]
 
 
 printAuthor : String -> Html Msg

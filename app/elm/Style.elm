@@ -14,6 +14,7 @@ type OrationClasses
     | BlogAuthor
     | Identicon
     | Author
+    | Deleted
     | Date
     | Content
     | Form
@@ -118,6 +119,13 @@ css =
         , class Author
             [ fontWeight bold
             , color (hex "555")
+            ]
+        , class Deleted
+            [ fontStyle italic
+            , color (hex "555")
+            , padding2 zero (px 6)
+            , marginBottom (px 10)
+            , display inlineBlock
             ]
         , each [ class Date, class Spacer ]
             [ color (hex "666")

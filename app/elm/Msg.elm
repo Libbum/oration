@@ -1,6 +1,6 @@
 module Msg exposing (..)
 
-import Data.Comment exposing (Comment, Inserted)
+import Data.Comment exposing (Comment, Edited, Inserted)
 import Data.Init exposing (Init)
 import Http
 import Navigation exposing (Location)
@@ -26,4 +26,10 @@ type Msg
     | GetDate Time
     | NewDate DateTime
     | CommentReply Int
+    | CommentEdit Int
+    | SendEdit Int
+    | CommentDelete Int
+    | EditConfirm (Result Http.Error Edited)
+    | DeleteConfirm (Result Http.Error Int)
     | ToggleCommentVisibility Int
+    | HardenEdit Int

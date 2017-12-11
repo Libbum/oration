@@ -10,7 +10,7 @@ use itertools::join;
 use petgraph::graphmap::DiGraphMap;
 
 use schema::comments;
-use data::FormInput;
+use data::{FormInput, FormEdit, AuthHash};
 use errors::*;
 
 #[derive(Queryable, Debug)]
@@ -60,7 +60,11 @@ struct NewComment<'c> {
     created: NaiveDateTime,
     /// Date modified it that's happened.
     modified: Option<NaiveDateTime>,
-    /// If the comment is live or under review.
+    /// If the comment is live or under review. By default an active comment has mode 0.
+    /// If the admin has reviews turned on, all new comments will be flagged as mode 1, or
+    /// will be set with a default mode 0 if this feature is not enabled. A comment with mode
+    /// 2 indicates this comment is `deleted`, although it contains responses below it. The
+    /// deleted comment with therefore be handled differently.
     mode: i32,
     /// Remote IP.
     remote_addr: Option<&'c str>,
@@ -150,6 +154,105 @@ impl Comment {
             Err(ErrorKind::DBInsert.into())
         }
     }
+
+    /// Deletes a comment if there is no children, marks as deleted if there are children.
+    pub fn delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
+        let children_count = comments::table
+            .filter(comments::parent.eq(id))
+            .count()
+            .first::<i64>(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        if children_count == 0 {
+            //We can safely delete this comment entirely
+            diesel::delete(comments::table.filter(comments::id.eq(id)))
+                .execute(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
+        } else {
+            //This comment must be flagged as deleted instead
+            let target = comments::table.filter(comments::id.eq(id));
+            diesel::update(target)
+                .set(&ModeDelete {
+                    mode: 2,
+                    remote_addr: None,
+                    text: String::new(),
+                    author: None,
+                    email: None,
+                    website: None,
+                    hash: String::new(),
+                    likes: None,
+                    dislikes: None,
+                    voters: String::new(),
+                })
+                .execute(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
+        }
+        //Deleted comments may have had children before, but this request may have just
+        //removed the last one of them. In that case we can completely remove the node
+
+        //TODO: Below should be fine for this, but I think there's a bug in the `IntoUpdateTarget` trait
+        //Raw SQL should be:
+        //DELETE FROM comments WHERE mode=2 AND id NOT IN
+        //  (SELECT parent FROM comments WHERE parent IS NOT NULL);
+
+        //let child = comments::table.select(comments::parent).filter(comments::parent.is_not_null());
+        //let target = comments::table.filter(comments::mode.eq(2)).filter(comments::id.ne_any(child));
+        //diesel::delete(target)
+        //    .execute(conn)
+        //    .chain_err(|| ErrorKind::DBRead)?;
+        Ok(())
+    }
+
+    /// Updates a comment.
+    pub fn update<'c>(
+        conn: &SqliteConnection,
+        id: &i32,
+        data: &FormEdit,
+        ip_addr: &'c str,
+    ) -> Result<CommentEdits> {
+        let target = comments::table.filter(comments::id.eq(id));
+        let hash = gen_hash(&data.name, &data.email, &data.url, Some(ip_addr));
+        let time = Utc::now().naive_utc();
+        diesel::update(target)
+            .set((
+                comments::text.eq(data.comment.to_owned()),
+                comments::author.eq(data.name.to_owned()),
+                comments::email.eq(data.email.to_owned()),
+                comments::website.eq(data.url.to_owned()),
+                comments::hash.eq(hash),
+                comments::modified.eq(Some(time)),
+            ))
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        let comment = PrintedComment::get(conn, *id)?;
+        Ok(CommentEdits::new(&comment))
+    }
+}
+
+#[derive(AsChangeset)]
+#[table_name = "comments"]
+#[changeset_options(treat_none_as_null = "true")]
+/// Changes required when we must use the flagged delete option.
+struct ModeDelete {
+    /// If the comment is live or under review.
+    mode: i32,
+    /// Remote IP.
+    remote_addr: Option<String>,
+    /// Actual comment.
+    text: String,
+    /// Commentors author if given.
+    author: Option<String>,
+    /// Commentors email address if given.
+    email: Option<String>,
+    /// Commentors website if given.
+    website: Option<String>,
+    /// Commentors idenifier hash.
+    hash: String,
+    /// Number of likes a comment has recieved.
+    likes: Option<i32>,
+    /// Number of dislikes a comment has recieved.
+    dislikes: Option<i32>,
+    /// Who are the voters on this comment.
+    voters: String,
 }
 
 /// Checks if this comment is nested too deep based on the configuration file value.
@@ -243,6 +346,35 @@ pub fn gen_hash(
     hasher.result_str()
 }
 
+pub fn update_authorised(
+    conn: &SqliteConnection,
+    hash: &AuthHash,
+    id: &i32,
+    offset: &f32,
+) -> Result<()> {
+    let (stored_hash, created, modified) = comments::table
+        .select((comments::hash, comments::created, comments::modified))
+        .filter(comments::id.eq(*id))
+        .first::<(String, NaiveDateTime, Option<NaiveDateTime>)>(conn)
+        .chain_err(|| ErrorKind::DBRead)?;
+
+    // Check we haven't timed out
+    let now_timestamp = Utc::now().naive_utc().timestamp();
+
+    let updated_timestamp = {
+        if let Some(mod_time) = modified {
+            mod_time.timestamp()
+        } else {
+            created.timestamp()
+        }
+    };
+
+    if hash.matches(&stored_hash) & (now_timestamp - updated_timestamp < (*offset as i64)) {
+        Ok(())
+    } else {
+        Err(ErrorKind::Unauthorized.into())
+    }
+}
 
 #[derive(Serialize, Queryable, Debug)]
 /// Subset of the comments table which is to be sent to the frontend.
@@ -271,9 +403,22 @@ impl PrintedComment {
         use schema::threads;
 
         let comments: Vec<PrintedComment> = comments::table
-            .select((comments::id, comments::parent, comments::text, comments::author, comments::email, comments::website, comments::hash, comments::created))
+            .select((
+                comments::id,
+                comments::parent,
+                comments::text,
+                comments::author,
+                comments::email,
+                comments::website,
+                comments::hash,
+                comments::created,
+            ))
             .inner_join(threads::table)
-            .filter(threads::uri.eq(path).and(comments::mode.eq(0))) //TODO: This is default, but we need to set a flag to 'enable' comments at some stage
+            .filter(threads::uri.eq(path).and(comments::mode.eq(0).or(
+                comments::mode.eq(
+                    2,
+                ),
+            )))
             .load(conn)
             .chain_err(|| ErrorKind::DBRead)?;
         Ok(comments)
@@ -319,6 +464,33 @@ impl InsertedComment {
             id: comment.id,
             parent: comment.parent,
             author: author,
+        }
+    }
+}
+
+#[derive(Serialize, Debug)]
+/// Subset of the comment which was just edited. This data is needed to populate the frontend
+/// without calling for a complete refresh.
+pub struct CommentEdits {
+    /// Primary key.
+    id: i32,
+    /// Commentors details.
+    author: Option<String>,
+    /// Actual comment.
+    text: String,
+    /// Commentors indentifier.
+    hash: String,
+}
+
+impl CommentEdits {
+    /// Creates a new nested comment from a PrintedComment and a set of precalculated NestedComment children.
+    fn new(comment: &PrintedComment) -> CommentEdits {
+        let author = get_author(&comment.author, &comment.email, &comment.url);
+        CommentEdits {
+            id: comment.id,
+            author: author,
+            text: comment.text.to_owned(),
+            hash: comment.hash.to_owned(),
         }
     }
 }

@@ -72,14 +72,14 @@ use rocket::response::{Failure, NamedFile};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{InsertedComment, NestedComment, Comment};
+use models::comments::{self, InsertedComment, NestedComment, Comment, CommentEdits};
 use models::threads;
 use std::process;
 use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
-use data::FormInput;
+use data::{FormInput, FormEdit, AuthHash};
 
 /// Serve up the index file. This is only useful for development. Should not be used in a release.
 //TODO: Serve this some other way, we don't want oration doing this work.
@@ -177,6 +177,8 @@ struct Initialise {
     user_ip: String,
     /// The Sha224 hash of the blog author to distinguish the authority on this blog.
     blog_author: String,
+    /// Time frame in which users can edit thier own comments.
+    edit_timeout: f32,
 }
 
 /// Gets a Sha224 hash from a clients IP along with the blog's author hash.
@@ -192,9 +194,102 @@ fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise
     let to_send = Initialise {
         user_ip: hasher.result_str(),
         blog_author: config.author.hash.to_owned(),
+        edit_timeout: config.edit_timeout,
     };
 
     Json(to_send)
+}
+
+#[derive(FromForm)]
+/// Used in conjuction with `/delete?` and `/edit?`.
+struct CommentId {
+    /// The id of the requested comment.
+    id: i32,
+}
+
+/// Requests comment deletion from a user, may or may not actually delete the comment
+/// based on a number of possibilities: authentication issues, over time, etc.
+/// Secondarily, the method of deletion may differ. If the comment has children it
+/// is not deleted entirely, but flagged so that the rest of the conversation is not
+/// automatically pruned.
+#[delete("/oration/delete?<identifier>")]
+fn delete_comment<'d>(
+    conn: db::Conn,
+    config: State<Config>,
+    identifier: CommentId,
+    hash: AuthHash,
+) -> Result<String, Failure> {
+    if let Err(err) = comments::update_authorised(
+        &conn,
+        &hash,
+        &identifier.id,
+        &config.edit_timeout,
+    )
+    {
+        log::warn!("{}", err);
+        for e in err.iter().skip(1) {
+            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+        }
+        return Err(Failure(Status::Unauthorized));
+    };
+    match Comment::delete(&conn, &identifier.id) {
+        Ok(_) => Ok(identifier.id.to_string()),
+        Err(err) => {
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            }
+            Err(Failure(Status::NotFound))
+        }
+    }
+}
+
+
+/// Requests an update to a comment from a user, which may or may not occur
+/// based on a number of possibilities: authentication issues, over time, etc.
+#[post("/oration/edit?<identifier>", data = "<edits>")]
+fn edit_comment(
+    conn: db::Conn,
+    config: State<Config>,
+    identifier: CommentId,
+    hash: AuthHash,
+    edits: Result<Form<FormEdit>, Option<String>>,
+    remote_addr: SocketAddr,
+) -> Result<Json<CommentEdits>, Failure> {
+    if let Err(err) = comments::update_authorised(
+        &conn,
+        &hash,
+        &identifier.id,
+        &config.edit_timeout,
+    )
+    {
+        log::warn!("{}", err);
+        for e in err.iter().skip(1) {
+            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+        }
+        return Err(Failure(Status::Unauthorized));
+    };
+    match edits {
+        Ok(f) => {
+            //If the comment form data is valid, proceed to updating the comment
+            let form = f.into_inner();
+            let ip_addr = remote_addr.ip().to_string();
+            match Comment::update(&conn, &identifier.id, &form, &ip_addr) {
+                Ok(edits) => Ok(Json(edits)),
+                Err(err) => {
+                    log::warn!("{}", err);
+                    for e in err.iter().skip(1) {
+                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+                    }
+                    Err(Failure(Status::NotFound))
+                }
+            }
+        }
+        Err(_) => {
+            //The form request was malformed or not UTF8 encoded: 400
+            Err(Failure(Status::BadRequest))
+        }
+    }
 }
 
 /// Test function that returns the session hash from the database.
@@ -291,6 +386,8 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             index, //TODO: index and static_files should not be managed by oration
             static_files::files,
             new_comment,
+            delete_comment,
+            edit_comment,
             initialise,
             get_session,
             get_comment_count,

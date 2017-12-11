@@ -4,14 +4,14 @@ import Data.Comment as Comment
 import Data.User exposing (getIdentity)
 import Http
 import Maybe.Extra exposing ((?))
-import Models exposing (Model)
+import Models exposing (Model, Status(..))
 import Msg exposing (Msg(..))
 import Ports
 import Request.Comment
 import Task
 import Time exposing (minute)
 import Time.DateTime exposing (DateTime)
-import Util exposing (stringToMaybe)
+import Util exposing (delay, stringToMaybe)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,8 +101,11 @@ update msg model =
 
         PostConfirm (Ok result) ->
             let
+                user =
+                    model.user
+
                 author =
-                    getIdentity model.user
+                    getIdentity user
 
                 comments =
                     Comment.insertNew result ( model.comment, author, model.now, model.comments )
@@ -113,12 +116,11 @@ update msg model =
                 , count = model.count + 1
                 , debug = toString result
                 , comments = comments
+                , status = Commenting
+                , user = { user | identity = author }
             }
-                ! []
+                ! [ timeoutEdits model.editTimeout result.id ]
 
-        --! [ Ports.scrollTo ("comment-" ++ toString result.id) ]
-        --! [ Dom.focus "comment-30" |> Task.attempt (always NoOp) ]
-        --! [ toTop ("comment-" ++ toString result.id) |> Task.attempt ScrollResult ]
         PostConfirm (Err error) ->
             { model | debug = toString error } ! []
 
@@ -128,8 +130,13 @@ update msg model =
                     model.user
             in
             { model
-                | user = { user | iphash = result.userIp }
+                | user =
+                    { user
+                        | iphash = result.userIp
+                        , identity = getIdentity user
+                    }
                 , blogAuthor = result.blogAuthor ? ""
+                , editTimeout = result.editTimeout
             }
                 ! []
 
@@ -158,16 +165,117 @@ update msg model =
 
         CommentReply id ->
             let
-                current =
-                    model.parent
-
                 value =
-                    if current == Just id then
+                    if model.parent == Just id then
                         Nothing
                     else
                         Just id
+
+                status =
+                    if model.parent == Just id then
+                        Commenting
+                    else
+                        Replying
             in
-            { model | parent = value } ! []
+            { model
+                | parent = value
+                , status = status
+            }
+                ! []
+
+        CommentEdit id ->
+            let
+                value =
+                    if model.parent == Just id then
+                        Nothing
+                    else
+                        Just id
+
+                status =
+                    if model.parent == Just id then
+                        Commenting
+                    else
+                        Editing
+
+                comment =
+                    if model.parent == Just id then
+                        ""
+                    else
+                        Comment.getText id model.comments
+            in
+            { model
+                | parent = value
+                , comment = comment
+                , status = status
+            }
+                ! [ timeoutEdits model.editTimeout id ]
+
+        SendEdit id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.edit id model
+                                |> Http.toTask
+                    in
+                    Task.attempt EditConfirm postReq
+                  ]
+
+        EditConfirm (Ok result) ->
+            let
+                user =
+                    model.user
+
+                comments =
+                    Comment.update result model.comments
+            in
+            { model
+                | debug = toString result
+                , status = Commenting
+                , comments = comments
+                , comment = ""
+                , parent = Nothing
+                , user = { user | identity = getIdentity user }
+            }
+                ! [ timeoutEdits model.editTimeout result.id ]
+
+        EditConfirm (Err error) ->
+            { model | debug = toString error } ! []
+
+        CommentDelete id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.delete id model.user.identity
+                                |> Http.toTask
+                    in
+                    Task.attempt DeleteConfirm postReq
+                  ]
+
+        DeleteConfirm (Ok result) ->
+            let
+                comments =
+                    Comment.delete result model.comments
+            in
+            { model
+                | debug = toString result
+                , comments = comments
+            }
+                ! []
+
+        DeleteConfirm (Err error) ->
+            { model | debug = toString error } ! []
+
+        HardenEdit id ->
+            let
+                comments =
+                    case model.status of
+                        Editing ->
+                            model.comments
+
+                        _ ->
+                            Comment.readOnly id model.comments
+            in
+            { model | comments = comments } ! []
 
         ToggleCommentVisibility id ->
             let
@@ -207,3 +315,8 @@ currentDate =
 timeToDateTime : Time.Time -> DateTime
 timeToDateTime =
     Time.DateTime.fromTimestamp
+
+
+timeoutEdits : Float -> Int -> Cmd Msg
+timeoutEdits timeout id =
+    delay (Time.second * timeout) <| HardenEdit id

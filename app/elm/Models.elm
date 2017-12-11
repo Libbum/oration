@@ -1,4 +1,4 @@
-module Models exposing (Model)
+module Models exposing (Model, Status(..))
 
 import Data.Comment exposing (Comment, Inserted)
 import Data.User exposing (User)
@@ -16,5 +16,13 @@ type alias Model =
     , title : String
     , debug : String
     , now : DateTime
+    , editTimeout : Float
     , blogAuthor : String
+    , status : Status
     }
+
+
+type Status
+    = Commenting
+    | Replying
+    | Editing

@@ -17,6 +17,8 @@ pub struct Config {
     pub author: Author,
     /// Limit of thread nesting in comments.
     pub nesting_limit: u32,
+    /// Time limit that restricts user editing of their own comments.
+    pub edit_timeout: f32,
     /// Notification system and connection details.
     pub notifications: Notifications,
 }

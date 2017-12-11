@@ -20,6 +20,10 @@ error_chain!{
                 description("Cannot insert data in db")
                 display("Database query to insert data failed")
         }
+        Unauthorized {
+                description("Cannot identify user")
+                display("Unable to complete request without correct authorization")
+        }
         Rand {
                 description("Cannot generate random number")
                 display("Unable to call /dev/urandom")

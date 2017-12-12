@@ -186,19 +186,26 @@ impl Comment {
                 .execute(conn)
                 .chain_err(|| ErrorKind::DBRead)?;
         }
+
         //Deleted comments may have had children before, but this request may have just
         //removed the last one of them. In that case we can completely remove the node
 
-        //TODO: Below should be fine for this, but I think there's a bug in the `IntoUpdateTarget` trait
-        //Raw SQL should be:
-        //DELETE FROM comments WHERE mode=2 AND id NOT IN
-        //  (SELECT parent FROM comments WHERE parent IS NOT NULL);
+        // We can't chain the IN clause here, so we return it first
+        // https://github.com/diesel-rs/diesel/issues/1369#issuecomment-351100511
+        let child = comments::table
+            .select(comments::parent)
+            .filter(comments::parent.is_not_null())
+            .load::<Option<i32>>(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        // child is now a Vec<Option<i32>>, where all of the Options must be Some. Let's unwrap them.
+        let child_unwrapped: Vec<i32> = child.into_iter().map(|c| c.unwrap_or_else(|| 0)).collect();
+        let target = comments::table.filter(comments::mode.eq(2)).filter(
+            comments::id.ne_any(child_unwrapped),
+        );
+        diesel::delete(target).execute(conn).chain_err(
+            || ErrorKind::DBRead,
+        )?;
 
-        //let child = comments::table.select(comments::parent).filter(comments::parent.is_not_null());
-        //let target = comments::table.filter(comments::mode.eq(2)).filter(comments::id.ne_any(child));
-        //diesel::delete(target)
-        //    .execute(conn)
-        //    .chain_err(|| ErrorKind::DBRead)?;
         Ok(())
     }
 

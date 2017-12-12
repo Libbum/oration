@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
-import Markdown
+import Markdown exposing (defaultOptions)
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model, Status(..))
 import Msg exposing (Msg(..))
@@ -40,8 +40,7 @@ view model =
         [ h2 [] [ text count ]
         , commentForm model Nothing
         , div [ id Style.OrationDebug ] [ text model.debug ]
-        , div [ id Style.OrationCommentPreview ] <|
-            Markdown.toHtml Nothing markdown
+        , Markdown.toHtmlWith options [ id Style.OrationCommentPreview ] markdown
         , ul [ id Style.OrationComments ] <| printComments model
         ]
 
@@ -164,6 +163,15 @@ setButtonDisabled comment =
 {- Renders comments to markdown -}
 
 
+options : Markdown.Options
+options =
+    { defaultOptions
+        | sanitize = True
+        , smartypants = True
+        , githubFlavored = Just { tables = False, breaks = True }
+    }
+
+
 markdownContent : String -> Bool -> String
 markdownContent content preview =
     if preview then
@@ -228,12 +236,10 @@ printComment comment model =
             , span [ class [ Style.Spacer ] ] [ text "•" ]
             , span [ class [ Style.Date ] ] [ text created ]
             , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-            , div [ class contentStyle ] <|
-                Markdown.toHtml Nothing comment.text
-                    ++ [ printFooter model.status comment
-                       , replyForm comment.id model
-                       , printResponses comment.children model
-                       ]
+            , Markdown.toHtmlWith options [ class contentStyle ] comment.text
+            , printFooter model.status comment
+            , replyForm comment.id model
+            , printResponses comment.children model
             ]
     else
         li [ id commentId, class headerStyle ]
@@ -317,8 +323,11 @@ printFooter status comment =
 
 printResponses : Responses -> Model -> Html Msg
 printResponses (Responses responses) model =
-    ul [] <|
-        List.map (\c -> printComment c model) responses
+    if List.isEmpty responses then
+        nothing
+    else
+        ul [] <|
+            List.map (\c -> printComment c model) responses
 
 
 replyForm : Int -> Model -> Html Msg

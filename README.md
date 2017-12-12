@@ -36,3 +36,14 @@ $ npm run watch
 # Documentation
 
 Documentation of current backend methods can be viewed [here](https://libbum.github.io/oration/oration/index.html).
+
+# Options
+
+Code highlighting is done with [highligt.js](https://highlightjs.org/).
+The default syntax pack is obtained via a CDN here, although you may wish to modify the allowable languages used on your blog.
+Replace the default pack with one customised from [here](https://highlightjs.org/download/) to achive this.
+
+In the same manner, you may change the theme of the syntax highligting by choosing [another theme](https://github.com/isagalaev/highlight.js/tree/master/src/styles).
+Oration uses `Tomorrow` by default.
+
+These changes should be in your own html files, an example can be seen in the bundled [index.html](app/static/index.html) header.

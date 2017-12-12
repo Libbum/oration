@@ -217,6 +217,9 @@ css =
                     ]
                 ]
             ]
+        , Css.Elements.code
+            [ fontSize (px 14)
+            ]
         , id OrationComments
             [ padding zero
             , children

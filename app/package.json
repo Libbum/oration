@@ -19,6 +19,8 @@
     "uglify-js-brunch": "^2.10.0"
   },
   "dependencies": {
-    "elm-css-brunch": "^0.2.0"
+    "elm-css-brunch": "^0.2.0",
+    "markdown-it": "^8.4.0",
+    "markdown-it-katex": "^2.0.3"
   }
 }

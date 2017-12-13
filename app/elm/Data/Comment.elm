@@ -19,6 +19,7 @@ type alias Comment =
     , children : Responses
     , visible : Bool
     , editable : Bool
+    , votes : Int
     }
 
 
@@ -69,6 +70,7 @@ insertNew insert current =
             , children = Responses []
             , visible = True
             , editable = True
+            , votes = 0
             }
     in
     if isNothing insert.parent then
@@ -253,6 +255,7 @@ decoder =
         |> required "children" decodeResponses
         |> hardcoded True
         |> hardcoded False
+        |> required "votes" Decode.int
 
 
 decodeResponses : Decoder Responses

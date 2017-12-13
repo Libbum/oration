@@ -314,9 +314,20 @@ printFooter status comment =
                 button [ onClick (CommentDelete comment.id), disabled deleteDisabled ] [ text "delete" ]
             else
                 nothing
+
+        votes =
+            if comment.votes == 0 then
+                " "
+            else
+                " " ++ toString comment.votes
     in
     span [ class [ Style.Footer ] ]
-        [ button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
+        [ span [ class [ Style.Votes ] ]
+            [ button [] [ text "\xF106" ]
+            , button [] [ text "\xF107" ]
+            , text votes
+            ]
+        , button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
         , edit
         , delete
         ]

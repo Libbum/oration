@@ -41,7 +41,7 @@ pub struct Comment {
     /// Commentors idenifier hash.
     hash: String,
     /// Number of likes a comment has recieved.
-    likes: Option<i32>,
+    likes: Option<i32>, //TODO: I know the tables like i32s, but these really should be unsigned
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
@@ -402,6 +402,10 @@ struct PrintedComment {
     hash: String,
     /// Timestamp of creation.
     created: NaiveDateTime,
+    /// Number of likes a comment has recieved.
+    likes: Option<i32>,
+    /// Number of dislikes a comment has recieved.
+    dislikes: Option<i32>,
 }
 
 impl PrintedComment {
@@ -419,6 +423,8 @@ impl PrintedComment {
                 comments::website,
                 comments::hash,
                 comments::created,
+                comments::likes,
+                comments::dislikes,
             ))
             .inner_join(threads::table)
             .filter(threads::uri.eq(path).and(comments::mode.eq(0).or(
@@ -443,6 +449,8 @@ impl PrintedComment {
                 comments::website,
                 comments::hash,
                 comments::created,
+                comments::likes,
+                comments::dislikes,
             ))
             .filter(comments::id.eq(id))
             .first(conn)
@@ -517,6 +525,8 @@ pub struct NestedComment {
     created: DateTime<Utc>,
     /// Comment children.
     children: Vec<NestedComment>,
+    /// Total number of votes.
+    votes: i32,
 }
 
 impl NestedComment {
@@ -524,6 +534,7 @@ impl NestedComment {
     fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
         let date_time = DateTime::<Utc>::from_utc(comment.created, Utc);
         let author = get_author(&comment.author, &comment.email, &comment.url);
+        let votes = count_votes(&comment.likes, &comment.dislikes);
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
@@ -531,6 +542,7 @@ impl NestedComment {
             hash: comment.hash.to_owned(),
             created: date_time,
             children: children,
+            votes: votes,
         }
     }
 
@@ -607,4 +619,9 @@ fn get_author(
         //This can be something or nothing, since we don't need te parse it it doesn't matter
         url.to_owned()
     }
+}
+
+/// Calculates the total vote for a comment based on its likes and dislikes.
+fn count_votes(likes: &Option<i32>, dislikes: &Option<i32>) -> i32 {
+    likes.unwrap_or_else(|| 0) + dislikes.unwrap_or_else(|| 0)
 }

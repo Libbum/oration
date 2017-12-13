@@ -166,9 +166,10 @@ setButtonDisabled comment =
 options : Markdown.Options
 options =
     { defaultOptions
-        | sanitize = True
-        , smartypants = True
-        , githubFlavored = Just { tables = False, breaks = True }
+        | githubFlavored = True
+        , breaks = True
+        , typographer = True
+        , linkify = True
     }
 
 

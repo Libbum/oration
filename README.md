@@ -19,7 +19,7 @@ Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Cod
 $ echo DATABASE_URL=oration.db > .env
 $ diesel migration run
 $ cd app/elm
-$ elm-install install
+$ elm-package install
 $ cd ..
 $ brunch build
 $ cd ..
@@ -32,10 +32,6 @@ for live reloading of `app` files:
 $ cd app
 $ npm run watch
 ```
-
-Currently Oration is using a custom implementation of the `elm-markdown` package not in the official managers.
-As such, one should install with [elm-install](https://github.com/gdotdesign/elm-github-install) rather than `elm-package`.
-This may change in the future.
 
 # Documentation
 

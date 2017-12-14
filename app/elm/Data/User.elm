@@ -1,4 +1,4 @@
-module Data.User exposing (User, decoder, encode, getIdentity)
+module Data.User exposing (Identity, User, decoder, encode, getIdentity)
 
 import Crypto.Hash
 import Json.Decode as Decode exposing (Decoder)
@@ -15,15 +15,19 @@ type alias User =
     , url : Maybe String
     , iphash : Maybe String
     , preview : Bool
-    , identity : String
+    , identity : Identity
     }
+
+
+type alias Identity =
+    String
 
 
 
 {- Hashes user information depending on available data -}
 
 
-getIdentity : User -> String
+getIdentity : User -> Identity
 getIdentity user =
     let
         data =

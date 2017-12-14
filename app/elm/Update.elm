@@ -265,6 +265,54 @@ update msg model =
         DeleteConfirm (Err error) ->
             { model | debug = toString error } ! []
 
+        CommentLike id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.like id model.user.identity
+                                |> Http.toTask
+                    in
+                    Task.attempt LikeConfirm postReq
+                  ]
+
+        LikeConfirm (Ok result) ->
+            let
+                comments =
+                    Comment.like result model.comments
+            in
+            { model
+                | debug = toString result
+                , comments = comments
+            }
+                ! []
+
+        LikeConfirm (Err error) ->
+            { model | debug = toString error } ! []
+
+        CommentDislike id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.dislike id model.user.identity
+                                |> Http.toTask
+                    in
+                    Task.attempt DislikeConfirm postReq
+                  ]
+
+        DislikeConfirm (Ok result) ->
+            let
+                comments =
+                    Comment.dislike result model.comments
+            in
+            { model
+                | debug = toString result
+                , comments = comments
+            }
+                ! []
+
+        DislikeConfirm (Err error) ->
+            { model | debug = toString error } ! []
+
         HardenEdit id ->
             let
                 comments =

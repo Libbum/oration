@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, editDecoder, encode, getText, insertDecoder, insertNew, readOnly, toggleVisible, update)
+module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, dislike, editDecoder, encode, getText, insertDecoder, insertNew, like, readOnly, toggleVisible, update)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
@@ -146,7 +146,6 @@ switchVisible id comment =
 
 delete : Int -> List Comment -> List Comment
 delete id comments =
-    --Pure deletes only happen on comments with no children, so only filter if that's the case
     List.map (\comment -> filterComment id comment) comments
         |> values
 
@@ -154,6 +153,7 @@ delete id comments =
 filterComment : Int -> Comment -> Maybe Comment
 filterComment id comment =
     let
+        --Pure deletes only happen on comments with no children, so only filter if that's the case
         noChildren =
             case comment.children of
                 Responses responses ->
@@ -192,6 +192,41 @@ removeEditable id comment =
     in
     { comment
         | editable = value
+        , children = children
+    }
+
+
+like : Int -> List Comment -> List Comment
+like id comments =
+    List.map (\comment -> voteComment id True comment) comments
+
+
+dislike : Int -> List Comment -> List Comment
+dislike id comments =
+    List.map (\comment -> voteComment id False comment) comments
+
+
+voteComment : Int -> Bool -> Comment -> Comment
+voteComment id like comment =
+    let
+        count =
+            if comment.id == id then
+                case like of
+                    True ->
+                        comment.votes + 1
+
+                    False ->
+                        comment.votes - 1
+            else
+                comment.votes
+
+        children =
+            case comment.children of
+                Responses responses ->
+                    Responses <| List.map (\response -> voteComment id like response) responses
+    in
+    { comment
+        | votes = count
         , children = children
     }
 

@@ -29,7 +29,11 @@ type Msg
     | CommentEdit Int
     | SendEdit Int
     | CommentDelete Int
+    | CommentLike Int
+    | CommentDislike Int
     | EditConfirm (Result Http.Error Edited)
     | DeleteConfirm (Result Http.Error Int)
+    | LikeConfirm (Result Http.Error Int)
+    | DislikeConfirm (Result Http.Error Int)
     | ToggleCommentVisibility Int
     | HardenEdit Int

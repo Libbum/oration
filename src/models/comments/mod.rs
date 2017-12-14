@@ -233,6 +233,36 @@ impl Comment {
         let comment = PrintedComment::get(conn, *id)?;
         Ok(CommentEdits::new(&comment))
     }
+
+    /// Likes a comment if the user has not liked it already.
+    pub fn like(
+        conn: &SqliteConnection,
+        id: &i32,
+        _hash: &AuthHash,
+        ) -> Result<()> {
+        //TODO: Check that user (via hash) has not liked this comment yet.
+        let target = comments::table.filter(comments::id.eq(id));
+        diesel::update(target)
+            .set(comments::likes.eq(comments::likes + 1))
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        Ok(())
+    }
+
+    /// Dislikes a comment if the user has not liked it already.
+    pub fn dislike(
+        conn: &SqliteConnection,
+        id: &i32,
+        _hash: &AuthHash,
+        ) -> Result<()> {
+        //TODO: Check that user (via hash) has not disliked this comment yet.
+        let target = comments::table.filter(comments::id.eq(id));
+        diesel::update(target)
+            .set(comments::dislikes.eq(comments::dislikes + 1))
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+        Ok(())
+    }
 }
 
 #[derive(AsChangeset)]
@@ -623,5 +653,5 @@ fn get_author(
 
 /// Calculates the total vote for a comment based on its likes and dislikes.
 fn count_votes(likes: &Option<i32>, dislikes: &Option<i32>) -> i32 {
-    likes.unwrap_or_else(|| 0) + dislikes.unwrap_or_else(|| 0)
+    likes.unwrap_or_else(|| 0) - dislikes.unwrap_or_else(|| 0)
 }

@@ -292,6 +292,44 @@ fn edit_comment(
     }
 }
 
+/// Likes a comment so long as the current user has not done so already.
+#[post("/oration/like?<identifier>")]
+fn like_comment<'d>(
+    conn: db::Conn,
+    identifier: CommentId,
+    hash: AuthHash,
+) -> Result<String, Failure> {
+    match Comment::like(&conn, &identifier.id, &hash) {
+        Ok(_) => Ok(identifier.id.to_string()),
+        Err(err) => {
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            }
+            Err(Failure(Status::Forbidden))
+        }
+    }
+}
+
+/// Dislikes a comment so long as the current user has not done so already.
+#[post("/oration/dislike?<identifier>")]
+fn dislike_comment<'d>(
+    conn: db::Conn,
+    identifier: CommentId,
+    hash: AuthHash,
+) -> Result<String, Failure> {
+    match Comment::dislike(&conn, &identifier.id, &hash) {
+        Ok(_) => Ok(identifier.id.to_string()),
+        Err(err) => {
+            log::warn!("{}", err);
+            for e in err.iter().skip(1) {
+                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+            }
+            Err(Failure(Status::Forbidden))
+        }
+    }
+}
+
 /// Test function that returns the session hash from the database.
 #[get("/oration/session")]
 fn get_session(conn: db::Conn) -> String {
@@ -388,6 +426,8 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
             new_comment,
             delete_comment,
             edit_comment,
+            like_comment,
+            dislike_comment,
             initialise,
             get_session,
             get_comment_count,

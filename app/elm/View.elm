@@ -323,8 +323,8 @@ printFooter status comment =
     in
     span [ class [ Style.Footer ] ]
         [ span [ class [ Style.Votes ] ]
-            [ button [] [ text "\xF106" ]
-            , button [] [ text "\xF107" ]
+            [ button [ onClick (CommentLike comment.id) ] [ text "\xF106" ]
+            , button [ onClick (CommentDislike comment.id) ] [ text "\xF107" ]
             , text votes
             ]
         , button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]

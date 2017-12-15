@@ -39,7 +39,6 @@ view model =
     div [ id Style.Oration ]
         [ h2 [] [ text count ]
         , commentForm model Nothing
-        , div [ id Style.OrationDebug ] [ text model.debug ]
         , Markdown.toHtmlWith options [ id Style.OrationCommentPreview ] markdown
         , ul [ id Style.OrationComments ] <| printComments model
         ]

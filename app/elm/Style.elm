@@ -34,7 +34,6 @@ type OrationIds
     | OrationReplyForm
     | OrationPreviewCheck
     | OrationCommentPreview
-    | OrationDebug
 
 
 orationNamespace : Html.CssHelpers.Namespace String class id msg

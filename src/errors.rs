@@ -40,6 +40,10 @@ error_chain!{
                 description("Cannot deserialize data")
                 display("Unable to deserialize data to required struct")
         }
+        Serialize {
+                description("Cannot serialize data")
+                display("Unable to serialize data to required object")
+        }
         NoHTTPHandle {
                 description("No HTTP handle")
                 display("The configuration parameter 'host' requires either a http:// or https:// prefix")
@@ -71,6 +75,10 @@ error_chain!{
         BuildSmtpTransport {
                 description("Failed SMTP handshake")
                 display("Could not attach to SMTP server")
+        }
+        AlreadyVoted {
+                description("Cannot Re-Vote")
+                display("User has already voted on this comment")
         }
     }
 }

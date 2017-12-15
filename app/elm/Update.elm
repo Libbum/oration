@@ -269,7 +269,7 @@ update msg model =
             model
                 ! [ let
                         postReq =
-                            Request.Comment.like id model.user.identity
+                            Request.Comment.like id
                                 |> Http.toTask
                     in
                     Task.attempt LikeConfirm postReq
@@ -293,7 +293,7 @@ update msg model =
             model
                 ! [ let
                         postReq =
-                            Request.Comment.dislike id model.user.identity
+                            Request.Comment.dislike id
                                 |> Http.toTask
                     in
                     Task.attempt DislikeConfirm postReq

@@ -8,6 +8,9 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha224;
 use itertools::join;
 use petgraph::graphmap::DiGraphMap;
+use std::str;
+use bloomfilter::Bloom;
+use bincode::{serialize, deserialize, Infinite};
 
 use schema::comments;
 use data::{FormInput, FormEdit, AuthHash};
@@ -45,7 +48,7 @@ pub struct Comment {
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
-    voters: String,
+    voters: Option<Vec<u8>>,
 }
 
 #[derive(Insertable, Debug)]
@@ -83,7 +86,7 @@ struct NewComment<'c> {
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
-    voters: String,
+    voters: Option<Vec<u8>>,
 }
 
 impl Comment {
@@ -134,7 +137,7 @@ impl Comment {
             hash: hash,
             likes: None,
             dislikes: None,
-            voters: "1".to_string(),
+            voters: None,
         };
 
         let result = diesel::insert_into(comments::table)
@@ -181,7 +184,7 @@ impl Comment {
                     hash: String::new(),
                     likes: None,
                     dislikes: None,
-                    voters: String::new(),
+                    voters: None,
                 })
                 .execute(conn)
                 .chain_err(|| ErrorKind::DBRead)?;
@@ -234,33 +237,96 @@ impl Comment {
         Ok(CommentEdits::new(&comment))
     }
 
-    /// Likes a comment if the user has not liked it already.
-    pub fn like(
+    /// Called from the like and dislike functions and updates the vote tally for the
+    /// given comment, provided the user is able to vote on this comment.
+    /// We use the user's IP address here rather than the hash to ratelimit voting from
+    /// the same IP by changing user details or spamming hash headers.
+    pub fn vote<'c>(
         conn: &SqliteConnection,
         id: &i32,
-        _hash: &AuthHash,
-        ) -> Result<()> {
-        //TODO: Check that user (via hash) has not liked this comment yet.
-        let target = comments::table.filter(comments::id.eq(id));
-        diesel::update(target)
-            .set(comments::likes.eq(comments::likes + 1))
-            .execute(conn)
+        ip_addr: &'c str,
+        upvote: bool,
+    ) -> Result<()> {
+
+        let voters_blob = comments::table
+            .select(comments::voters)
+            .filter(comments::id.eq(id))
+            .first::<Option<Vec<u8>>>(conn)
             .chain_err(|| ErrorKind::DBRead)?;
-        Ok(())
+
+        let mut can_vote = true;
+        if let Some(voters) = voters_blob {
+            let blob: VotersBlob = deserialize(&voters).unwrap();
+            let mut bloom =
+                Bloom::from_existing(&blob.bitmap, blob.bits, blob.hashes, blob.sip_keys);
+            if bloom.check_and_set(ip_addr) {
+                //The IP is already in the database, so the user has already voted
+                //for the moment, this means once a vote is cast, we don't allow a user to change
+                //their vote
+                can_vote = false;
+            } else {
+                //The IP is not in the database, the updated filter needs to be stored
+                blob.store(conn, id)?;
+            }
+        } else {
+            // New bloomfilter with 95% success rate, give it space for 150 votes by default
+            let mut bloom = Bloom::new_for_fp_rate(150, 0.05);
+            // Add the current user's IP to the filter
+            bloom.set(ip_addr);
+
+            let blob = VotersBlob::new(&bloom);
+            blob.store(conn, id)?;
+        }
+        if can_vote {
+            let target = comments::table.filter(comments::id.eq(id));
+            // It would be nice to extract the `set` line here, but I can't seem to figure out how
+            if upvote {
+                diesel::update(target)
+                    .set(comments::likes.eq(comments::likes + 1))
+                    .execute(conn)
+                    .chain_err(|| ErrorKind::DBRead)?;
+            } else {
+                diesel::update(target)
+                    .set(comments::dislikes.eq(comments::dislikes + 1))
+                    .execute(conn)
+                    .chain_err(|| ErrorKind::DBRead)?;
+            };
+            Ok(())
+        } else {
+            Err(ErrorKind::AlreadyVoted.into())
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct VotersBlob {
+    bitmap: Vec<u8>,
+    bits: u64,
+    hashes: u32,
+    sip_keys: [(u64, u64); 2],
+}
+
+impl VotersBlob {
+    fn new(bloom: &Bloom) -> VotersBlob {
+        VotersBlob {
+            bitmap: bloom.bitmap(),
+            bits: bloom.number_of_bits(),
+            hashes: bloom.number_of_hash_functions(),
+            sip_keys: bloom.sip_keys(),
+        }
     }
 
-    /// Dislikes a comment if the user has not liked it already.
-    pub fn dislike(
-        conn: &SqliteConnection,
-        id: &i32,
-        _hash: &AuthHash,
-        ) -> Result<()> {
-        //TODO: Check that user (via hash) has not disliked this comment yet.
+    fn store(self, conn: &SqliteConnection, id: &i32) -> Result<()> {
+        let blob_encoded: Vec<u8> = serialize(&self, Infinite).chain_err(
+            || ErrorKind::Serialize,
+        )?;
+
         let target = comments::table.filter(comments::id.eq(id));
         diesel::update(target)
-            .set(comments::dislikes.eq(comments::dislikes + 1))
+            .set(comments::voters.eq(blob_encoded))
             .execute(conn)
             .chain_err(|| ErrorKind::DBRead)?;
+
         Ok(())
     }
 }
@@ -289,8 +355,9 @@ struct ModeDelete {
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
-    voters: String,
+    voters: Option<Vec<u8>>,
 }
+
 
 /// Checks if this comment is nested too deep based on the configuration file value.
 /// If so, don't allow this to happen and just post as a reply to the previous parent.

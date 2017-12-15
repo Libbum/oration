@@ -25,6 +25,7 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
+extern crate bincode;
 #[macro_use]
 extern crate diesel;
 extern crate r2d2_diesel;
@@ -36,6 +37,7 @@ extern crate lettre;
 extern crate lettre_email;
 extern crate crypto;
 extern crate reqwest;
+extern crate bloomfilter;
 extern crate serde_yaml;
 extern crate itertools;
 #[macro_use]
@@ -152,6 +154,10 @@ fn new_comment(
                 }
                 Err(err) => {
                     //We didn't get the thread id
+                    log::warn!("{}", &err);
+                    for e in err.iter().skip(1) {
+                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
+                    }
                     match err {
                         errors::Error(errors::ErrorKind::PathCheckFailed, _) => {
                             //The requsted path doesn't exist on the server
@@ -297,9 +303,10 @@ fn edit_comment(
 fn like_comment<'d>(
     conn: db::Conn,
     identifier: CommentId,
-    hash: AuthHash,
+    remote_addr: SocketAddr,
 ) -> Result<String, Failure> {
-    match Comment::like(&conn, &identifier.id, &hash) {
+    let ip_addr = remote_addr.ip().to_string();
+    match Comment::vote(&conn, &identifier.id, &ip_addr, true) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             log::warn!("{}", err);
@@ -316,9 +323,10 @@ fn like_comment<'d>(
 fn dislike_comment<'d>(
     conn: db::Conn,
     identifier: CommentId,
-    hash: AuthHash,
+    remote_addr: SocketAddr,
 ) -> Result<String, Failure> {
-    match Comment::dislike(&conn, &identifier.id, &hash) {
+    let ip_addr = remote_addr.ip().to_string();
+    match Comment::vote(&conn, &identifier.id, &ip_addr, false) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             log::warn!("{}", err);

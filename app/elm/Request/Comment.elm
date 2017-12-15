@@ -84,11 +84,10 @@ edit id model =
 {- Request to like a given comment -}
 
 
-like : Int -> Identity -> Http.Request Int
-like id identity =
+like : Int -> Http.Request Int
+like id =
     "/oration/like"
         |> HttpBuilder.post
-        |> HttpBuilder.withHeader "x-auth-hash" identity
         |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
         |> HttpBuilder.withExpect (Http.expectStringResponse (\response -> Ok (Result.withDefault -1 (String.toInt response.body))))
         |> HttpBuilder.toRequest
@@ -98,11 +97,10 @@ like id identity =
 {- Request to dislike a given comment -}
 
 
-dislike : Int -> Identity -> Http.Request Int
-dislike id identity =
+dislike : Int -> Http.Request Int
+dislike id =
     "/oration/dislike"
         |> HttpBuilder.post
-        |> HttpBuilder.withHeader "x-auth-hash" identity
         |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
         |> HttpBuilder.withExpect (Http.expectStringResponse (\response -> Ok (Result.withDefault -1 (String.toInt response.body))))
         |> HttpBuilder.toRequest

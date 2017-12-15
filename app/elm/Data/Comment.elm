@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, dislike, editDecoder, encode, getText, insertDecoder, insertNew, like, readOnly, toggleVisible, update)
+module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, disableVote, dislike, editDecoder, encode, getText, insertDecoder, insertNew, like, readOnly, toggleVisible, update)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
@@ -16,10 +16,11 @@ type alias Comment =
     , hash : String
     , created : DateTime
     , id : Int
+    , votes : Int
     , children : Responses
     , visible : Bool
     , editable : Bool
-    , votes : Int
+    , votable : Bool
     }
 
 
@@ -67,10 +68,11 @@ insertNew insert current =
             , hash = hash
             , created = now
             , id = insert.id
+            , votes = 0
             , children = Responses []
             , visible = True
             , editable = True
-            , votes = 0
+            , votable = False
             }
     in
     if isNothing insert.parent then
@@ -228,6 +230,32 @@ voteComment id like comment =
     { comment
         | votes = count
         , children = children
+        , votable = False
+    }
+
+
+disableVote : Int -> List Comment -> List Comment
+disableVote id comments =
+    List.map (\comment -> removeVotable id comment) comments
+
+
+removeVotable : Int -> Comment -> Comment
+removeVotable id comment =
+    let
+        value =
+            if comment.id == id then
+                False
+            else
+                comment.votable
+
+        children =
+            case comment.children of
+                Responses responses ->
+                    Responses <| List.map (\response -> removeVotable id response) responses
+    in
+    { comment
+        | votable = value
+        , children = children
     }
 
 
@@ -287,10 +315,11 @@ decoder =
         |> required "hash" Decode.string
         |> required "created" decodeDate
         |> required "id" Decode.int
+        |> required "votes" Decode.int
         |> required "children" decodeResponses
         |> hardcoded True
         |> hardcoded False
-        |> required "votes" Decode.int
+        |> hardcoded True
 
 
 decodeResponses : Decoder Responses

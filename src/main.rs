@@ -70,7 +70,7 @@ use std::io;
 use std::net::SocketAddr;
 use rocket::State;
 use rocket::http::Status;
-use rocket::response::{Failure, NamedFile};
+use rocket::response::{status, Failure, NamedFile};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
@@ -300,11 +300,11 @@ fn edit_comment(
 
 /// Likes a comment so long as the current user has not done so already.
 #[post("/oration/like?<identifier>")]
-fn like_comment<'d>(
+fn like_comment(
     conn: db::Conn,
     identifier: CommentId,
     remote_addr: SocketAddr,
-) -> Result<String, Failure> {
+) -> Result<String, status::Custom<String>> {
     let ip_addr = remote_addr.ip().to_string();
     match Comment::vote(&conn, &identifier.id, &ip_addr, true) {
         Ok(_) => Ok(identifier.id.to_string()),
@@ -313,18 +313,19 @@ fn like_comment<'d>(
             for e in err.iter().skip(1) {
                 log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
             }
-            Err(Failure(Status::Forbidden))
+            //TODO: A custom status with a Failure that doesn't require &'static strings
+            Err(status::Custom(Status::Forbidden, identifier.id.to_string()))
         }
     }
 }
 
 /// Dislikes a comment so long as the current user has not done so already.
 #[post("/oration/dislike?<identifier>")]
-fn dislike_comment<'d>(
+fn dislike_comment(
     conn: db::Conn,
     identifier: CommentId,
     remote_addr: SocketAddr,
-) -> Result<String, Failure> {
+) -> Result<String, status::Custom<String>> {
     let ip_addr = remote_addr.ip().to_string();
     match Comment::vote(&conn, &identifier.id, &ip_addr, false) {
         Ok(_) => Ok(identifier.id.to_string()),
@@ -333,7 +334,7 @@ fn dislike_comment<'d>(
             for e in err.iter().skip(1) {
                 log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
             }
-            Err(Failure(Status::Forbidden))
+            Err(status::Custom(Status::Forbidden, identifier.id.to_string()))
         }
     }
 }

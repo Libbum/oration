@@ -287,7 +287,28 @@ update msg model =
                 ! []
 
         LikeConfirm (Err error) ->
-            { model | debug = toString error } ! []
+            let
+                comments =
+                    case error of
+                        Http.BadStatus status ->
+                            Comment.disableVote (Result.withDefault -1 (String.toInt status.body)) model.comments
+
+                        _ ->
+                            model.comments
+
+                print =
+                    case error of
+                        Http.BadStatus status ->
+                            toString status.status ++ ", " ++ status.body
+
+                        _ ->
+                            toString error
+            in
+            { model
+                | debug = print
+                , comments = comments
+            }
+                ! []
 
         CommentDislike id ->
             model
@@ -311,7 +332,28 @@ update msg model =
                 ! []
 
         DislikeConfirm (Err error) ->
-            { model | debug = toString error } ! []
+            let
+                comments =
+                    case error of
+                        Http.BadStatus status ->
+                            Comment.disableVote (Result.withDefault -1 (String.toInt status.body)) model.comments
+
+                        _ ->
+                            model.comments
+
+                print =
+                    case error of
+                        Http.BadStatus status ->
+                            toString status.status ++ ", " ++ status.body
+
+                        _ ->
+                            toString error
+            in
+            { model
+                | debug = print
+                , comments = comments
+            }
+                ! []
 
         HardenEdit id ->
             let

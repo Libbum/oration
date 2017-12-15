@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Data.Comment exposing (Comment, Responses(Responses), count)
-import Data.User exposing (getIdentity)
+import Data.User exposing (Identity, getIdentity)
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -237,7 +237,7 @@ printComment comment model =
             , span [ class [ Style.Date ] ] [ text created ]
             , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
             , Markdown.toHtmlWith options [ class contentStyle ] comment.text
-            , printFooter model.status comment
+            , printFooter model.status model.user.identity comment
             , replyForm comment.id model
             , printResponses comment.children model
             ]
@@ -259,8 +259,8 @@ printAuthor author =
         span [ class [ Style.Author ] ] [ text author ]
 
 
-printFooter : Status -> Comment -> Html Msg
-printFooter status comment =
+printFooter : Status -> Identity -> Comment -> Html Msg
+printFooter status identity comment =
     let
         replyText =
             case status of
@@ -302,6 +302,12 @@ printFooter status comment =
                 _ ->
                     True
 
+        votingDisabled =
+            if comment.votable && comment.hash /= identity then
+                False
+            else
+                True
+
         edit =
             if comment.editable then
                 button [ onClick (CommentEdit comment.id), disabled editDisabled ] [ text editText ]
@@ -313,9 +319,20 @@ printFooter status comment =
                 button [ onClick (CommentDelete comment.id), disabled deleteDisabled ] [ text "delete" ]
             else
                 nothing
+
+        votes =
+            if comment.votes == 0 then
+                " "
+            else
+                " " ++ toString comment.votes
     in
     span [ class [ Style.Footer ] ]
-        [ button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
+        [ span [ class [ Style.Votes ] ]
+            [ button [ onClick (CommentLike comment.id), disabled votingDisabled ] [ text "\xF106" ]
+            , button [ onClick (CommentDislike comment.id), disabled votingDisabled ] [ text "\xF107" ]
+            , text votes
+            ]
+        , button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
         , edit
         , delete
         ]

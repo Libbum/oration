@@ -25,6 +25,7 @@ type OrationClasses
     | LeftMargin10
     | Hidden
     | Toggle
+    | Votes
 
 
 type OrationIds
@@ -86,6 +87,22 @@ css =
                     , borderRadius (px 15)
                     , marginBottom (px 10)
                     , marginRight (px 10)
+                    , fontSize (pt 10)
+                    , disabled
+                        [ cursor default
+                        , color (hex "ccc")
+                        ]
+                    ]
+                ]
+            ]
+        , class Votes
+            [ color primaryColor
+            , marginRight (px 10)
+            , children
+                [ button
+                    [ clickableStyle
+                    , border3 (px 1) solid primaryColor
+                    , borderRadius (px 15)
                     , fontSize (pt 10)
                     , disabled
                         [ cursor default

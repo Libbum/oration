@@ -1,6 +1,7 @@
-module Request.Comment exposing (comments, count, delete, edit, post)
+module Request.Comment exposing (comments, count, delete, dislike, edit, like, post)
 
 import Data.Comment as Comment exposing (Comment, Edited, Inserted)
+import Data.User exposing (Identity)
 import Http
 import HttpBuilder
 import Json.Decode as Decode
@@ -80,10 +81,36 @@ edit id model =
 
 
 
+{- Request to like a given comment -}
+
+
+like : Int -> Http.Request Int
+like id =
+    "/oration/like"
+        |> HttpBuilder.post
+        |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
+        |> HttpBuilder.withExpect (Http.expectStringResponse (\response -> Ok (Result.withDefault -1 (String.toInt response.body))))
+        |> HttpBuilder.toRequest
+
+
+
+{- Request to dislike a given comment -}
+
+
+dislike : Int -> Http.Request Int
+dislike id =
+    "/oration/dislike"
+        |> HttpBuilder.post
+        |> HttpBuilder.withQueryParams [ ( "id", toString id ) ]
+        |> HttpBuilder.withExpect (Http.expectStringResponse (\response -> Ok (Result.withDefault -1 (String.toInt response.body))))
+        |> HttpBuilder.toRequest
+
+
+
 {- Request to delete a given comment -}
 
 
-delete : Int -> String -> Http.Request Int
+delete : Int -> Identity -> Http.Request Int
 delete id identity =
     "/oration/delete"
         |> HttpBuilder.delete

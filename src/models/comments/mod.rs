@@ -8,6 +8,9 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha224;
 use itertools::join;
 use petgraph::graphmap::DiGraphMap;
+use std::str;
+use bloomfilter::Bloom;
+use bincode::{serialize, deserialize, Infinite};
 
 use schema::comments;
 use data::{FormInput, FormEdit, AuthHash};
@@ -41,11 +44,11 @@ pub struct Comment {
     /// Commentors idenifier hash.
     hash: String,
     /// Number of likes a comment has recieved.
-    likes: Option<i32>,
+    likes: Option<i32>, //TODO: I know the tables like i32s, but these really should be unsigned
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
-    voters: String,
+    voters: Option<Vec<u8>>,
 }
 
 #[derive(Insertable, Debug)]
@@ -83,7 +86,7 @@ struct NewComment<'c> {
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
-    voters: String,
+    voters: Option<Vec<u8>>,
 }
 
 impl Comment {
@@ -134,7 +137,7 @@ impl Comment {
             hash: hash,
             likes: None,
             dislikes: None,
-            voters: "1".to_string(),
+            voters: None,
         };
 
         let result = diesel::insert_into(comments::table)
@@ -181,7 +184,7 @@ impl Comment {
                     hash: String::new(),
                     likes: None,
                     dislikes: None,
-                    voters: String::new(),
+                    voters: None,
                 })
                 .execute(conn)
                 .chain_err(|| ErrorKind::DBRead)?;
@@ -233,6 +236,99 @@ impl Comment {
         let comment = PrintedComment::get(conn, *id)?;
         Ok(CommentEdits::new(&comment))
     }
+
+    /// Called from the like and dislike functions and updates the vote tally for the
+    /// given comment, provided the user is able to vote on this comment.
+    /// We use the user's IP address here rather than the hash to ratelimit voting from
+    /// the same IP by changing user details or spamming hash headers.
+    pub fn vote<'c>(
+        conn: &SqliteConnection,
+        id: &i32,
+        ip_addr: &'c str,
+        upvote: bool,
+    ) -> Result<()> {
+
+        let voters_blob = comments::table
+            .select(comments::voters)
+            .filter(comments::id.eq(id))
+            .first::<Option<Vec<u8>>>(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+
+        let mut can_vote = true;
+        if let Some(voters) = voters_blob {
+            let blob: VotersBlob = deserialize(&voters).unwrap();
+            let mut bloom =
+                Bloom::from_existing(&blob.bitmap, blob.bits, blob.hashes, blob.sip_keys);
+            if bloom.check_and_set(ip_addr) {
+                //The IP is already in the database, so the user has already voted
+                //for the moment, this means once a vote is cast, we don't allow a user to change
+                //their vote
+                can_vote = false;
+            } else {
+                //The IP is not in the database, the updated filter needs to be stored
+                blob.store(conn, id)?;
+            }
+        } else {
+            // New bloomfilter with 95% success rate, give it space for 150 votes by default
+            let mut bloom = Bloom::new_for_fp_rate(150, 0.05);
+            // Add the current user's IP to the filter
+            bloom.set(ip_addr);
+
+            let blob = VotersBlob::new(&bloom);
+            blob.store(conn, id)?;
+        }
+        if can_vote {
+            let target = comments::table.filter(comments::id.eq(id));
+            // It would be nice to extract the `set` line here, but I can't seem to figure out how
+            if upvote {
+                diesel::update(target)
+                    .set(comments::likes.eq(comments::likes + 1))
+                    .execute(conn)
+                    .chain_err(|| ErrorKind::DBRead)?;
+            } else {
+                diesel::update(target)
+                    .set(comments::dislikes.eq(comments::dislikes + 1))
+                    .execute(conn)
+                    .chain_err(|| ErrorKind::DBRead)?;
+            };
+            Ok(())
+        } else {
+            Err(ErrorKind::AlreadyVoted.into())
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct VotersBlob {
+    bitmap: Vec<u8>,
+    bits: u64,
+    hashes: u32,
+    sip_keys: [(u64, u64); 2],
+}
+
+impl VotersBlob {
+    fn new(bloom: &Bloom) -> VotersBlob {
+        VotersBlob {
+            bitmap: bloom.bitmap(),
+            bits: bloom.number_of_bits(),
+            hashes: bloom.number_of_hash_functions(),
+            sip_keys: bloom.sip_keys(),
+        }
+    }
+
+    fn store(self, conn: &SqliteConnection, id: &i32) -> Result<()> {
+        let blob_encoded: Vec<u8> = serialize(&self, Infinite).chain_err(
+            || ErrorKind::Serialize,
+        )?;
+
+        let target = comments::table.filter(comments::id.eq(id));
+        diesel::update(target)
+            .set(comments::voters.eq(blob_encoded))
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
+
+        Ok(())
+    }
 }
 
 #[derive(AsChangeset)]
@@ -259,8 +355,9 @@ struct ModeDelete {
     /// Number of dislikes a comment has recieved.
     dislikes: Option<i32>,
     /// Who are the voters on this comment.
-    voters: String,
+    voters: Option<Vec<u8>>,
 }
+
 
 /// Checks if this comment is nested too deep based on the configuration file value.
 /// If so, don't allow this to happen and just post as a reply to the previous parent.
@@ -402,6 +499,10 @@ struct PrintedComment {
     hash: String,
     /// Timestamp of creation.
     created: NaiveDateTime,
+    /// Number of likes a comment has recieved.
+    likes: Option<i32>,
+    /// Number of dislikes a comment has recieved.
+    dislikes: Option<i32>,
 }
 
 impl PrintedComment {
@@ -419,6 +520,8 @@ impl PrintedComment {
                 comments::website,
                 comments::hash,
                 comments::created,
+                comments::likes,
+                comments::dislikes,
             ))
             .inner_join(threads::table)
             .filter(threads::uri.eq(path).and(comments::mode.eq(0).or(
@@ -443,6 +546,8 @@ impl PrintedComment {
                 comments::website,
                 comments::hash,
                 comments::created,
+                comments::likes,
+                comments::dislikes,
             ))
             .filter(comments::id.eq(id))
             .first(conn)
@@ -517,6 +622,8 @@ pub struct NestedComment {
     created: DateTime<Utc>,
     /// Comment children.
     children: Vec<NestedComment>,
+    /// Total number of votes.
+    votes: i32,
 }
 
 impl NestedComment {
@@ -524,6 +631,7 @@ impl NestedComment {
     fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
         let date_time = DateTime::<Utc>::from_utc(comment.created, Utc);
         let author = get_author(&comment.author, &comment.email, &comment.url);
+        let votes = count_votes(&comment.likes, &comment.dislikes);
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
@@ -531,6 +639,7 @@ impl NestedComment {
             hash: comment.hash.to_owned(),
             created: date_time,
             children: children,
+            votes: votes,
         }
     }
 
@@ -607,4 +716,9 @@ fn get_author(
         //This can be something or nothing, since we don't need te parse it it doesn't matter
         url.to_owned()
     }
+}
+
+/// Calculates the total vote for a comment based on its likes and dislikes.
+fn count_votes(likes: &Option<i32>, dislikes: &Option<i32>) -> i32 {
+    likes.unwrap_or_else(|| 0) - dislikes.unwrap_or_else(|| 0)
 }

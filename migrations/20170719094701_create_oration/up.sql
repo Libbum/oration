@@ -24,7 +24,7 @@ CREATE TABLE comments (
     hash VARCHAR NOT NULL,
     likes INTEGER DEFAULT 0,
     dislikes INTEGER DEFAULT 0,
-    voters VARCHAR NOT NULL
+    voters BLOB
 );
 
 CREATE TRIGGER remove_stale_threads AFTER DELETE ON comments BEGIN

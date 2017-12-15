@@ -265,6 +265,96 @@ update msg model =
         DeleteConfirm (Err error) ->
             { model | debug = toString error } ! []
 
+        CommentLike id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.like id
+                                |> Http.toTask
+                    in
+                    Task.attempt LikeConfirm postReq
+                  ]
+
+        LikeConfirm (Ok result) ->
+            let
+                comments =
+                    Comment.like result model.comments
+            in
+            { model
+                | debug = toString result
+                , comments = comments
+            }
+                ! []
+
+        LikeConfirm (Err error) ->
+            let
+                comments =
+                    case error of
+                        Http.BadStatus status ->
+                            Comment.disableVote (Result.withDefault -1 (String.toInt status.body)) model.comments
+
+                        _ ->
+                            model.comments
+
+                print =
+                    case error of
+                        Http.BadStatus status ->
+                            toString status.status ++ ", " ++ status.body
+
+                        _ ->
+                            toString error
+            in
+            { model
+                | debug = print
+                , comments = comments
+            }
+                ! []
+
+        CommentDislike id ->
+            model
+                ! [ let
+                        postReq =
+                            Request.Comment.dislike id
+                                |> Http.toTask
+                    in
+                    Task.attempt DislikeConfirm postReq
+                  ]
+
+        DislikeConfirm (Ok result) ->
+            let
+                comments =
+                    Comment.dislike result model.comments
+            in
+            { model
+                | debug = toString result
+                , comments = comments
+            }
+                ! []
+
+        DislikeConfirm (Err error) ->
+            let
+                comments =
+                    case error of
+                        Http.BadStatus status ->
+                            Comment.disableVote (Result.withDefault -1 (String.toInt status.body)) model.comments
+
+                        _ ->
+                            model.comments
+
+                print =
+                    case error of
+                        Http.BadStatus status ->
+                            toString status.status ++ ", " ++ status.body
+
+                        _ ->
+                            toString error
+            in
+            { model
+                | debug = print
+                , comments = comments
+            }
+                ! []
+
         HardenEdit id ->
             let
                 comments =

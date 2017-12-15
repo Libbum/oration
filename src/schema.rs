@@ -14,7 +14,7 @@ table! {
         hash -> Text,
         likes -> Nullable<Integer>,
         dislikes -> Nullable<Integer>,
-        voters -> Text,
+        voters -> Nullable<Binary>,
     }
 }
 

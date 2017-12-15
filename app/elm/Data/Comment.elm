@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, editDecoder, encode, getText, insertDecoder, insertNew, readOnly, toggleVisible, update)
+module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, disableVote, dislike, editDecoder, encode, getText, insertDecoder, insertNew, like, readOnly, toggleVisible, update)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
@@ -16,9 +16,11 @@ type alias Comment =
     , hash : String
     , created : DateTime
     , id : Int
+    , votes : Int
     , children : Responses
     , visible : Bool
     , editable : Bool
+    , votable : Bool
     }
 
 
@@ -66,9 +68,11 @@ insertNew insert current =
             , hash = hash
             , created = now
             , id = insert.id
+            , votes = 0
             , children = Responses []
             , visible = True
             , editable = True
+            , votable = False
             }
     in
     if isNothing insert.parent then
@@ -144,7 +148,6 @@ switchVisible id comment =
 
 delete : Int -> List Comment -> List Comment
 delete id comments =
-    --Pure deletes only happen on comments with no children, so only filter if that's the case
     List.map (\comment -> filterComment id comment) comments
         |> values
 
@@ -152,6 +155,7 @@ delete id comments =
 filterComment : Int -> Comment -> Maybe Comment
 filterComment id comment =
     let
+        --Pure deletes only happen on comments with no children, so only filter if that's the case
         noChildren =
             case comment.children of
                 Responses responses ->
@@ -190,6 +194,67 @@ removeEditable id comment =
     in
     { comment
         | editable = value
+        , children = children
+    }
+
+
+like : Int -> List Comment -> List Comment
+like id comments =
+    List.map (\comment -> voteComment id True comment) comments
+
+
+dislike : Int -> List Comment -> List Comment
+dislike id comments =
+    List.map (\comment -> voteComment id False comment) comments
+
+
+voteComment : Int -> Bool -> Comment -> Comment
+voteComment id like comment =
+    let
+        count =
+            if comment.id == id then
+                case like of
+                    True ->
+                        comment.votes + 1
+
+                    False ->
+                        comment.votes - 1
+            else
+                comment.votes
+
+        children =
+            case comment.children of
+                Responses responses ->
+                    Responses <| List.map (\response -> voteComment id like response) responses
+    in
+    { comment
+        | votes = count
+        , children = children
+        , votable = False
+    }
+
+
+disableVote : Int -> List Comment -> List Comment
+disableVote id comments =
+    List.map (\comment -> removeVotable id comment) comments
+
+
+removeVotable : Int -> Comment -> Comment
+removeVotable id comment =
+    let
+        value =
+            if comment.id == id then
+                False
+            else
+                comment.votable
+
+        children =
+            case comment.children of
+                Responses responses ->
+                    Responses <| List.map (\response -> removeVotable id response) responses
+    in
+    { comment
+        | votable = value
         , children = children
     }
 
@@ -250,9 +315,11 @@ decoder =
         |> required "hash" Decode.string
         |> required "created" decodeDate
         |> required "id" Decode.int
+        |> required "votes" Decode.int
         |> required "children" decodeResponses
         |> hardcoded True
         |> hardcoded False
+        |> hardcoded True
 
 
 decodeResponses : Decoder Responses

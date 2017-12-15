@@ -10,7 +10,7 @@
 #                       Configuration File
 
 # Top level location of your blog
-host: http://localhost:8600/
+host: http://localhost:8000/
 # Name of your blog
 blog_name: Testing ground
 

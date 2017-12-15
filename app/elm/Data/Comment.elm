@@ -161,8 +161,26 @@ filterComment id comment =
                 Responses responses ->
                     List.isEmpty responses
     in
-    if comment.id == id && noChildren then
-        Nothing
+    if comment.id == id then
+        if noChildren then
+            Nothing
+        else
+            --We must display a masked delete
+            let
+                children =
+                    case comment.children of
+                        Responses responses ->
+                            Responses <| values <| List.map (\response -> filterComment id response) responses
+            in
+            Just
+                { comment
+                    | children = children
+                    , author = Nothing
+                    , hash = ""
+                    , text = ""
+                    , votes = 0
+                    , votable = False
+                }
     else
         let
             children =

@@ -219,7 +219,7 @@ printComment comment model =
 
         contentStyle =
             if comment.visible then
-                [ Style.Content ]
+                [ Style.Comment ]
             else
                 [ Style.Hidden ]
 
@@ -236,10 +236,12 @@ printComment comment model =
             , span [ class [ Style.Spacer ] ] [ text "•" ]
             , span [ class [ Style.Date ] ] [ text created ]
             , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-            , Markdown.toHtmlWith options [ class contentStyle ] comment.text
-            , printFooter model.status model.user.identity comment
-            , replyForm comment.id model
-            , printResponses comment.children model
+            , div [ class contentStyle ]
+                [ Markdown.toHtmlWith options [ class [ Style.Content ] ] comment.text
+                , printFooter model.status model.user.identity comment
+                , replyForm comment.id model
+                , printResponses comment.children model
+                ]
             ]
     else
         li [ id commentId, class headerStyle ]

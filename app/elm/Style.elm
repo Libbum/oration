@@ -16,6 +16,7 @@ type OrationClasses
     | Author
     | Deleted
     | Date
+    | Comment
     | Content
     | Form
     | Spacer
@@ -162,6 +163,8 @@ css =
                     ]
                 ]
             ]
+        , class Comment
+            [ padding (px 0) ]
         , class Identicon
             [ display inlineBlock
             , verticalAlign middle

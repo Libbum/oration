@@ -25,9 +25,6 @@ import Util exposing (nothing)
 view : Model -> Html Msg
 view model =
     let
-        markdown =
-            markdownContent model.comment model.user.preview
-
         count =
             toString model.count
                 ++ (if model.count /= 1 then
@@ -39,7 +36,6 @@ view model =
     div [ id Style.Oration ]
         [ h2 [] [ text count ]
         , commentForm model Nothing
-        , Markdown.toHtmlWith options [ id Style.OrationCommentPreview ] markdown
         , ul [ id Style.OrationComments ] <| printComments model
         ]
 
@@ -84,14 +80,14 @@ commentForm model commentId =
                 _ ->
                     Style.OrationReplyForm
 
-        textAreaDisable =
+        formDisable =
             if isNothing commentId && isJust model.parent then
                 True
             else
                 False
 
         buttonDisable =
-            if textAreaDisable then
+            if formDisable then
                 True
             else
                 setButtonDisabled model.comment
@@ -118,6 +114,13 @@ commentForm model commentId =
 
                 _ ->
                     PostComment
+
+        preview =
+            if formDisable then
+                nothing
+            else
+                Markdown.toHtmlWith options [ id Style.OrationCommentPreview ] <|
+                    markdownContent model.comment model.user.preview
     in
     Html.form [ method "post", id formID, class [ Style.Form ], onSubmit submitCmd ]
         [ textarea
@@ -128,7 +131,7 @@ commentForm model commentId =
             , cols 80
             , rows 4
             , onInput UpdateComment
-            , disabled textAreaDisable
+            , disabled formDisable
             , class [ Style.Block ]
             ]
             []
@@ -143,6 +146,7 @@ commentForm model commentId =
             , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
             , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value submitText, onClick StoreUser ] []
             ]
+        , preview
         ]
 
 

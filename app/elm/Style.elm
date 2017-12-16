@@ -1,7 +1,7 @@
 module Style exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (button, input, label, li, p, textarea, typeSelector)
+import Css.Elements exposing (button, img, input, label, li, p, textarea, typeSelector)
 import Css.Namespace exposing (namespace)
 import Html.CssHelpers exposing (withNamespace)
 
@@ -160,6 +160,11 @@ css =
                         [ marginTop (em 0.5) ]
                     , lastOfType
                         [ marginBottom (em 0.25) ]
+                    ]
+                ]
+            , descendants
+                [ img
+                    [ maxWidth (pct 100)
                     ]
                 ]
             ]

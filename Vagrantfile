@@ -9,13 +9,13 @@ Vagrant.configure("2") do |config|
 
   config.vm.network :forwarded_port, guest: 80, host: 8600
 
-  config.vm.provision "bootstrap" do |ansible|
+  config.vm.provision "ansible" do |ansible|
     ansible.playbook = "staging/staging.yml"
     ansible.limit = "all"
     ansible.verbose = "v"
   end
 
-  config.vm.provision "services", run: "always" do |ansible|
+  config.vm.provision "ansible", run: "always" do |ansible|
     ansible.playbook = "staging/services.yml"
     ansible.limit = "all"
     ansible.verbose = "v"

@@ -10,11 +10,11 @@ import Time.DateTime exposing (DateTime)
 
 type Msg
     = UpdateComment String
-    | UpdateName String
-    | UpdateEmail String
-    | UpdateUrl String
+    | UpdateName (Maybe String)
+    | UpdateEmail (Maybe String)
+    | UpdateUrl (Maybe String)
     | UpdatePreview
-    | SetPreview String
+    | SetPreview (Maybe String)
     | Count (Result Http.Error String)
     | Post Location
     | StoreUser

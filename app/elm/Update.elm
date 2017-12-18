@@ -11,7 +11,7 @@ import Request.Comment
 import Task
 import Time exposing (minute)
 import Time.DateTime exposing (DateTime)
-import Util exposing (delay, stringToMaybe)
+import Util exposing (delay)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -25,21 +25,21 @@ update msg model =
                 user =
                     model.user
             in
-            { model | user = { user | name = stringToMaybe name } } ! []
+            { model | user = { user | name = name } } ! []
 
         UpdateEmail email ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | email = stringToMaybe email } } ! []
+            { model | user = { user | email = email } } ! []
 
         UpdateUrl url ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | url = stringToMaybe url } } ! []
+            { model | user = { user | url = url } } ! []
 
         UpdatePreview ->
             let
@@ -389,12 +389,17 @@ subscriptions model =
 
 {-| localStorage values are always strings. We store the preview bool via toString, so this will be good enough as a decoder.
 -}
-dumbDecode : String -> Bool
+dumbDecode : Maybe String -> Bool
 dumbDecode val =
-    if val == "True" then
-        True
-    else
-        False
+    case val of
+        Just decoded ->
+            if decoded == "True" then
+                True
+            else
+                False
+
+        Nothing ->
+            False
 
 
 currentDate : Task.Task x DateTime

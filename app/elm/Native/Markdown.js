@@ -83,6 +83,8 @@ var _Libbum$oration$Native_Markdown = function() {
 		if (typeof Prism !== 'undefined' && lang && Prism.languages[lang]) {
 		    return Prism.highlight(code, Prism.languages[lang]);
 		}
+		
+		return code;
 	    }
 	    catch(e) {
 		return code;

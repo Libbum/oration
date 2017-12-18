@@ -39,11 +39,12 @@ Documentation of current backend methods can be viewed [here](https://libbum.git
 
 # Options
 
-Code highlighting is done with [highligt.js](https://highlightjs.org/).
-The default syntax pack is obtained via a CDN here, although you may wish to modify the allowable languages used on your blog.
-Replace the default pack with one customised from [here](https://highlightjs.org/download/) to achive this.
+Code highlighting is done with [prism.js](http://prismjs.com/).
+The default syntax pack and a few extra markups are obtained via a CDN here, although you may wish to modify the allowable languages used on your blog.
+Replace the default pack with one customised from [here](http://prismjs.com/download.html) to achive this.
+The CDN isn't a bad idea however, and pulling multiple files the example here is all done over http v2, so it's pretty fast.
 
-In the same manner, you may change the theme of the syntax highligting by choosing [another theme](https://github.com/isagalaev/highlight.js/tree/master/src/styles).
-Oration uses `Tomorrow` by default.
+In the same manner, you may change the theme of the syntax highligting by choosing [another theme](https://github.com/PrismJS/prism/tree/gh-pages/themes).
+Oration uses the default in the example file.
 
 These changes should be in your own html files, an example can be seen in the bundled [index.html](app/static/index.html) header.

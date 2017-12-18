@@ -166,6 +166,9 @@ css =
                 [ img
                     [ maxWidth (pct 100)
                     ]
+                , Css.Elements.pre
+                    [ overflowX auto
+                    ]
                 ]
             ]
         , class Comment

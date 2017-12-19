@@ -5,9 +5,9 @@
   tasks:
 
     - name: Backend | Build production executable
-      command: cargo build --release --target=x86_64-unknown-linux-musl
-      environment:
-        OPENSSL_DIR: /usr/
+      shell: |
+        alias rust-musl-builder='docker run --rm -t -v {{playbook_dir}}/..:/home/rust/src ekidd/rust-musl-builder:nightly'
+        rust-musl-builder cargo build --release
 
     - name: Backend | Check for deployment directory
       file:
@@ -18,6 +18,12 @@
       copy:
         src: ../oration.yaml
         dest: deploy/oration.yaml
+
+    - name: Backend | Setting localhost as blog entrypoint
+      replace:
+        path: deploy/oration.yaml
+        regexp: '^(host:\s+).*'
+        replace: '\1http://localhost/'
 
     - name: Backend | Ready executable file
       copy:
@@ -39,3 +45,16 @@
       command: npm run deploy
       args:
         chdir: ../app
+
+    - name: Frontend | Finding map files in public area
+      find:
+        paths: ../public
+        patterns: "*.map"
+        recurse: yes
+      register: map_files
+
+    - name: Frontend | Removing map files from public area
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ map_files.files }}"

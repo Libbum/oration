@@ -40,5 +40,23 @@ exports.config = {
         autoRequire: {
             "js/app.js": ["js/app"]
         }
+    },
+    overrides: {
+        production: {
+            optimize: true,
+            sourceMaps: false,
+            plugins: {
+                autoReload: {
+                    enabled: false
+                },
+                babel: {
+                    //Transpile the main file in production
+                    ignore: [/vendor/]
+                },
+                elmBrunch: {
+                    makeParameters: ["--warn"]
+                }
+            }
+        }
     }
 };

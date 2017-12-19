@@ -38,6 +38,7 @@ extern crate lettre_email;
 extern crate crypto;
 extern crate reqwest;
 extern crate bloomfilter;
+extern crate openssl_probe;
 extern crate serde_yaml;
 extern crate itertools;
 #[macro_use]
@@ -449,6 +450,8 @@ fn rocket() -> (rocket::Rocket, db::Conn, String) {
 
 /// Application entry point.
 fn main() {
+    openssl_probe::init_ssl_cert_env_vars();
+
     //Initialise webserver routes and database connection pool
     let (rocket, conn, host) = rocket();
 

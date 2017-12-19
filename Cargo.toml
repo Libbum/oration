@@ -32,3 +32,7 @@ lettre_email = "0.7"
 lazy_static = "1.0"
 regex = "0.2"
 bloomfilter = "0.0.12"
+# Needed for static build.
+openssl-sys = "0.9"
+openssl-probe = "0.1"
+libsqlite3-sys = { version = "*", features = ["bundled"] }

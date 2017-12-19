@@ -2,6 +2,9 @@ exports.config = {
     files: {
         javascripts: {
             joinTo: "js/app.js"
+        },
+        stylesheets: {
+            joinTo: "css/oration.css"
         }
     },
     conventions: {
@@ -14,14 +17,14 @@ exports.config = {
     // paths configuration
     paths: {
         // Dependencies and current project directories to watch
-        watched: ["static", "js", "vendor", "elm"],
+        watched: ["static", "js", "css", "elm"],
         // Where to compile files to
         public: "../public"
     },
     plugins: {
         babel: {
-            // Do not use ES6 compiler in vendor code
-            ignore: [/vendor/, /main.js$/]
+            // Do not use ES6 compiler for debugging
+            ignore: [/main.js$/]
         },
         elmBrunch: {
             elmFolder: "elm",
@@ -32,8 +35,14 @@ exports.config = {
         elmCss: {
             projectDir: "elm",
             sourcePath: "Stylesheets.elm",
-            patters: "Style.elm",
-            outputDir: "../../public/css"
+            pattern: "Style.elm",
+            outputDir: "../css"
+        },
+        cssnano: {
+            preset: [
+                'default',
+                {discardComments: {removeAll: true}}
+            ]
         }
     },
     modules: {
@@ -51,7 +60,7 @@ exports.config = {
                 },
                 babel: {
                     //Transpile the main file in production
-                    ignore: [/vendor/]
+                    ignore: []
                 },
                 elmBrunch: {
                     makeParameters: ["--warn"]

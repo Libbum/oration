@@ -3,11 +3,14 @@
 - name: Oration Staging Build
   hosts: all
   tasks:
-
+    # This is a little expensive, but it makes sure you don't fail to complie (provided your build isn't broken)
+    # Fist, the musl builder image is pulled (if there's a new version), then we update rust to the latest nightly
+    # inside th container, and finally build the static oration file.
     - name: Backend | Build production executable
       shell: |
+        docker pull ekidd/rust-musl-builder:nightly
         alias rust-musl-builder='docker run --rm -t -v {{playbook_dir}}/..:/home/rust/src ekidd/rust-musl-builder:nightly'
-        rust-musl-builder cargo build --release
+        rust-musl-builder rustup update && cargo build --release
 
     - name: Backend | Check for deployment directory
       file:

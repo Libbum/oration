@@ -9,9 +9,24 @@ However, the codebase is unmaintained and [security concerns](https://axiomatic.
 
 ---
 
-Currently, Oration is in an alpha stage of release with no particular estimate for hitting v0.1.
+Oration is currently in an early stage of development, but [v0.1](releases/tag/v0.1) is usable now with minimal setup and a good deal of front facing features.
+Administration, porting from other commenting systems and a number of additional features are [planned](milestones) with a roadmap targeting a complete public release at v0.3.
 
 Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+
+# Get it running now
+
+A static binary for the backend that runs on any Linux machine can be found in the release tarball, along with a configuration file and minified `oration.{js,css}` files for you to put in your blog files.
+
+A staging virtual machine using [Vagrant](https://www.vagrantup.com/) and [Ansible](https://www.ansible.com/) is available if you wish to build a test machine direct from the source, although this will require a few more development tools to be installed on your system.
+However, this staging setup shows you exactly how to put oration behind an [Nginx proxy](staging/config/nginx.vhost.conf) with hardened security headers, once you have it [running as a service](staging/config/oration.service).
+
+Before running the service, make sure an `.env` file that points to the location of an sqlite database initialised with [these commands](migrations/20170719094701_create_oration/up.sql), and the [configuration file](oration.yaml) with details specific for your machine both exist in the directory oration is located in.
+
+On the front end, it's simply a manner of uploading the css and js files to your public directory, and editing your blog posts to point to these assets.
+An example of this can be seen [here](app/static/post-1.html).
+
+More complete documentation is on the way.
 
 # Development Startup
 

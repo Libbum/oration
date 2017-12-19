@@ -1,7 +1,7 @@
 exports.config = {
     files: {
         javascripts: {
-            joinTo: "js/app.js"
+            joinTo: "js/oration.js"
         },
         stylesheets: {
             joinTo: "css/oration.css"
@@ -47,7 +47,7 @@ exports.config = {
     },
     modules: {
         autoRequire: {
-            "js/app.js": ["js/app"]
+            "js/oration.js": ["js/oration"]
         }
     },
     overrides: {

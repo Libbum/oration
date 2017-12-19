@@ -1,5 +1,5 @@
 import Elm from './main';
-const elmDiv = document.getElementById('elm-container');
+const elmDiv = document.getElementById('comments');
 if (elmDiv) {
     var app = Elm.Main.embed(elmDiv);
 

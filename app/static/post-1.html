@@ -2,23 +2,30 @@
 
 <html lang="en" />
 <head>
-  <meta charset="utf-8" />
+    <meta charset="utf-8" />
 
-  <title>Oration - Test Page</title>
-  <meta name="description" content="A post for a blog which Oration will service" />
-  <meta name="author" content="Tim DuBois" />
+    <title>Oration - Test Page</title>
+    <meta name="description" content="A post for a blog which Oration will service" />
+    <meta name="author" content="Tim DuBois" />
 
-  <link rel="stylesheet" href="css/oration.css" />
+    <link rel="stylesheet" href="css/oration.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css" integrity="sha256-jyTNdvrzQ6apVgu4tZoAUKxLo5W+oN47Td9rTdFLrBs=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.css" integrity="sha256-P0Hbxu6mXtsN1vgoz5E3TyC6//DF7pPi7VT97mygYgU=" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/prism.min.js" integrity="sha256-hK55yYjZp3vXqUhowkWYVaoavcWSYRR6fE8sgHqyt5A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-rust.min.js" integrity="sha256-sMEzcAp7rur4qCvzfsFa734SJVJtH6xxN0CGRoPXlsA=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-makefile.min.js" integrity="sha256-pbm9rQGN4Ore8f63Nc0XohO/ndkqmaCkiM+t++tZS6s=" crossorigin="anonymous"></script>
 
-  <!--[if lt IE 9]>
+    <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
-  <![endif]-->
+    <![endif]-->
 </head>
 
 <body>
-    Here is a post. Please comment.<br />
-    <div id=elm-container></div>
-    <script src="js/app.js"></script>
+    <p>Here is a post. Please comment below, or go somewhere else.</p>
+    <p><a href="index.html">Index</a></p>
+    <p><a href="post-2.html#comment">Post 2</a></p>
+    <div id="comments"></div>
+    <script src="js/oration.js"></script>
 </body>
 </html>
 

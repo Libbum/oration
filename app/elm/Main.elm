@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Html.Styled exposing (toUnstyled)
 import Http
 import Models exposing (Model, Status(Commenting))
 import Msg exposing (Msg)
@@ -14,7 +15,7 @@ import View exposing (view)
 
 main : Program Never Model Msg
 main =
-    Navigation.program Msg.Post { init = init, view = view, update = update, subscriptions = subscriptions }
+    Navigation.program Msg.Pathname { init = init, view = view >> toUnstyled, update = update, subscriptions = subscriptions }
 
 
 init : Navigation.Location -> ( Model, Cmd Msg )
@@ -31,7 +32,7 @@ init location =
             }
       , comments = []
       , count = 0
-      , post = location
+      , pathname = location.pathname
       , title = ""
       , debug = ""
       , now = dateTime zero
@@ -39,19 +40,19 @@ init location =
       , blogAuthor = ""
       , status = Commenting
       }
-    , initialise location
+    , initialise location.pathname
     )
 
 
-initialise : Navigation.Location -> Cmd Msg
-initialise location =
+initialise : String -> Cmd Msg
+initialise pathname =
     let
         loadHashes =
             Request.Init.hashes
                 |> Http.toTask
 
         loadComments =
-            Request.Comment.comments location
+            Request.Comment.comments pathname
                 |> Http.toTask
     in
     Cmd.batch

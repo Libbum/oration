@@ -1,6 +1,6 @@
 module Util exposing ((=>), delay, nothing, pair, stringToMaybe)
 
-import Html exposing (Html, text)
+import Html.Styled exposing (Html, text)
 import Process
 import Task
 import Time exposing (Time)

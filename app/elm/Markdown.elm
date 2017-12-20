@@ -21,7 +21,7 @@ module Markdown
 
 -}
 
-import Html exposing (Attribute, Html)
+import Html.Styled exposing (Attribute, Html)
 import Native.Markdown
 
 

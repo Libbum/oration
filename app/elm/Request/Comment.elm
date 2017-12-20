@@ -6,16 +6,15 @@ import Http
 import HttpBuilder
 import Json.Decode as Decode
 import Models exposing (Model)
-import Navigation exposing (Location)
 
 
 {-| Request the number of comments for a given post
 -}
-count : Location -> Http.Request String
-count location =
+count : String -> Http.Request String
+count pathname =
     "/oration/count"
         |> HttpBuilder.get
-        |> HttpBuilder.withQueryParams [ ( "url", location.pathname ) ]
+        |> HttpBuilder.withQueryParams [ ( "url", pathname ) ]
         |> HttpBuilder.withExpect Http.expectString
         |> HttpBuilder.toRequest
 
@@ -29,7 +28,7 @@ post model =
         body =
             [ ( "comment", model.comment )
             , ( "title", model.title )
-            , ( "path", model.post.pathname )
+            , ( "path", model.pathname )
             ]
 
         --User details are only sent if they exist
@@ -122,8 +121,8 @@ delete id identity =
 
 {-| Request the comments for the current url
 -}
-comments : Location -> Http.Request (List Comment)
-comments location =
+comments : String -> Http.Request (List Comment)
+comments pathname =
     let
         expect =
             Decode.list Comment.decoder
@@ -132,7 +131,7 @@ comments location =
     in
     "/oration/comments"
         |> HttpBuilder.get
-        |> HttpBuilder.withQueryParams [ ( "url", location.pathname ) ]
+        |> HttpBuilder.withQueryParams [ ( "url", pathname ) ]
         |> HttpBuilder.withExpect expect
         |> HttpBuilder.toRequest
 

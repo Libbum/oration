@@ -83,8 +83,8 @@ update msg model =
         Count (Err error) ->
             { model | debug = toString error } ! []
 
-        Post location ->
-            { model | post = location } ! []
+        Pathname location ->
+            { model | pathname = location.pathname } ! []
 
         Title value ->
             { model | title = value } ! []

@@ -2,24 +2,17 @@ module View exposing (view)
 
 import Data.Comment exposing (Comment, Responses(Responses), count)
 import Data.User exposing (Identity, getIdentity)
-import Html exposing (..)
-import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (autocomplete, checked, cols, css, defaultValue, disabled, for, href, id, method, minlength, name, placeholder, rows, type_, value)
+import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Identicon exposing (identicon)
 import Markdown exposing (defaultOptions)
 import Maybe.Extra exposing ((?), isJust, isNothing)
 import Models exposing (Model, Status(..))
 import Msg exposing (Msg(..))
-import Style
+import Style exposing (commentArea, footerButton, userInput)
 import Time.DateTime.Distance exposing (inWords)
 import Util exposing (nothing)
-
-
-{- Sync up stylsheets -}
-
-
-{ id, class, classList } =
-    Style.orationNamespace
 
 
 view : Model -> Html Msg
@@ -33,10 +26,10 @@ view model =
                         " comment"
                    )
     in
-    div [ id Style.Oration ]
+    div [ id "Oration", css Style.oration ]
         [ h2 [] [ text count ]
         , commentForm model Nothing
-        , ul [ id Style.OrationComments ] <| printComments model
+        , ul [ id "OrationComments", css Style.orationComments ] <| printComments model
         ]
 
 
@@ -75,10 +68,10 @@ commentForm model commentId =
         formID =
             case model.status of
                 Commenting ->
-                    Style.OrationForm
+                    "OrationForm"
 
                 _ ->
-                    Style.OrationReplyForm
+                    "OrationReplyForm"
 
         formDisable =
             if isNothing commentId && isJust model.parent then
@@ -119,11 +112,11 @@ commentForm model commentId =
             if formDisable then
                 nothing
             else
-                Markdown.toHtmlWith options [ id Style.OrationCommentPreview ] <|
+                Markdown.toHtmlWith options [ id "OrationCommentPreview" ] <|
                     markdownContent model.comment model.user.preview
     in
-    Html.form [ method "post", id formID, class [ Style.Form ], onSubmit submitCmd ]
-        [ textarea
+    Html.Styled.form [ method "post", id formID, css Style.form, onSubmit submitCmd ]
+        [ commentArea
             [ name "comment"
             , placeholder "Write a comment here (min 3 characters)."
             , value textAreaValue
@@ -132,19 +125,18 @@ commentForm model commentId =
             , rows 4
             , onInput UpdateComment
             , disabled formDisable
-            , class [ Style.Block ]
             ]
             []
-        , div [ class [ Style.User ] ]
-            [ span [ class [ Style.Identicon, Style.LeftMargin10 ] ] [ identicon "25px" identity ]
-            , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput (\name -> UpdateName (Just name)) ] []
-            , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput (\email -> UpdateEmail (Just email)) ] []
-            , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput (\url -> UpdateUrl (Just url)) ] []
+        , div [ css Style.user ]
+            [ span [ css <| Style.identicon ++ Style.leftMargin10 ] [ fromUnstyled <| identicon "25px" identity ]
+            , userInput [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput (\name -> UpdateName (Just name)) ] []
+            , userInput [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput (\email -> UpdateEmail (Just email)) ] []
+            , userInput [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput (\url -> UpdateUrl (Just url)) ] []
             ]
-        , div [ class [ Style.Control ] ]
-            [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []
-            , label [ for (toString Style.OrationPreviewCheck) ] [ text "Preview" ]
-            , input [ type_ "submit", class [ Style.Submit ], disabled buttonDisable, value submitText, onClick StoreUser ] []
+        , div [ css Style.control ]
+            [ input [ type_ "checkbox", id "OrationPreviewCheck", checked model.user.preview, onClick UpdatePreview ] []
+            , label [ for "OrationPreviewCheck" ] [ text "Preview" ]
+            , input [ type_ "submit", css Style.submit, disabled buttonDisable, value submitText, onClick StoreUser ] []
             ]
         , preview
         ]
@@ -217,15 +209,15 @@ printComment comment model =
 
         headerStyle =
             if comment.hash == model.blogAuthor && notDeleted then
-                [ Style.Thread, Style.BlogAuthor ]
+                [ id commentId, css Style.blogAuthor ]
             else
-                [ Style.Thread ]
+                [ id commentId ]
 
         contentStyle =
             if comment.visible then
-                [ Style.Comment ]
+                Style.comment
             else
-                [ Style.Hidden ]
+                Style.hidden
 
         visibleButtonText =
             if comment.visible then
@@ -234,35 +226,35 @@ printComment comment model =
                 "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
     if notDeleted then
-        li [ id commentId, class headerStyle ]
-            [ span [ class [ Style.Identicon ] ] [ identicon "25px" comment.hash ]
+        li headerStyle
+            [ span [ css Style.identicon ] [ fromUnstyled <| identicon "25px" comment.hash ]
             , printAuthor author
-            , span [ class [ Style.Spacer ] ] [ text "•" ]
-            , span [ class [ Style.Date ] ] [ text created ]
-            , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-            , div [ class contentStyle ]
-                [ Markdown.toHtmlWith options [ class [ Style.Content ] ] comment.text
+            , span [ css Style.spacer ] [ text "•" ]
+            , span [ css Style.date ] [ text created ]
+            , button [ css Style.toggle, onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
+            , div [ css contentStyle ]
+                [ Markdown.toHtmlWith options [ css Style.content ] comment.text
                 , printFooter model.status model.user.identity comment
                 , replyForm comment.id model
                 , printResponses comment.children model
                 ]
             ]
     else
-        li [ id commentId, class headerStyle ]
-            [ span [ class [ Style.Deleted ] ] [ text "Deleted comment" ]
-            , span [ class [ Style.Spacer ] ] [ text "•" ]
-            , span [ class [ Style.Date ] ] [ text created ]
-            , button [ class [ Style.Toggle ], onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
-            , div [ class contentStyle ] [ printResponses comment.children model ]
+        li headerStyle
+            [ span [ css Style.deleted ] [ text "Deleted comment" ]
+            , span [ css Style.spacer ] [ text "•" ]
+            , span [ css Style.date ] [ text created ]
+            , button [ css Style.toggle, onClick (ToggleCommentVisibility comment.id) ] [ text visibleButtonText ]
+            , div [ css contentStyle ] [ printResponses comment.children model ]
             ]
 
 
 printAuthor : String -> Html Msg
 printAuthor author =
     if String.startsWith "http://" author || String.startsWith "https://" author then
-        a [ class [ Style.Author ], href author ] [ text author ]
+        a [ css Style.author, href author ] [ text author ]
     else
-        span [ class [ Style.Author ] ] [ text author ]
+        span [ css Style.author ] [ text author ]
 
 
 printFooter : Status -> Identity -> Comment -> Html Msg
@@ -316,13 +308,13 @@ printFooter status identity comment =
 
         edit =
             if comment.editable then
-                button [ onClick (CommentEdit comment.id), disabled editDisabled ] [ text editText ]
+                footerButton [ onClick (CommentEdit comment.id), disabled editDisabled ] [ text editText ]
             else
                 nothing
 
         delete =
             if comment.editable then
-                button [ onClick (CommentDelete comment.id), disabled deleteDisabled ] [ text "delete" ]
+                footerButton [ onClick (CommentDelete comment.id), disabled deleteDisabled ] [ text "delete" ]
             else
                 nothing
 
@@ -332,13 +324,13 @@ printFooter status identity comment =
             else
                 " " ++ toString comment.votes
     in
-    span [ class [ Style.Footer ] ]
-        [ span [ class [ Style.Votes ] ]
-            [ button [ onClick (CommentLike comment.id), disabled votingDisabled ] [ text "\xF106" ]
-            , button [ onClick (CommentDislike comment.id), disabled votingDisabled ] [ text "\xF107" ]
+    span []
+        [ span [ css Style.votes ]
+            [ footerButton [ onClick (CommentLike comment.id), disabled votingDisabled ] [ text "\xF106" ]
+            , footerButton [ onClick (CommentDislike comment.id), disabled votingDisabled ] [ text "\xF107" ]
             , text votes
             ]
-        , button [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
+        , footerButton [ onClick (CommentReply comment.id), disabled replyDisabled ] [ text replyText ]
         , edit
         , delete
         ]

@@ -10,17 +10,11 @@
   "license": "MIT",
   "devDependencies": {
     "auto-reload-brunch": "^2.7.1",
-    "brunch": "^2.10.9",
+    "brunch": "^2.10.12",
     "babel-brunch": "^6.1.1",
-    "clean-css-brunch": "^2.10.0",
-    "css-brunch": "^2.10.0",
-    "elm": "^0.18.0",
-    "elm-brunch": "^0.9.0",
-    "cssnano-brunch": "^1.1.8",
-    "uglify-js-brunch": "^2.10.0"
+    "elm-brunch": "^0.9.0"
   },
   "dependencies": {
-    "elm-css-brunch": "^0.2.0",
     "markdown-it": "^8.4.0",
     "markdown-it-katex": "^2.0.3"
   }

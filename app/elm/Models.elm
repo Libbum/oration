@@ -2,7 +2,6 @@ module Models exposing (Model, Status(..))
 
 import Data.Comment exposing (Comment, Inserted)
 import Data.User exposing (User)
-import Navigation exposing (Location)
 import Time.DateTime exposing (DateTime)
 
 
@@ -12,7 +11,7 @@ type alias Model =
     , user : User
     , comments : List Comment
     , count : Int
-    , post : Location
+    , pathname : String
     , title : String
     , debug : String
     , now : DateTime

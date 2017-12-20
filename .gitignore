@@ -6,8 +6,7 @@ app/node_modules
 app/elm/elm-stuff
 app/elm/tests/elm-stuff
 app/js/main.js
-app/css/main.css
-app/css/oration.css
+app/css/
 app/package-lock.json
 Cargo.lock
 *.db
@@ -15,3 +14,4 @@ Cargo.lock
 .env
 .vagrant
 staging/deploy
+releases

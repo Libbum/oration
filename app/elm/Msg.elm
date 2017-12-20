@@ -16,7 +16,7 @@ type Msg
     | UpdatePreview
     | SetPreview (Maybe String)
     | Count (Result Http.Error String)
-    | Post Location
+    | Pathname Location
     | StoreUser
     | Title String
     | PostComment

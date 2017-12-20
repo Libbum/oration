@@ -12,7 +12,7 @@ import Models exposing (Model, Status(..))
 import Msg exposing (Msg(..))
 import Style
 import Time.DateTime.Distance exposing (inWords)
-import Util exposing (nothing)
+import Util exposing (nothing, stringToMaybe)
 
 
 {- Sync up stylsheets -}
@@ -137,9 +137,9 @@ commentForm model commentId =
             []
         , div [ class [ Style.User ] ]
             [ span [ class [ Style.Identicon, Style.LeftMargin10 ] ] [ identicon "25px" identity ]
-            , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput (\name -> UpdateName (Just name)) ] []
-            , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput (\email -> UpdateEmail (Just email)) ] []
-            , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput (\url -> UpdateUrl (Just url)) ] []
+            , input [ type_ "text", name "name", placeholder "Name (optional)", defaultValue name_, autocomplete True, onInput (\name -> UpdateName <| stringToMaybe name) ] []
+            , input [ type_ "email", name "email", placeholder "Email (optional)", defaultValue email_, autocomplete True, onInput (\email -> UpdateEmail <| stringToMaybe email) ] []
+            , input [ type_ "url", name "url", placeholder "Website (optional)", defaultValue url_, onInput (\url -> UpdateUrl <| stringToMaybe url) ] []
             ]
         , div [ class [ Style.Control ] ]
             [ input [ type_ "checkbox", id Style.OrationPreviewCheck, checked model.user.preview, onClick UpdatePreview ] []

@@ -13,7 +13,7 @@ port title : (String -> msg) -> Sub msg
 port name : (Maybe String -> msg) -> Sub msg
 
 
-port setName : String -> Cmd msg
+port setName : Maybe String -> Cmd msg
 
 
 
@@ -23,7 +23,7 @@ port setName : String -> Cmd msg
 port email : (Maybe String -> msg) -> Sub msg
 
 
-port setEmail : String -> Cmd msg
+port setEmail : Maybe String -> Cmd msg
 
 
 
@@ -33,7 +33,7 @@ port setEmail : String -> Cmd msg
 port url : (Maybe String -> msg) -> Sub msg
 
 
-port setUrl : String -> Cmd msg
+port setUrl : Maybe String -> Cmd msg
 
 
 
@@ -43,4 +43,4 @@ port setUrl : String -> Cmd msg
 port preview : (Maybe String -> msg) -> Sub msg
 
 
-port setPreview : String -> Cmd msg
+port setPreview : Maybe String -> Cmd msg

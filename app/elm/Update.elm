@@ -61,10 +61,10 @@ update msg model =
         StoreUser ->
             model
                 ! [ Cmd.batch
-                        [ Ports.setName (model.user.name ? "")
-                        , Ports.setEmail (model.user.email ? "")
-                        , Ports.setUrl (model.user.url ? "")
-                        , Ports.setPreview (toString model.user.preview)
+                        [ Ports.setName model.user.name
+                        , Ports.setEmail model.user.email
+                        , Ports.setUrl model.user.url
+                        , Ports.setPreview (Just <| toString model.user.preview)
                         ]
                   ]
 

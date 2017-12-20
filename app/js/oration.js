@@ -16,10 +16,18 @@ if (elmDiv) {
         return document.title; //If not found, use the page title
     }
 
-    var name = localStorage.getItem('name');
-    var email = localStorage.getItem('email');
-    var url = localStorage.getItem('url');
-    var preview = localStorage.getItem('preview');
+    function setStore(state, location) {
+        if (state) {
+            localStorage.setItem(location, state);
+        } else {
+            localStorage.removeItem(location, state);
+        }
+    }
+
+    var name = localStorage.getItem('orationName');
+    var email = localStorage.getItem('orationEmail');
+    var url = localStorage.getItem('orationUrl');
+    var preview = localStorage.getItem('orationPreview');
 
     app.ports.title.send(closestTitle(elmDiv));
     app.ports.name.send(name);
@@ -27,16 +35,8 @@ if (elmDiv) {
     app.ports.url.send(url);
     app.ports.preview.send(preview);
 
-    app.ports.setName.subscribe(function(state) {
-        localStorage.setItem('name', state);
-    });
-    app.ports.setEmail.subscribe(function(state) {
-        localStorage.setItem('email', state);
-    });
-    app.ports.setUrl.subscribe(function(state) {
-        localStorage.setItem('url', state);
-    });
-    app.ports.setPreview.subscribe(function(state) {
-        localStorage.setItem('preview', state);
-    });
+    app.ports.setName.subscribe(function(state) { setStore(state, 'orationName'); });
+    app.ports.setEmail.subscribe(function(state) { setStore(state, 'orationEmail'); });
+    app.ports.setUrl.subscribe(function(state) { setStore(state, 'orationUrl'); });
+    app.ports.setPreview.subscribe(function(state) { setStore(state, 'orationPreview'); });
 }

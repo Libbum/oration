@@ -3,12 +3,10 @@ public
 **/*.rs.bk
 *~
 app/node_modules
-app/elm/elm-stuff
-app/elm/tests/elm-stuff
-app/js/main.js
-app/css/main.css
-app/css/oration.css
+app/elm-stuff
+app/src/elm/tests/elm-stuff
 app/package-lock.json
+app/dist
 Cargo.lock
 *.db
 *.retry

@@ -16,7 +16,7 @@
     "css-brunch": "^2.10.0",
     "cssnano-brunch": "^1.1.8",
     "elm": "^0.18.0",
-    "elm-lang-brunch": "^2.0.0"
+    "elm-brunch": "^0.9.0"
   },
   "dependencies": {
     "elm-css-brunch": "^0.2.0",

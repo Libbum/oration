@@ -1,4 +1,4 @@
-import Elm from './main';
+var Elm = require('../elm/Main');
 const elmDiv = document.getElementById('comments');
 if (elmDiv) {
     var app = Elm.Main.embed(elmDiv);

@@ -35,4 +35,4 @@ bloomfilter = "0.0.12"
 # Packages below are needed for static production builds.
 openssl-sys = "0.9"
 openssl-probe = "0.1"
-libsqlite3-sys = { version = "0.8.1", features = ["bundled"] } #0.8.1 is required for diesel 1.0.0-beta1
+libsqlite3-sys = { version = "0.9.1", features = ["bundled"] } #This needs to match the current diesel build

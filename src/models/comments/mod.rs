@@ -1,7 +1,7 @@
 use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
-use diesel::types::Integer;
+use diesel::sql_types::Integer;
 use diesel::expression::dsl::sql;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use crypto::digest::Digest;

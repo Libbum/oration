@@ -23,7 +23,7 @@ matrix:
         # Upload docs
         - |
             if [[ "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
-              cargo rustdoc -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
+              cargo rustdoc -- --document-private-items &&
               cp logo/logo_wbl.svg target/doc/ &&
               echo "<meta http-equiv=refresh content=0;url=oration/index.html>" > target/doc/index.html &&
               git clone https://github.com/davisp/ghp-import.git &&

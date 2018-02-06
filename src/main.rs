@@ -4,48 +4,45 @@
 //! However, the codebase is unmaintained and ![security concerns](https://axiomatic.neophilus.net/posts/2017-04-16-from-disqus-to-isso.html) abound.
 //! Oration aims to be a fast, lightweight and secure platform for your comments. Nothing more, but importantly, nothing less.
 
-
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
-#![cfg_attr(feature="clippy", warn(missing_docs_in_private_items))]
-#![cfg_attr(feature="clippy", warn(single_match_else))]
-
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", warn(missing_docs_in_private_items))]
+#![cfg_attr(feature = "clippy", warn(single_match_else))]
 #![feature(plugin, custom_derive, use_extern_macros)]
 #![plugin(rocket_codegen)]
-
 // `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
 
+extern crate bincode;
 extern crate chrono;
+#[macro_use]
+extern crate diesel;
 extern crate dotenv;
 #[macro_use]
 extern crate error_chain;
+extern crate petgraph;
+extern crate r2d2;
+extern crate r2d2_diesel;
 extern crate rand;
 extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
-extern crate bincode;
-#[macro_use]
-extern crate diesel;
-extern crate r2d2_diesel;
-extern crate r2d2;
 extern crate yansi;
-extern crate petgraph;
 //extern crate argon2rs;
-extern crate lettre;
-extern crate lettre_email;
-extern crate crypto;
-extern crate reqwest;
 extern crate bloomfilter;
-extern crate openssl_probe;
-extern crate serde_yaml;
+extern crate crypto;
 extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
-extern crate regex;
+extern crate lettre;
+extern crate lettre_email;
 #[macro_use(log)]
 extern crate log;
+extern crate openssl_probe;
+extern crate regex;
+extern crate reqwest;
+extern crate serde_yaml;
 
 /// Loads configuration data from disk.
 mod config;
@@ -75,14 +72,15 @@ use rocket::response::{status, Failure, NamedFile};
 use rocket::request::Form;
 use rocket_contrib::Json;
 use models::preferences::Preference;
-use models::comments::{self, InsertedComment, NestedComment, Comment, CommentEdits};
+use models::comments::{self, Comment, CommentEdits, InsertedComment, NestedComment};
 use models::threads;
+use errors::Error;
 use std::process;
 use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
-use data::{FormInput, FormEdit, AuthHash};
+use data::{AuthHash, FormEdit, FormInput};
 
 /// Serve up the index file. This is only useful for development. Should not be used in a release.
 //TODO: Serve this some other way, we don't want oration doing this work.
@@ -110,14 +108,7 @@ fn new_comment(
                     match Comment::insert(&conn, tid, &form, &ip_addr, config.nesting_limit) {
                         Err(err) => {
                             //Something went wrong, return a 500
-                            log::warn!("{}", &err);
-                            for e in err.iter().skip(1) {
-                                log::warn!(
-                                    "    {} {}",
-                                    Paint::white("=> Caused by:"),
-                                    Paint::red(&e)
-                                );
-                            }
+                            print_errors(&err);
                             return Err(Failure(Status::InternalServerError));
                         }
                         Ok(comment) => {
@@ -131,21 +122,12 @@ fn new_comment(
                                     &config.blog_name,
                                     &ip_addr,
                                 ) {
-                                    Ok(_) => {
-                                        log::info!(
-                                            "📧  {}",
-                                            Paint::blue("New comment email notification sent.")
-                                        )
-                                    }
+                                    Ok(_) => log::info!(
+                                        "📧  {}",
+                                        Paint::blue("New comment email notification sent.")
+                                    ),
                                     Err(err) => {
-                                        log::warn!("{}", &err);
-                                        for e in err.iter().skip(1) {
-                                            log::warn!(
-                                                "    {} {}",
-                                                Paint::white("=> Caused by:"),
-                                                Paint::red(&e)
-                                            );
-                                        }
+                                        print_errors(&err);
                                     }
                                 }
                             }
@@ -155,10 +137,7 @@ fn new_comment(
                 }
                 Err(err) => {
                     //We didn't get the thread id
-                    log::warn!("{}", &err);
-                    for e in err.iter().skip(1) {
-                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-                    }
+                    print_errors(&err);
                     match err {
                         errors::Error(errors::ErrorKind::PathCheckFailed, _) => {
                             //The requsted path doesn't exist on the server
@@ -191,7 +170,6 @@ struct Initialise {
 /// Gets a Sha224 hash from a clients IP along with the blog's author hash.
 #[get("/oration/init")]
 fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise> {
-
     let ip_addr = remote_addr.ip().to_string();
     // create a Sha224 object
     let mut hasher = Sha224::new();
@@ -226,31 +204,20 @@ fn delete_comment<'d>(
     identifier: CommentId,
     hash: AuthHash,
 ) -> Result<String, Failure> {
-    if let Err(err) = comments::update_authorised(
-        &conn,
-        &hash,
-        &identifier.id,
-        &config.edit_timeout,
-    )
+    if let Err(err) =
+        comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout)
     {
-        log::warn!("{}", err);
-        for e in err.iter().skip(1) {
-            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-        }
+        print_errors(&err);
         return Err(Failure(Status::Unauthorized));
     };
     match Comment::delete(&conn, &identifier.id) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
-            log::warn!("{}", err);
-            for e in err.iter().skip(1) {
-                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             Err(Failure(Status::NotFound))
         }
     }
 }
-
 
 /// Requests an update to a comment from a user, which may or may not occur
 /// based on a number of possibilities: authentication issues, over time, etc.
@@ -263,17 +230,10 @@ fn edit_comment(
     edits: Result<Form<FormEdit>, Option<String>>,
     remote_addr: SocketAddr,
 ) -> Result<Json<CommentEdits>, Failure> {
-    if let Err(err) = comments::update_authorised(
-        &conn,
-        &hash,
-        &identifier.id,
-        &config.edit_timeout,
-    )
+    if let Err(err) =
+        comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout)
     {
-        log::warn!("{}", err);
-        for e in err.iter().skip(1) {
-            log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-        }
+        print_errors(&err);
         return Err(Failure(Status::Unauthorized));
     };
     match edits {
@@ -284,10 +244,7 @@ fn edit_comment(
             match Comment::update(&conn, &identifier.id, &form, &ip_addr) {
                 Ok(edits) => Ok(Json(edits)),
                 Err(err) => {
-                    log::warn!("{}", err);
-                    for e in err.iter().skip(1) {
-                        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-                    }
+                    print_errors(&err);
                     Err(Failure(Status::NotFound))
                 }
             }
@@ -310,10 +267,7 @@ fn like_comment(
     match Comment::vote(&conn, &identifier.id, &ip_addr, true) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
-            log::warn!("{}", err);
-            for e in err.iter().skip(1) {
-                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             //TODO: A custom status with a Failure that doesn't require &'static strings
             Err(status::Custom(Status::Forbidden, identifier.id.to_string()))
         }
@@ -331,10 +285,7 @@ fn dislike_comment(
     match Comment::vote(&conn, &identifier.id, &ip_addr, false) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
-            log::warn!("{}", err);
-            for e in err.iter().skip(1) {
-                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             Err(status::Custom(Status::Forbidden, identifier.id.to_string()))
         }
     }
@@ -346,10 +297,7 @@ fn get_session(conn: db::Conn) -> String {
     match Preference::get_session(&conn) {
         Ok(s) => s,
         Err(err) => {
-            log::warn!("{}", err);
-            for e in err.iter().skip(1) {
-                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             err.to_string()
         }
     }
@@ -380,10 +328,7 @@ fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
             Some(Json(to_send))
         }
         Err(err) => {
-            log::warn!("{}", err);
-            for e in err.iter().skip(1) {
-                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             None
         }
     }
@@ -396,12 +341,17 @@ fn get_comment_count(conn: db::Conn, post: Post) -> String {
     match Comment::count(&conn, &post.url) {
         Ok(s) => s.to_string(),
         Err(err) => {
-            log::warn!("{}", err);
-            for e in err.iter().skip(1) {
-                log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             err.to_string()
         }
+    }
+}
+
+/// Prints the current error chain to the log file / stdio.
+fn print_errors(err: &Error) {
+    log::warn!("{}", err);
+    for e in err.iter().skip(1) {
+        log::warn!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
     }
 }
 
@@ -465,10 +415,7 @@ fn main() {
             }
         }
         Err(err) => {
-            log::error!("{}", err);
-            for e in err.iter().skip(1) {
-                log::error!("    {} {}", Paint::white("=> Caused by:"), Paint::red(&e));
-            }
+            print_errors(&err);
             process::exit(1);
         }
     };

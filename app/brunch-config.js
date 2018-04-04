@@ -47,7 +47,8 @@ exports.config = {
     },
     modules: {
         autoRequire: {
-            "js/oration.js": ["js/oration"]
+            "js/oration.js": ["js/oration"],
+            "css/oration.css": ["css/oration"]
         }
     },
     overrides: {

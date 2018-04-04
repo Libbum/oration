@@ -48,6 +48,13 @@ $ cd app
 $ npm run watch
 ```
 
+Until such time as I fix the build system, you'll also need to do some finicky stuff to get the style sheets building correctly.
+
+From the `app` directory:
+1. `mkdir css`
+2. `npm run watch`
+3. Edit `elm/Stylesheets.elm` and save it.
+
 # Documentation
 
 Documentation of current backend methods can be viewed [here](https://libbum.github.io/oration/oration/index.html).
@@ -59,7 +66,7 @@ The default syntax pack and a few extra markups are obtained via a CDN here, alt
 Replace the default pack with one customised from [here](http://prismjs.com/download.html) to achive this.
 The CDN isn't a bad idea however, and pulling multiple files the example here is all done over http v2, so it's pretty fast.
 
-In the same manner, you may change the theme of the syntax highligting by choosing [another theme](https://github.com/PrismJS/prism/tree/gh-pages/themes).
+In the same manner, you may change the theme of the syntax highlighting by choosing [another theme](https://github.com/PrismJS/prism/tree/gh-pages/themes).
 Oration uses the default in the example file.
 
 These changes should be in your own html files, an example can be seen in the bundled [index.html](app/static/index.html) header.

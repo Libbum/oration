@@ -112,13 +112,7 @@ injectUpdates edit comment =
             , editable = True
         }
     else
-        let
-            children =
-                case comment.children of
-                    Responses responses ->
-                        Responses <| List.map (\response -> injectUpdates edit response) responses
-        in
-        { comment | children = children }
+        mapChildren edit comment injectUpdates
 
 
 toggleVisible : Int -> List Comment -> List Comment
@@ -128,22 +122,10 @@ toggleVisible id comments =
 
 switchVisible : Int -> Comment -> Comment
 switchVisible id comment =
-    let
-        visible =
-            if comment.id == id then
-                not comment.visible
-            else
-                comment.visible
-
-        children =
-            case comment.children of
-                Responses responses ->
-                    Responses <| List.map (\response -> switchVisible id response) responses
-    in
-    { comment
-        | visible = visible
-        , children = children
-    }
+    if comment.id == id then
+        { comment | visible = not comment.visible }
+    else
+        mapChildren id comment switchVisible
 
 
 delete : Int -> List Comment -> List Comment
@@ -154,14 +136,14 @@ delete id comments =
 
 filterComment : Int -> Comment -> Maybe Comment
 filterComment id comment =
-    let
-        --Pure deletes only happen on comments with no children, so only filter if that's the case
-        noChildren =
-            case comment.children of
-                Responses responses ->
-                    List.isEmpty responses
-    in
     if comment.id == id then
+        let
+            --Pure deletes only happen on comments with no children, so only filter if that's the case
+            noChildren =
+                case comment.children of
+                    Responses responses ->
+                        List.isEmpty responses
+        in
         if noChildren then
             Nothing
         else
@@ -198,58 +180,40 @@ readOnly id comments =
 
 removeEditable : Int -> Comment -> Comment
 removeEditable id comment =
-    let
-        value =
-            if comment.id == id then
-                False
-            else
-                comment.editable
-
-        children =
-            case comment.children of
-                Responses responses ->
-                    Responses <| List.map (\response -> removeEditable id response) responses
-    in
-    { comment
-        | editable = value
-        , children = children
-    }
+    if comment.id == id then
+        { comment | editable = False }
+    else
+        mapChildren id comment removeEditable
 
 
 like : Int -> List Comment -> List Comment
 like id comments =
-    List.map (\comment -> voteComment id True comment) comments
+    List.map (\comment -> voteComment ( id, True ) comment) comments
 
 
 dislike : Int -> List Comment -> List Comment
 dislike id comments =
-    List.map (\comment -> voteComment id False comment) comments
+    List.map (\comment -> voteComment ( id, False ) comment) comments
 
 
-voteComment : Int -> Bool -> Comment -> Comment
-voteComment id like comment =
-    let
-        count =
-            if comment.id == id then
+voteComment : ( Int, Bool ) -> Comment -> Comment
+voteComment ( id, like ) comment =
+    if comment.id == id then
+        let
+            count =
                 case like of
                     True ->
                         comment.votes + 1
 
                     False ->
                         comment.votes - 1
-            else
-                comment.votes
-
-        children =
-            case comment.children of
-                Responses responses ->
-                    Responses <| List.map (\response -> voteComment id like response) responses
-    in
-    { comment
-        | votes = count
-        , children = children
-        , votable = False
-    }
+        in
+        { comment
+            | votes = count
+            , votable = False
+        }
+    else
+        mapChildren ( id, like ) comment voteComment
 
 
 disableVote : Int -> List Comment -> List Comment
@@ -259,22 +223,21 @@ disableVote id comments =
 
 removeVotable : Int -> Comment -> Comment
 removeVotable id comment =
-    let
-        value =
-            if comment.id == id then
-                False
-            else
-                comment.votable
+    if comment.id == id then
+        { comment | votable = False }
+    else
+        mapChildren id comment removeVotable
 
+
+mapChildren : a -> Comment -> (a -> Comment -> Comment) -> Comment
+mapChildren value comment operation =
+    let
         children =
             case comment.children of
                 Responses responses ->
-                    Responses <| List.map (\response -> removeVotable id response) responses
+                    Responses <| List.map (\response -> operation value response) responses
     in
-    { comment
-        | votable = value
-        , children = children
-    }
+    { comment | children = children }
 
 
 

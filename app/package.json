@@ -5,6 +5,7 @@
   "author": "Tim DuBois <tim@neophilus.net>",
   "scripts": {
     "deploy": "brunch build --production",
+    "stage": "brunch watch --production --stdin",
     "watch": "brunch watch --stdin"
   },
   "license": "MIT",
@@ -16,7 +17,8 @@
     "css-brunch": "^2.10.0",
     "cssnano-brunch": "^1.1.8",
     "elm": "^0.18.0",
-    "elm-brunch": "^0.9.0"
+    "elm-brunch": "^0.9.0",
+    "uglify-js-brunch": "^2.10.0"
   },
   "dependencies": {
     "elm-css-brunch": "^0.2.0",

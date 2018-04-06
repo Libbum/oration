@@ -23,7 +23,6 @@ exports.config = {
     },
     plugins: {
         babel: {
-            // Do not use ES6 compiler for debugging
             ignore: [/main.js$/]
         },
         elmBrunch: {
@@ -53,16 +52,7 @@ exports.config = {
     },
     overrides: {
         production: {
-            optimize: true,
-            sourceMaps: false,
             plugins: {
-                autoReload: {
-                    enabled: false
-                },
-                babel: {
-                    //Transpile the main file in production
-                    ignore: []
-                },
                 elmBrunch: {
                     makeParameters: ["--warn"]
                 }

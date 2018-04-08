@@ -9,7 +9,7 @@ However, the codebase is unmaintained and [security concerns](https://axiomatic.
 
 ---
 
-Oration is currently in an early stage of development, but [v0.1](https://github.com/Libbum/oration/releases/tag/v0.1) is usable now with minimal setup and a good deal of front facing features.
+Oration is currently in an early stage of development, but [v0.1](https://github.com/Libbum/oration/releases/tag/v0.1.1) is usable now with minimal setup and a good deal of front facing features.
 Administration, porting from other commenting systems and a number of additional features are [planned](https://github.com/Libbum/oration/milestones) with a roadmap targeting a complete public release at v0.3.
 
 Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
@@ -18,7 +18,8 @@ Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Cod
 
 A static binary for the backend that runs on any Linux machine can be found in the [release tarball](https://github.com/Libbum/oration/releases/download/v0.1/oration-v0.1.tar.gz), along with a configuration file and minified `oration.{js,css}` files for you to put in your blog files.
 
-A staging virtual machine using [Vagrant](https://www.vagrantup.com/) and [Ansible](https://www.ansible.com/) is available if you wish to build a test machine direct from the source, although this will require a few more development tools to be installed on your system.
+A staging virtual machine using [Vagrant](https://www.vagrantup.com/) and [Ansible](https://www.ansible.com/) is available if you wish to build a test machine direct from the source, although this will require a few more development tools to be installed on your system (like docker for instance).
+Please read the comments in [`staging/prepare.yml`](staging/prepare.yml) to setup the standalone build system.
 However, this staging setup shows you exactly how to put oration behind an [Nginx proxy](staging/config/nginx.vhost.conf) with hardened security headers, once you have it [running as a service](staging/config/oration.service).
 
 Before running the service, make sure an `.env` file that points to the location of an sqlite database initialised with [these commands](migrations/20170719094701_create_oration/up.sql), and the [configuration file](oration.yaml) with details specific for your machine both exist in the directory oration is located in.

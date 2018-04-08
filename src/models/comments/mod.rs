@@ -203,7 +203,7 @@ impl Comment {
         // child is now a Vec<Option<i32>>, where all of the Options must be Some. Let's unwrap them.
         let child_unwrapped: Vec<i32> = child.into_iter().map(|c| c.unwrap_or_else(|| 0)).collect();
         let target = comments::table.filter(comments::mode.eq(2)).filter(
-            comments::id.ne_any(child_unwrapped),
+            comments::id.ne_all(child_unwrapped),
         );
         diesel::delete(target).execute(conn).chain_err(
             || ErrorKind::DBRead,

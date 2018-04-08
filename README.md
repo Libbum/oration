@@ -9,7 +9,7 @@ However, the codebase is unmaintained and [security concerns](https://axiomatic.
 
 ---
 
-Oration is currently in an early stage of development, but [v0.1](https://github.com/Libbum/oration/releases/tag/v0.1.1) is usable now with minimal setup and a good deal of front facing features.
+Oration is currently in an early stage of development, but [v0.1.1](https://github.com/Libbum/oration/releases/tag/v0.1.1) is usable now with minimal setup and a good deal of front facing features.
 Administration, porting from other commenting systems and a number of additional features are [planned](https://github.com/Libbum/oration/milestones) with a roadmap targeting a complete public release at v0.3.
 
 Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).

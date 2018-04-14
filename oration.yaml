@@ -44,3 +44,11 @@ notifications:
   recipient:
     email:
     name:
+
+# If you're a telegram user, it's possible to set up push notifications to your own personal bot.
+# This may change to a global bot in the future if users do not wish to generate their own integrations.
+# Documentation forthcoming.
+telegram:
+  push_notifications: false
+  bot_id:
+  chat_id:

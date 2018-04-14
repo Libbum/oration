@@ -19,8 +19,10 @@ pub struct Config {
     pub nesting_limit: u32,
     /// Time limit that restricts user editing of their own comments.
     pub edit_timeout: f32,
-    /// Notification system and connection details.
+    /// Email notification system and connection details.
     pub notifications: Notifications,
+    /// Telegram notification endpoint details.
+    pub telegram: Telegram,
 }
 
 impl Config {
@@ -153,4 +155,15 @@ pub struct Recipient {
     pub email: String,
     /// Recipient's name.
     pub name: String,
+}
+
+/// Details of the telegram notification system.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Telegram {
+    /// If true, the notification system will be active.
+    pub push_notifications: bool,
+    /// API token for your telegram bot.
+    pub bot_id: String,
+    /// The ID of your personal chat with the bot.
+    pub chat_id: String,
 }

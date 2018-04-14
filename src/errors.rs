@@ -50,11 +50,15 @@ error_chain!{
         }
         EmptySMTP {
                 description("Invalid SMTP configuration")
-                display("Email notifications have been enabled, but one or more of the SMTP server configuration options are empty.")
+                display("Email notifications have been enabled, but one or more of the SMTP server configuration options are empty")
         }
         EmptyRecipientEmail {
                 description("Invalid Recipient configuration")
-                display("Email notifications have been enabled, but no email address has been given to send notifications to.")
+                display("Email notifications have been enabled, but no email address has been given to send notifications to")
+        }
+        TelegramNotify {
+                description("Telegram Notification failed")
+                display("Response from Telegram API was not OK")
         }
         Request {
                 description("HTTP request failed")

@@ -59,7 +59,7 @@ mod errors;
 /// Tests for the Rocket side of the app.
 #[cfg(test)]
 mod tests;
-/// Sends notification emails to admin.
+/// Sends notifications to admin.
 mod notify;
 /// Houses Data Structures that are needed in multiple modules.
 mod data;
@@ -125,6 +125,22 @@ fn new_comment(
                                     Ok(_) => log::info!(
                                         "📧  {}",
                                         Paint::blue("New comment email notification sent.")
+                                    ),
+                                    Err(err) => {
+                                        print_errors(&err);
+                                    }
+                                }
+                            }
+                            if config.telegram.push_notifications {
+                                match notify::push_telegram(
+                                    &form,
+                                    &config.telegram,
+                                    &config.host,
+                                    &ip_addr,
+                                ) {
+                                    Ok(_) => log::info!(
+                                        "📧  {}",
+                                        Paint::blue("New comment push notification sent to Telegram.")
                                     ),
                                     Err(err) => {
                                         print_errors(&err);

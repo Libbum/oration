@@ -1,9 +1,11 @@
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::{EmailTransport, SmtpTransport};
 use lettre_email::EmailBuilder;
+use reqwest;
+use std::collections::HashMap;
 
 use errors::*;
-use config::Notifications;
+use config::{Notifications, Telegram};
 use data::FormInput;
 use regex::Regex;
 
@@ -73,4 +75,51 @@ Commenter's IP: {}",
     mailer.send(&email).chain_err(|| ErrorKind::SendEmail)?;
 
     Ok(())
+}
+
+/// Sends a push notification to a bot which will forward you a message containing the recent comment.
+pub fn push_telegram(
+    form: &FormInput,
+    telegram: &Telegram,
+    host: &str,
+    ip_addr: &str,
+) -> Result<()> {
+
+    let post_url = format!("{}{}", host.trim_right_matches('/'), form.path);
+    let message = format!(
+"A comment has been posted by *{}* on a post titled:
+_{}_.
+
+The comment reads:
+{}
+
+You may reply on your blog post [here]({}). In the future, this bot may also provide a means of responding.
+
+Debug information:
+`{:?}`
+
+Commenter's IP: {}",
+        form.sender_name(), form.title, form.comment, post_url, form, ip_addr);
+    println!("{}", message);
+    let preview = String::from("1");
+    let md = String::from("Markdown");
+    let mut params = HashMap::new();
+    params.insert("chat_id", &telegram.chat_id);
+    params.insert("parse_mode", &md);
+    params.insert("disable_web_page_preview", &preview);
+    params.insert("text", &message);
+
+    let res = reqwest::Client::new()
+            .post(&format!("https://api.telegram.org/bot{}/sendMessage", telegram.bot_id))
+            .form(&params)
+            .send()
+    .chain_err(|| {
+        ErrorKind::Request
+    })?;
+
+    if res.status() == reqwest::StatusCode::Ok {
+        Ok(())
+    } else {
+        Err(ErrorKind::TelegramNotify.into())
+    }
 }

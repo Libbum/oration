@@ -10,7 +10,7 @@ use itertools::join;
 use petgraph::graphmap::DiGraphMap;
 use std::str;
 use bloomfilter::Bloom;
-use bincode::{serialize, deserialize, Infinite};
+use bincode::{serialize, deserialize};
 
 use schema::comments;
 use data::{FormInput, FormEdit, AuthHash};
@@ -317,7 +317,7 @@ impl VotersBlob {
     }
 
     fn store(self, conn: &SqliteConnection, id: &i32) -> Result<()> {
-        let blob_encoded: Vec<u8> = serialize(&self, Infinite).chain_err(
+        let blob_encoded: Vec<u8> = serialize(&self).chain_err(
             || ErrorKind::Serialize,
         )?;
 

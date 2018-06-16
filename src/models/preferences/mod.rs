@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 use rand::{OsRng, Rng};
+use rand::distributions::Alphanumeric;
 use schema::preferences;
 use errors::*;
 
@@ -54,7 +55,7 @@ fn session_hash() -> Result<String> {
     Ok(
         OsRng::new()
             .chain_err(|| ErrorKind::Rand)?
-            .gen_ascii_chars()
+            .sample_iter(&Alphanumeric)
             .take(24)
             .collect(),
     )

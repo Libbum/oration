@@ -4,22 +4,21 @@ version = "0.1.0"
 authors = ["Tim DuBois <tim@neophilus.net>"]
 
 [dependencies]
-clippy = {version = "*", optional = true}
-dotenv = "0.10"
-rand = "0.4"
+dotenv = "0.13"
+rand = "0.5"
 rocket = "0.3"
 rocket_codegen = "0.3"
 rocket_contrib = "0.3"
-diesel = { version = "1.0", features = ["sqlite","chrono"] }
+diesel = { version = "1.3", features = ["sqlite","chrono"] }
 r2d2-diesel = "1.0"
 r2d2 = "0.8"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
-bincode = "0.9"
+bincode = "1.0"
 error-chain = "0.11"
 log = "0.4"
-yansi = "0.3"
+yansi = "0.4"
 serde_yaml = "0.7"
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = "0.8"
@@ -27,10 +26,10 @@ argon2rs = { version = "0.2", features = ["simd"] }
 rust-crypto = "^0.2"
 itertools = "0.7"
 petgraph = "0.4"
-lettre = "0.7"
-lettre_email = "0.7"
+lettre = "0.8"
+lettre_email = "0.8"
 lazy_static = "1.0"
-regex = "0.2"
+regex = "1.0"
 bloomfilter = "0.0.12"
 # Packages below are needed for static production builds.
 openssl-sys = "0.9"

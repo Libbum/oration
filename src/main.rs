@@ -4,10 +4,8 @@
 //! However, the codebase is unmaintained and ![security concerns](https://axiomatic.neophilus.net/posts/2017-04-16-from-disqus-to-isso.html) abound.
 //! Oration aims to be a fast, lightweight and secure platform for your comments. Nothing more, but importantly, nothing less.
 
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
-#![cfg_attr(feature = "clippy", warn(missing_docs_in_private_items))]
-#![cfg_attr(feature = "clippy", warn(single_match_else))]
+#![cfg_attr(feature="cargo-clippy", warn(missing_docs_in_private_items))]
+#![cfg_attr(feature="cargo-clippy", warn(single_match_else))]
 #![feature(plugin, custom_derive, use_extern_macros)]
 #![plugin(rocket_codegen)]
 // `error_chain!` can recurse deeply

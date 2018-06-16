@@ -61,7 +61,7 @@ Commenter's IP: {}",
         .chain_err(|| ErrorKind::BuildEmail)?;
 
     // Connect to a remote server on a custom port
-    let mut mailer = SmtpTransport::simple_builder(notify.smtp_server.host.to_owned())
+    let mut mailer = SmtpTransport::simple_builder(&notify.smtp_server.host)
         .chain_err(|| ErrorKind::BuildSmtpTransport)?
         // Add credentials for authentication
         .credentials(Credentials::new(notify.smtp_server.user_name.to_owned(), notify.smtp_server.password.to_owned()))

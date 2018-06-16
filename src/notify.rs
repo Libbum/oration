@@ -4,9 +4,9 @@ use lettre_email::EmailBuilder;
 use reqwest;
 use std::collections::HashMap;
 
-use errors::*;
 use config::{Notifications, Telegram};
 use data::FormInput;
+use errors::*;
 use regex::Regex;
 
 /// Parses a URL, returning just the domain portion. The regex is overkill for this at the moment,
@@ -30,7 +30,6 @@ pub fn send_notification(
     blog_name: &str,
     ip_addr: &str,
 ) -> Result<()> {
-
     let post_url = format!("{}{}", host.trim_right_matches('/'), form.path);
     let oration_addr = format!("oration@{}", get_domain(host));
     let recipient_name = if notify.recipient.name == "~" {
@@ -71,7 +70,6 @@ Commenter's IP: {}",
         .authentication_mechanism(Mechanism::Plain)
         .build();
 
-
     mailer.send(&email).chain_err(|| ErrorKind::SendEmail)?;
 
     Ok(())
@@ -84,7 +82,6 @@ pub fn push_telegram(
     host: &str,
     ip_addr: &str,
 ) -> Result<()> {
-
     let post_url = format!("{}{}", host.trim_right_matches('/'), form.path);
     let message = format!(
 "A comment has been posted by *{}* on a post titled:
@@ -110,12 +107,13 @@ Commenter's IP: {}",
     params.insert("text", &message);
 
     let res = reqwest::Client::new()
-            .post(&format!("https://api.telegram.org/bot{}/sendMessage", telegram.bot_id))
-            .form(&params)
-            .send()
-    .chain_err(|| {
-        ErrorKind::Request
-    })?;
+        .post(&format!(
+            "https://api.telegram.org/bot{}/sendMessage",
+            telegram.bot_id
+        ))
+        .form(&params)
+        .send()
+        .chain_err(|| ErrorKind::Request)?;
 
     if res.status() == reqwest::StatusCode::Ok {
         Ok(())

@@ -2,9 +2,9 @@ use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
+use errors::*;
 use reqwest;
 use schema::threads;
-use errors::*;
 
 #[derive(Serialize, Queryable, Debug)]
 /// Queryable reference to the threads table.
@@ -56,9 +56,7 @@ pub fn gen_or_get_id(conn: &SqliteConnection, host: &str, title: &str, path: &st
 /// Should minimise the injection attack surface.
 fn verify_post(host: &str, path: &str) -> Result<()> {
     // We use reqwest to handle the request for now, but may drop down to hyper later on.
-    let res = reqwest::get(&format!("{}{}", host, path)).chain_err(|| {
-        ErrorKind::Request
-    })?;
+    let res = reqwest::get(&format!("{}{}", host, path)).chain_err(|| ErrorKind::Request)?;
 
     if res.status() == reqwest::StatusCode::Ok {
         Ok(())

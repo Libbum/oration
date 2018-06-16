@@ -1,11 +1,11 @@
-use dotenv::dotenv;
-use std::env;
 use diesel::sqlite::SqliteConnection;
+use dotenv::dotenv;
 use r2d2;
 use r2d2_diesel::ConnectionManager;
-use rocket::{Request, State, Outcome};
 use rocket::http::Status;
 use rocket::request::{self, FromRequest};
+use rocket::{Outcome, Request, State};
+use std::env;
 use std::ops::Deref;
 
 /// An alias to the type for a pool of Diesel `SQLite` connections.

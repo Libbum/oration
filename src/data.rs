@@ -1,6 +1,6 @@
-use rocket::Outcome;
 use rocket::http::Status;
-use rocket::request::{self, Request, FromRequest};
+use rocket::request::{self, FromRequest, Request};
+use rocket::Outcome;
 
 //NOTE: we can use FormInput<'c>, url: &'c RawStr, for unvalidated data if/when we need it.
 #[derive(Debug, FromForm)]
@@ -25,16 +25,16 @@ pub struct FormInput {
 impl FormInput {
     /// Yields the senders name with a default if is empty.
     pub fn sender_name(&self) -> String {
-        self.name.to_owned().unwrap_or_else(
-            || "anonymous".to_string(),
-        )
+        self.name
+            .to_owned()
+            .unwrap_or_else(|| "anonymous".to_string())
     }
 
     /// Yields the senders email address with a default if is empty.
     pub fn sender_email(&self) -> String {
-        self.email.to_owned().unwrap_or_else(
-            || "noreply@dev.null".to_string(),
-        )
+        self.email
+            .to_owned()
+            .unwrap_or_else(|| "noreply@dev.null".to_string())
     }
 }
 
@@ -50,7 +50,6 @@ pub struct FormEdit {
     /// Optional website.
     pub url: Option<String>,
 }
-
 
 /// Hash of the user which wants to edit/delete a comment
 #[derive(PartialEq)]
@@ -73,6 +72,10 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthHash {
 impl AuthHash {
     pub fn matches(&self, compare: &str) -> bool {
         let &AuthHash(ref hash) = self;
-        if hash == compare { true } else { false }
+        if hash == compare {
+            true
+        } else {
+            false
+        }
     }
 }

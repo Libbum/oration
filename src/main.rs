@@ -4,8 +4,8 @@
 //! However, the codebase is unmaintained and ![security concerns](https://axiomatic.neophilus.net/posts/2017-04-16-from-disqus-to-isso.html) abound.
 //! Oration aims to be a fast, lightweight and secure platform for your comments. Nothing more, but importantly, nothing less.
 
-#![cfg_attr(feature="cargo-clippy", warn(missing_docs_in_private_items))]
-#![cfg_attr(feature="cargo-clippy", warn(single_match_else))]
+#![cfg_attr(feature = "cargo-clippy", warn(missing_docs_in_private_items))]
+#![cfg_attr(feature = "cargo-clippy", warn(single_match_else))]
 #![feature(plugin, custom_derive, use_extern_macros)]
 #![plugin(rocket_codegen)]
 // `error_chain!` can recurse deeply
@@ -44,41 +44,41 @@ extern crate serde_yaml;
 
 /// Loads configuration data from disk.
 mod config;
+/// Houses Data Structures that are needed in multiple modules.
+mod data;
 /// Handles the database connection pool.
 mod db;
+/// Handles the error chain of the program.
+mod errors;
 /// SQL <----> Rust inerop using Diesel.
 mod models;
+/// Sends notifications to admin.
+mod notify;
 /// Verbose schema for the comment database.
 mod schema;
 /// Serves up static files through Rocket.
 mod static_files;
-/// Handles the error chain of the program.
-mod errors;
 /// Tests for the Rocket side of the app.
 #[cfg(test)]
 mod tests;
-/// Sends notifications to admin.
-mod notify;
-/// Houses Data Structures that are needed in multiple modules.
-mod data;
 
-use std::io;
-use std::net::SocketAddr;
-use rocket::State;
-use rocket::http::Status;
-use rocket::response::{status, Failure, NamedFile};
-use rocket::request::Form;
-use rocket_contrib::Json;
-use models::preferences::Preference;
-use models::comments::{self, Comment, CommentEdits, InsertedComment, NestedComment};
-use models::threads;
-use errors::Error;
-use std::process;
-use yansi::Paint;
 use config::Config;
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
 use data::{AuthHash, FormEdit, FormInput};
+use errors::Error;
+use models::comments::{self, Comment, CommentEdits, InsertedComment, NestedComment};
+use models::preferences::Preference;
+use models::threads;
+use rocket::http::Status;
+use rocket::request::Form;
+use rocket::response::{status, Failure, NamedFile};
+use rocket::State;
+use rocket_contrib::Json;
+use std::io;
+use std::net::SocketAddr;
+use std::process;
+use yansi::Paint;
 
 /// Serve up the index file. This is only useful for development. Should not be used in a release.
 //TODO: Serve this some other way, we don't want oration doing this work.
@@ -138,7 +138,9 @@ fn new_comment(
                                 ) {
                                     Ok(_) => log::info!(
                                         "📧  {}",
-                                        Paint::blue("New comment push notification sent to Telegram.")
+                                        Paint::blue(
+                                            "New comment push notification sent to Telegram."
+                                        )
                                     ),
                                     Err(err) => {
                                         print_errors(&err);

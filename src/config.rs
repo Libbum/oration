@@ -1,8 +1,8 @@
 use serde_yaml;
 
-use std::fs::File;
-use models::comments::gen_hash;
 use errors::*;
+use models::comments::gen_hash;
+use std::fs::File;
 
 /// The main struct which all input data from `oration.yaml` is pushed into.
 #[derive(Serialize, Deserialize, Debug)]
@@ -28,16 +28,11 @@ pub struct Config {
 impl Config {
     /// Reads and parses data from the `oration.yaml` file and command line arguments.
     pub fn load() -> Result<Config> {
-        let reader = File::open("oration.yaml").chain_err(
-            || ErrorKind::ConfigLoad,
-        )?;
+        let reader = File::open("oration.yaml").chain_err(|| ErrorKind::ConfigLoad)?;
         // Decode configuration file.
-        let mut decoded_config: Config = serde_yaml::from_reader(reader).chain_err(
-            || ErrorKind::Deserialize,
-        )?;
-        Config::parse(&decoded_config).chain_err(
-            || ErrorKind::ConfigParse,
-        )?;
+        let mut decoded_config: Config =
+            serde_yaml::from_reader(reader).chain_err(|| ErrorKind::Deserialize)?;
+        Config::parse(&decoded_config).chain_err(|| ErrorKind::ConfigParse)?;
 
         decoded_config.author.gen_hash();
 
@@ -54,14 +49,16 @@ impl Config {
 
         if self.notifications.new_comment {
             // Empty values are parsed as ~, so we want to check for those
-            if self.notifications.smtp_server.into_iter().any(|x| {
-                x.is_empty() || x == "~"
-            })
+            if self
+                .notifications
+                .smtp_server
+                .into_iter()
+                .any(|x| x.is_empty() || x == "~")
             {
                 return Err(ErrorKind::EmptySMTP.into());
             }
-            if self.notifications.recipient.email.is_empty() ||
-                self.notifications.recipient.email == "~"
+            if self.notifications.recipient.email.is_empty()
+                || self.notifications.recipient.email == "~"
             {
                 return Err(ErrorKind::EmptyRecipientEmail.into());
             }
@@ -101,7 +98,6 @@ pub struct Notifications {
     /// Who to send the notification to.
     pub recipient: Recipient,
 }
-
 
 /// Details of the SMTP server which the notification system should connect to.
 #[derive(Serialize, Deserialize, Debug)]

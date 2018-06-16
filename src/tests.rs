@@ -1,7 +1,7 @@
 use super::rocket;
-use rocket::local::Client;
-use rocket::http::Status;
 use diesel::prelude::*;
+use rocket::http::Status;
+use rocket::local::Client;
 use schema::preferences::dsl::*;
 
 #[test]

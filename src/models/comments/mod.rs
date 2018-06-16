@@ -1,20 +1,20 @@
-use diesel;
-use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
-use diesel::sql_types::Integer;
-use diesel::expression::dsl::sql;
+use bincode::{deserialize, serialize};
+use bloomfilter::Bloom;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use crypto::digest::Digest;
 use crypto::sha2::Sha224;
+use diesel;
+use diesel::expression::dsl::sql;
+use diesel::prelude::*;
+use diesel::sql_types::Integer;
+use diesel::sqlite::SqliteConnection;
 use itertools::join;
 use petgraph::graphmap::DiGraphMap;
 use std::str;
-use bloomfilter::Bloom;
-use bincode::{serialize, deserialize};
 
-use schema::comments;
-use data::{FormInput, FormEdit, AuthHash};
+use data::{AuthHash, FormEdit, FormInput};
 use errors::*;
+use schema::comments;
 
 #[derive(Queryable, Debug)]
 /// Queryable reference to the comments table.
@@ -202,12 +202,12 @@ impl Comment {
             .chain_err(|| ErrorKind::DBRead)?;
         // child is now a Vec<Option<i32>>, where all of the Options must be Some. Let's unwrap them.
         let child_unwrapped: Vec<i32> = child.into_iter().map(|c| c.unwrap_or_else(|| 0)).collect();
-        let target = comments::table.filter(comments::mode.eq(2)).filter(
-            comments::id.ne_all(child_unwrapped),
-        );
-        diesel::delete(target).execute(conn).chain_err(
-            || ErrorKind::DBRead,
-        )?;
+        let target = comments::table
+            .filter(comments::mode.eq(2))
+            .filter(comments::id.ne_all(child_unwrapped));
+        diesel::delete(target)
+            .execute(conn)
+            .chain_err(|| ErrorKind::DBRead)?;
 
         Ok(())
     }
@@ -247,7 +247,6 @@ impl Comment {
         ip_addr: &'c str,
         upvote: bool,
     ) -> Result<()> {
-
         let voters_blob = comments::table
             .select(comments::voters)
             .filter(comments::id.eq(id))
@@ -317,9 +316,7 @@ impl VotersBlob {
     }
 
     fn store(self, conn: &SqliteConnection, id: &i32) -> Result<()> {
-        let blob_encoded: Vec<u8> = serialize(&self).chain_err(
-            || ErrorKind::Serialize,
-        )?;
+        let blob_encoded: Vec<u8> = serialize(&self).chain_err(|| ErrorKind::Serialize)?;
 
         let target = comments::table.filter(comments::id.eq(id));
         diesel::update(target)
@@ -358,7 +355,6 @@ struct ModeDelete {
     voters: Option<Vec<u8>>,
 }
 
-
 /// Checks if this comment is nested too deep based on the configuration file value.
 /// If so, don't allow this to happen and just post as a reply to the previous parent.
 fn nesting_check(
@@ -389,9 +385,9 @@ fn nesting_check(
                 )
                 SELECT COUNT(parent_id) AS depth FROM node_ancestors GROUP BY node_id;",
             );
-            let parent_depth: Vec<i32> = sql::<Integer>(&query).load(conn).chain_err(
-                || ErrorKind::DBRead,
-            )?;
+            let parent_depth: Vec<i32> = sql::<Integer>(&query)
+                .load(conn)
+                .chain_err(|| ErrorKind::DBRead)?;
 
             if parent_depth.is_empty() || parent_depth[0] <= nesting_limit as i32 {
                 //We're fine to nest
@@ -524,11 +520,11 @@ impl PrintedComment {
                 comments::dislikes,
             ))
             .inner_join(threads::table)
-            .filter(threads::uri.eq(path).and(comments::mode.eq(0).or(
-                comments::mode.eq(
-                    2,
-                ),
-            )))
+            .filter(
+                threads::uri
+                    .eq(path)
+                    .and(comments::mode.eq(0).or(comments::mode.eq(2))),
+            )
             .load(conn)
             .chain_err(|| ErrorKind::DBRead)?;
         Ok(comments)

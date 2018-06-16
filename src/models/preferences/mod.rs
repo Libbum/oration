@@ -2,10 +2,10 @@ use diesel;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
-use rand::{OsRng, Rng};
-use rand::distributions::Alphanumeric;
-use schema::preferences;
 use errors::*;
+use rand::distributions::Alphanumeric;
+use rand::{OsRng, Rng};
+use schema::preferences;
 
 #[table_name = "preferences"]
 #[derive(Queryable, Identifiable)]
@@ -52,11 +52,9 @@ impl Preference {
 
 /// Generates a random hash used as a session ID.
 fn session_hash() -> Result<String> {
-    Ok(
-        OsRng::new()
-            .chain_err(|| ErrorKind::Rand)?
-            .sample_iter(&Alphanumeric)
-            .take(24)
-            .collect(),
-    )
+    Ok(OsRng::new()
+        .chain_err(|| ErrorKind::Rand)?
+        .sample_iter(&Alphanumeric)
+        .take(24)
+        .collect())
 }

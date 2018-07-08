@@ -30,6 +30,14 @@ matrix:
               ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
               echo "Uploaded documentation"
             fi
+        # Coverage report
+        - |
+            if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
+              bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+              cargo tarpaulin --out Xml
+              bash <(curl -s https://codecov.io/bash)
+              echo "Uploaded code coverage"
+            fi
     - language: node_js
       node_js: node
       sudo: true

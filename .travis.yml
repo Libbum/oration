@@ -65,5 +65,5 @@ matrix:
         - cd app/elm
         - elm-make --yes
         - elm-css Stylesheets.elm
-        - elm-test
         - elm-coverage .
+        - cat .coverage/coverage.html

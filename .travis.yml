@@ -32,6 +32,7 @@ matrix:
             fi
         # Coverage report
         - |
+            `RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin`
             bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
             cargo tarpaulin --out Xml
             bash <(curl -s https://codecov.io/bash)
@@ -64,5 +65,4 @@ matrix:
         - elm-make --yes
         - elm-css Stylesheets.elm
         - elm-coverage .
-        - cat .coverage/coverage.html
-        - cat .coverage/info.json
+        - bash <(curl -s https://codecov.io/bash)

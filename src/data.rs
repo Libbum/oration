@@ -51,7 +51,7 @@ pub struct FormEdit {
     pub url: Option<String>,
 }
 
-/// Hash of the user which wants to edit/delete a comment
+/// Hash of the user which wants to edit/delete a comment.
 #[derive(PartialEq)]
 pub struct AuthHash(String);
 
@@ -65,17 +65,14 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthHash {
         }
 
         let key = keys[0];
-        return Outcome::Success(AuthHash(key.to_string()));
+        Outcome::Success(AuthHash(key.to_string()))
     }
 }
 
 impl AuthHash {
+    /// Checkhs if the current hash matches with the `compared` hash.
     pub fn matches(&self, compare: &str) -> bool {
         let &AuthHash(ref hash) = self;
-        if hash == compare {
-            true
-        } else {
-            false
-        }
+        hash == compare
     }
 }

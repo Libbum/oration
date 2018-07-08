@@ -4,7 +4,10 @@
 //! However, the codebase is unmaintained and ![security concerns](https://axiomatic.neophilus.net/posts/2017-04-16-from-disqus-to-isso.html) abound.
 //! Oration aims to be a fast, lightweight and secure platform for your comments. Nothing more, but importantly, nothing less.
 
-#![cfg_attr(feature = "cargo-clippy", warn(missing_docs_in_private_items))]
+#![cfg_attr(
+    feature = "cargo-clippy",
+    warn(missing_docs_in_private_items)
+)]
 #![cfg_attr(feature = "cargo-clippy", warn(single_match_else))]
 #![feature(plugin, custom_derive, use_extern_macros)]
 #![plugin(rocket_codegen)]
@@ -107,7 +110,7 @@ fn new_comment(
                         Err(err) => {
                             //Something went wrong, return a 500
                             print_errors(&err);
-                            return Err(Failure(Status::InternalServerError));
+                            Err(Failure(Status::InternalServerError))
                         }
                         Ok(comment) => {
                             //All good, return the comment
@@ -147,7 +150,7 @@ fn new_comment(
                                     }
                                 }
                             }
-                            return Ok(Json(comment));
+                            Ok(Json(comment))
                         }
                     }
                 }
@@ -158,16 +161,16 @@ fn new_comment(
                         errors::Error(errors::ErrorKind::PathCheckFailed, _) => {
                             //The requsted path doesn't exist on the server
                             //Most likely an attempt at injecting junk into the db through the post method
-                            return Err(Failure(Status::Forbidden));
+                            Err(Failure(Status::Forbidden))
                         }
-                        _ => return Err(Failure(Status::InternalServerError)),
+                        _ => Err(Failure(Status::InternalServerError)),
                     }
                 }
             }
         }
         Err(_) => {
             //The form request was malformed, 400
-            return Err(Failure(Status::BadRequest));
+            Err(Failure(Status::BadRequest))
         }
     }
 }
@@ -201,7 +204,7 @@ fn initialise(remote_addr: SocketAddr, config: State<Config>) -> Json<Initialise
     Json(to_send)
 }
 
-#[derive(FromForm)]
+#[derive(FromForm, Copy, Clone)]
 /// Used in conjuction with `/delete?` and `/edit?`.
 struct CommentId {
     /// The id of the requested comment.
@@ -214,19 +217,18 @@ struct CommentId {
 /// is not deleted entirely, but flagged so that the rest of the conversation is not
 /// automatically pruned.
 #[delete("/oration/delete?<identifier>")]
-fn delete_comment<'d>(
+fn delete_comment(
     conn: db::Conn,
     config: State<Config>,
     identifier: CommentId,
     hash: AuthHash,
 ) -> Result<String, Failure> {
-    if let Err(err) =
-        comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout)
+    if let Err(err) = comments::update_authorised(&conn, &hash, identifier.id, config.edit_timeout)
     {
         print_errors(&err);
         return Err(Failure(Status::Unauthorized));
     };
-    match Comment::delete(&conn, &identifier.id) {
+    match Comment::delete(&conn, identifier.id) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             print_errors(&err);
@@ -246,8 +248,7 @@ fn edit_comment(
     edits: Result<Form<FormEdit>, Option<String>>,
     remote_addr: SocketAddr,
 ) -> Result<Json<CommentEdits>, Failure> {
-    if let Err(err) =
-        comments::update_authorised(&conn, &hash, &identifier.id, &config.edit_timeout)
+    if let Err(err) = comments::update_authorised(&conn, &hash, identifier.id, config.edit_timeout)
     {
         print_errors(&err);
         return Err(Failure(Status::Unauthorized));
@@ -257,7 +258,7 @@ fn edit_comment(
             //If the comment form data is valid, proceed to updating the comment
             let form = f.into_inner();
             let ip_addr = remote_addr.ip().to_string();
-            match Comment::update(&conn, &identifier.id, &form, &ip_addr) {
+            match Comment::update(&conn, identifier.id, &form, &ip_addr) {
                 Ok(edits) => Ok(Json(edits)),
                 Err(err) => {
                     print_errors(&err);
@@ -280,7 +281,7 @@ fn like_comment(
     remote_addr: SocketAddr,
 ) -> Result<String, status::Custom<String>> {
     let ip_addr = remote_addr.ip().to_string();
-    match Comment::vote(&conn, &identifier.id, &ip_addr, true) {
+    match Comment::vote(&conn, identifier.id, &ip_addr, true) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             print_errors(&err);
@@ -298,7 +299,7 @@ fn dislike_comment(
     remote_addr: SocketAddr,
 ) -> Result<String, status::Custom<String>> {
     let ip_addr = remote_addr.ip().to_string();
-    match Comment::vote(&conn, &identifier.id, &ip_addr, false) {
+    match Comment::vote(&conn, identifier.id, &ip_addr, false) {
         Ok(_) => Ok(identifier.id.to_string()),
         Err(err) => {
             print_errors(&err);
@@ -340,7 +341,7 @@ fn get_comments(conn: db::Conn, post: Post) -> Option<Json<PostComments>> {
     match NestedComment::list(&conn, &post.url) {
         Ok(comments) => {
             //We now have a vector of comments
-            let to_send = PostComments { comments: comments };
+            let to_send = PostComments { comments };
             Some(Json(to_send))
         }
         Err(err) => {

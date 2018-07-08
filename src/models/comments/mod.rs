@@ -120,11 +120,11 @@ impl Comment {
             Some(ip_addr)
         };
 
-        let parent_id = nesting_check(conn, &form.parent, nesting_limit)?;
+        let parent_id = nesting_check(conn, form.parent, nesting_limit)?;
         let hash = gen_hash(&form.name, &form.email, &form.url, Some(ip_addr));
 
         let c = NewComment {
-            tid: tid,
+            tid,
             parent: parent_id,
             created: time,
             modified: None,
@@ -134,7 +134,7 @@ impl Comment {
             author: form.name.clone(),
             email: form.email.clone(),
             website: form.url.clone(),
-            hash: hash,
+            hash,
             likes: None,
             dislikes: None,
             voters: None,
@@ -159,7 +159,7 @@ impl Comment {
     }
 
     /// Deletes a comment if there is no children, marks as deleted if there are children.
-    pub fn delete(conn: &SqliteConnection, id: &i32) -> Result<()> {
+    pub fn delete(conn: &SqliteConnection, id: i32) -> Result<()> {
         let children_count = comments::table
             .filter(comments::parent.eq(id))
             .count()
@@ -215,7 +215,7 @@ impl Comment {
     /// Updates a comment.
     pub fn update<'c>(
         conn: &SqliteConnection,
-        id: &i32,
+        id: i32,
         data: &FormEdit,
         ip_addr: &'c str,
     ) -> Result<CommentEdits> {
@@ -233,7 +233,7 @@ impl Comment {
             ))
             .execute(conn)
             .chain_err(|| ErrorKind::DBRead)?;
-        let comment = PrintedComment::get(conn, *id)?;
+        let comment = PrintedComment::get(conn, id)?;
         Ok(CommentEdits::new(&comment))
     }
 
@@ -243,7 +243,7 @@ impl Comment {
     /// the same IP by changing user details or spamming hash headers.
     pub fn vote<'c>(
         conn: &SqliteConnection,
-        id: &i32,
+        id: i32,
         ip_addr: &'c str,
         upvote: bool,
     ) -> Result<()> {
@@ -298,14 +298,20 @@ impl Comment {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// Bloom encoding for voters. Currently more a testing phase than final product.
 struct VotersBlob {
+    /// Probabilistic matrix.
     bitmap: Vec<u8>,
+    /// Number of bits in filter.
     bits: u64,
+    /// All hashes in the filter.
     hashes: u32,
+    /// Required sip keys.
     sip_keys: [(u64, u64); 2],
 }
 
 impl VotersBlob {
+    /// Generate a voters struct.
     fn new(bloom: &Bloom) -> VotersBlob {
         VotersBlob {
             bitmap: bloom.bitmap(),
@@ -315,7 +321,8 @@ impl VotersBlob {
         }
     }
 
-    fn store(self, conn: &SqliteConnection, id: &i32) -> Result<()> {
+    /// Encode the bloom filter and store it in the database.
+    fn store(self, conn: &SqliteConnection, id: i32) -> Result<()> {
         let blob_encoded: Vec<u8> = serialize(&self).chain_err(|| ErrorKind::Serialize)?;
 
         let target = comments::table.filter(comments::id.eq(id));
@@ -359,10 +366,10 @@ struct ModeDelete {
 /// If so, don't allow this to happen and just post as a reply to the previous parent.
 fn nesting_check(
     conn: &SqliteConnection,
-    parent: &Option<i32>,
+    parent: Option<i32>,
     nesting_limit: u32,
 ) -> Result<Option<i32>> {
-    match *parent {
+    match parent {
         Some(pid) => {
             //NOTE: UNION ALL and WITH RECURSIVE are currently not supported by diesel
             //https://github.com/diesel-rs/diesel/issues/33
@@ -446,15 +453,17 @@ pub fn gen_hash(
     hasher.result_str()
 }
 
+/// We only want users to be able to edit their comments if they accidentally produced a
+/// spelling mistake or somesuch. This method removes that ablility after some `offset` time.
 pub fn update_authorised(
     conn: &SqliteConnection,
     hash: &AuthHash,
-    id: &i32,
-    offset: &f32,
+    id: i32,
+    offset: f32,
 ) -> Result<()> {
     let (stored_hash, created, modified) = comments::table
         .select((comments::hash, comments::created, comments::modified))
-        .filter(comments::id.eq(*id))
+        .filter(comments::id.eq(id))
         .first::<(String, NaiveDateTime, Option<NaiveDateTime>)>(conn)
         .chain_err(|| ErrorKind::DBRead)?;
 
@@ -469,7 +478,7 @@ pub fn update_authorised(
         }
     };
 
-    if hash.matches(&stored_hash) & (now_timestamp - updated_timestamp < (*offset as i64)) {
+    if hash.matches(&stored_hash) & (now_timestamp - updated_timestamp < (offset as i64)) {
         Ok(())
     } else {
         Err(ErrorKind::Unauthorized.into())
@@ -571,7 +580,7 @@ impl InsertedComment {
         InsertedComment {
             id: comment.id,
             parent: comment.parent,
-            author: author,
+            author,
         }
     }
 }
@@ -596,7 +605,7 @@ impl CommentEdits {
         let author = get_author(&comment.author, &comment.email, &comment.url);
         CommentEdits {
             id: comment.id,
-            author: author,
+            author,
             text: comment.text.to_owned(),
             hash: comment.hash.to_owned(),
         }
@@ -627,15 +636,15 @@ impl NestedComment {
     fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
         let date_time = DateTime::<Utc>::from_utc(comment.created, Utc);
         let author = get_author(&comment.author, &comment.email, &comment.url);
-        let votes = count_votes(&comment.likes, &comment.dislikes);
+        let votes = count_votes(&comment.likes, comment.dislikes);
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
-            author: author,
+            author,
             hash: comment.hash.to_owned(),
             created: date_time,
-            children: children,
-            votes: votes,
+            children,
+            votes,
         }
     }
 
@@ -715,6 +724,6 @@ fn get_author(
 }
 
 /// Calculates the total vote for a comment based on its likes and dislikes.
-fn count_votes(likes: &Option<i32>, dislikes: &Option<i32>) -> i32 {
+fn count_votes(likes: &Option<i32>, dislikes: Option<i32>) -> i32 {
     likes.unwrap_or_else(|| 0) - dislikes.unwrap_or_else(|| 0)
 }

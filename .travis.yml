@@ -64,4 +64,5 @@ matrix:
         - elm-make --yes
         - elm-css Stylesheets.elm
         - elm-coverage .
-        - ls .coverage
+        - cat .coverage/info.json
+        - for a in $(.coverage/*.json); do echo $a; cat $a; done

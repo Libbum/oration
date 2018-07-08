@@ -30,17 +30,39 @@ matrix:
               ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
               echo "Uploaded documentation"
             fi
+        # Coverage report
+        - |
+            `RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin`
+            bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+            cargo tarpaulin --out Xml
+            bash <(curl -s https://codecov.io/bash)
+            echo "Uploaded code coverage"
     - language: node_js
       node_js: node
-      sudo: true
-      before_install:
-        - "npm install -g elm@0.18 elm-test elm-css"
+      os: linux
       cache:
         directories:
+          - sysconfcpus
+          - node_modules
           - app/elm/elm-stuff/build-artifacts
           - app/elm/tests/elm-stuff/build-artifacts
+      before_install:
+        - | # epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
+            if [ ! -d sysconfcpus/bin ]; then
+              git clone https://github.com/obmarg/libsysconfcpus.git;
+              cd libsysconfcpus;
+              ./configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus;
+              make && make install;
+              cd ..;
+            fi
+      install:
+        - npm install -g elm@0.18 elm-test elm-coverage elm-css
+        - mv $(npm config get prefix)/bin/elm-make $(npm config get prefix)/bin/elm-make-old
+        - echo -e "#\!/bin/bash\\n\\necho \"Running elm-make with sysconfcpus -n 2\"\\n\\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 elm-make-old \"\$@\"" > $(npm config get prefix)/bin/elm-make
+        - chmod +x $(npm config get prefix)/bin/elm-make
       script:
         - cd app/elm
         - elm-make --yes
         - elm-css Stylesheets.elm
-        - elm-test
+        - elm-coverage .
+        - bash <(curl -s https://codecov.io/bash)

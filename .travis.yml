@@ -66,4 +66,4 @@ matrix:
         - elm-make --yes
         - elm-css Stylesheets.elm
         - elm-coverage .
-        - cat .coverage/coverage.html
+        - ls .coverage && exit 0

@@ -636,7 +636,7 @@ impl NestedComment {
     fn new(comment: &PrintedComment, children: Vec<NestedComment>) -> NestedComment {
         let date_time = DateTime::<Utc>::from_utc(comment.created, Utc);
         let author = get_author(&comment.author, &comment.email, &comment.url);
-        let votes = count_votes(&comment.likes, comment.dislikes);
+        let votes = count_votes(comment.likes, comment.dislikes);
         NestedComment {
             id: comment.id,
             text: comment.text.to_owned(),
@@ -724,6 +724,6 @@ fn get_author(
 }
 
 /// Calculates the total vote for a comment based on its likes and dislikes.
-fn count_votes(likes: &Option<i32>, dislikes: Option<i32>) -> i32 {
+fn count_votes(likes: Option<i32>, dislikes: Option<i32>) -> i32 {
     likes.unwrap_or_else(|| 0) - dislikes.unwrap_or_else(|| 0)
 }

@@ -32,12 +32,10 @@ matrix:
             fi
         # Coverage report
         - |
-            if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
-              bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
-              cargo tarpaulin --out Xml
-              bash <(curl -s https://codecov.io/bash)
-              echo "Uploaded code coverage"
-            fi
+            bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+            cargo tarpaulin --out Xml
+            bash <(curl -s https://codecov.io/bash)
+            echo "Uploaded code coverage"
     - language: node_js
       node_js: node
       os: linux
@@ -66,4 +64,4 @@ matrix:
         - elm-make --yes
         - elm-css Stylesheets.elm
         - elm-coverage .
-        - ls .coverage && exit 0
+        - ls .coverage

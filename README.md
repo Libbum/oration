@@ -71,3 +71,9 @@ In the same manner, you may change the theme of the syntax highlighting by choos
 Oration uses the default in the example file.
 
 These changes should be in your own html files, an example can be seen in the bundled [index.html](app/static/index.html) header.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLibbum%2Foration.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FLibbum%2Foration?ref=badge_shield)
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLibbum%2Foration.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FLibbum%2Foration?ref=badge_large)

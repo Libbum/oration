@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["init_pool","Initializes a database pool."]],"struct":[["Conn","Connection request guard type: a wrapper around an r2d2 pooled connection."]],"type":[["Pool","An alias to the type for a pool of Diesel `SQLite` connections."]]});

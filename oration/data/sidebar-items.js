@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AuthHash","Hash of the user which wants to edit/delete a comment."],["FormEdit","Incoming data from the web based form for an edited comment."],["FormInput","Incoming data from the web based form for a new comment."]]});

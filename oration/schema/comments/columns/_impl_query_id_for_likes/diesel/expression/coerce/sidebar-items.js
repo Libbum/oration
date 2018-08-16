@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Coerce","Coerces an expression to be another type. No checks are performed to ensure that the new type is valid in all positions that the previous type was. This does not perform an actual cast, it just lies to our type system."]]});

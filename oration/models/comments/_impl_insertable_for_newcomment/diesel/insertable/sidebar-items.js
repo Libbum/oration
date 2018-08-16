@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ColumnInsertValue",""]],"struct":[["BatchInsert",""],["OwnedBatchInsert",""]],"trait":[["CanInsertInSingleQuery",""],["InsertValues",""],["Insertable","Represents that a structure can be used to insert a new row into the database. This is automatically implemented for `&[T]` and `&Vec<T>` for inserting more than one record."]]});

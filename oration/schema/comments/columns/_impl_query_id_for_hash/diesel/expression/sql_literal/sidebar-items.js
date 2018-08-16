@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["sql","Use literal SQL in the query builder"]],"struct":[["SqlLiteral","Returned by the [`sql()`] function."],["UncheckedBind","Returned by the [`SqlLiteral::bind()`] method when binding a value to a fragment of SQL."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["session_hash","Generates a random hash used as a session ID."]],"mod":[["_impl_identifiable_for_preference",""],["_impl_queryable_for_preference",""]],"struct":[["Preference","Queryable, Identifiable reference to the preferences table."]]});

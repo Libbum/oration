@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `diesel_infix_operator` macro in crate `oration`."><meta name="keywords" content="rust, rustlang, rust-lang, diesel_infix_operator"><title>oration::schema::comments::columns::_impl_query_id_for_email::diesel::diesel_infix_operator - Rust</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script src="../../../../../../storage.js"></script></head><body class="rustdoc macro"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><div class="sidebar-elems"><p class='location'><a href='../../../../../index.html'>oration</a>::<wbr><a href='../../../../index.html'>schema</a>::<wbr><a href='../../../index.html'>comments</a>::<wbr><a href='../../index.html'>columns</a>::<wbr><a href='../index.html'>_impl_query_id_for_email</a>::<wbr><a href='index.html'>diesel</a></p><script>window.sidebarCurrent = {name: 'diesel_infix_operator', ty: 'macro', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../../../settings.html"><img src="../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span></span><span class='in-band'>Macro <a href='../../../../../index.html'>oration</a>::<wbr><a href='../../../../index.html'>schema</a>::<wbr><a href='../../../index.html'>comments</a>::<wbr><a href='../../index.html'>columns</a>::<wbr><a href='../index.html'>_impl_query_id_for_email</a>::<wbr><a href='index.html'>diesel</a>::<wbr><a class="macro" href=''>diesel_infix_operator</a></span></h1><div class="docblock type-decl"><pre class="rust macro">
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">diesel_infix_operator</span> {
+    ( $ <span class="ident">name</span> : <span class="ident">ident</span> , $ <span class="ident">operator</span> : <span class="ident">expr</span> ) <span class="op">=&gt;</span> { ... };
+    ( $ <span class="ident">name</span> : <span class="ident">ident</span> , $ <span class="ident">operator</span> : <span class="ident">expr</span> , <span class="ident">backend</span> : $ <span class="ident">backend</span> : <span class="ident">ty</span> ) <span class="op">=&gt;</span> { ... };
+    ( $ <span class="ident">name</span> : <span class="ident">ident</span> , $ <span class="ident">operator</span> : <span class="ident">expr</span> , $ ( $ <span class="ident">return_ty</span> : <span class="ident">tt</span> ) :: <span class="op">*</span> ) <span class="op">=&gt;</span> { ... };
+    (
+$ <span class="ident">name</span> : <span class="ident">ident</span> , $ <span class="ident">operator</span> : <span class="ident">expr</span> , $ <span class="ident">return_ty</span> : <span class="ident">ty</span> , <span class="ident">backend</span> : $ <span class="ident">backend</span> :
+<span class="ident">ty</span> ) <span class="op">=&gt;</span> { ... };
+}</pre>
+</div><div class='docblock'><p>Useful for libraries adding support for new SQL types. Apps should never
+need to call this.</p>
+<p>This will create a new type with the given name. It will implement all
+methods needed to be used as an expression in Diesel, placing the given
+SQL between the two elements. The third argument specifies the SQL type
+that the operator returns. If it is not given, the type will be assumed
+to be <code>Bool</code>.</p>
+<p>If the operator is specific to a single backend, you can specify this by
+adding <code>backend: Pg</code> or similar as the last argument.</p>
+<p>It should be noted that the generated impls will not constrain the SQL
+types of the arguments. You should ensure that they are of the right
+type in your function which constructs the operator.</p>
+<p>Typically you would not expose the type that this generates directly. You'd
+expose a function (or trait) used to construct the expression, and a helper
+type which represents the return type of that function. See the source of
+<code>diesel::expression::expression_methods</code> and
+<code>diesel::expression::helper_types</code> for real world examples of this.</p>
+<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1><h1 id="possible-invocations" class="section-header"><a href="#possible-invocations">Possible invocations</a></h1>
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="comment">// The SQL type will be boolean. The backend will not be constrained</span>
+<span class="macro">diesel_infix_operator</span><span class="macro">!</span>(<span class="ident">Matches</span>, <span class="string">&quot; @@ &quot;</span>);
+
+<span class="comment">// Queries which try to execute `Contains` on a backend other than Pg</span>
+<span class="comment">// will fail to compile</span>
+<span class="macro">diesel_infix_operator</span><span class="macro">!</span>(<span class="ident">Contains</span>, <span class="string">&quot; @&gt; &quot;</span>, <span class="ident">backend</span>: <span class="ident">Pg</span>);
+
+<span class="comment">// The type of `Concat` will be `TsVector` rather than Bool</span>
+<span class="macro">diesel_infix_operator</span><span class="macro">!</span>(<span class="ident">Concat</span>, <span class="string">&quot; || &quot;</span>, <span class="ident">TsVector</span>);
+
+<span class="comment">// It is perfectly fine to have multiple operators with the same SQL.</span>
+<span class="comment">// Diesel will ensure that the queries are always unambiguous in which</span>
+<span class="comment">// operator applies</span>
+<span class="macro">diesel_infix_operator</span><span class="macro">!</span>(<span class="ident">Or</span>, <span class="string">&quot; || &quot;</span>, <span class="ident">TsQuery</span>);
+
+<span class="comment">// Specifying both the return types and the backend</span>
+<span class="macro">diesel_infix_operator</span><span class="macro">!</span>(<span class="ident">And</span>, <span class="string">&quot; &amp;&amp; &quot;</span>, <span class="ident">TsQuery</span>, <span class="ident">backend</span>: <span class="ident">Pg</span>);</pre>
+<h2 id="example-usage" class="section-header"><a href="#example-usage">Example usage</a></h2>
+<pre class="rust rust-example-rendered">
+<span class="macro">diesel_infix_operator</span><span class="macro">!</span>(<span class="ident">MyEq</span>, <span class="string">&quot; = &quot;</span>);
+
+<span class="kw">use</span> <span class="ident">diesel</span>::<span class="ident">expression</span>::<span class="ident">AsExpression</span>;
+
+<span class="comment">// Normally you would put this on a trait instead</span>
+<span class="kw">fn</span> <span class="ident">my_eq</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">T</span>, <span class="ident">right</span>: <span class="ident">U</span>) <span class="op">-&gt;</span> <span class="ident">MyEq</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>::<span class="ident">Expression</span><span class="op">&gt;</span> <span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Expression</span>,
+    <span class="ident">U</span>: <span class="ident">AsExpression</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">SqlType</span><span class="op">&gt;</span>,
+{
+    <span class="ident">MyEq</span>::<span class="ident">new</span>(<span class="ident">left</span>, <span class="ident">right</span>.<span class="ident">as_expression</span>())
+}
+
+<span class="kw">let</span> <span class="ident">users_with_name</span> <span class="op">=</span> <span class="ident">users</span>.<span class="ident">select</span>(<span class="ident">id</span>).<span class="ident">filter</span>(<span class="ident">my_eq</span>(<span class="ident">name</span>, <span class="string">&quot;Sean&quot;</span>));
+
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Ok</span>(<span class="number">1</span>), <span class="ident">users_with_name</span>.<span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="ident">connection</span>));</pre>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../../../../";window.currentCrate = "oration";</script><script src="../../../../../../aliases.js"></script><script src="../../../../../../main.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>

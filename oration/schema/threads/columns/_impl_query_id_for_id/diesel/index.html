@@ -1,0 +1,440 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `diesel` mod in crate `oration`."><meta name="keywords" content="rust, rustlang, rust-lang, diesel"><title>oration::schema::threads::columns::_impl_query_id_for_id::diesel - Rust</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script src="../../../../../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module diesel</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li></ul></div><p class='location'><a href='../../../../../index.html'>oration</a>::<wbr><a href='../../../../index.html'>schema</a>::<wbr><a href='../../../index.html'>threads</a>::<wbr><a href='../../index.html'>columns</a>::<wbr><a href='../index.html'>_impl_query_id_for_id</a></p><script>window.sidebarCurrent = {name: 'diesel', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../../../settings.html"><img src="../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span></span><span class='in-band'>Module <a href='../../../../../index.html'>oration</a>::<wbr><a href='../../../../index.html'>schema</a>::<wbr><a href='../../../index.html'>threads</a>::<wbr><a href='../../index.html'>columns</a>::<wbr><a href='../index.html'>_impl_query_id_for_id</a>::<wbr><a class="mod" href=''>diesel</a></span></h1><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="associations/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::associations'>associations</a></td>
+                           <td class='docblock-short'>
+                                <p>Traits related to relationships between multiple tables.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="backend/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::backend'>backend</a></td>
+                           <td class='docblock-short'>
+                                <p>Types which represent various database backends</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="connection/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::connection'>connection</a></td>
+                           <td class='docblock-short'>
+                                <p>Types related to database connections</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="data_types/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::data_types'>data_types</a></td>
+                           <td class='docblock-short'>
+                                <p>Structs to represent the primitive equivalent of SQL types where
+there is no existing Rust primitive, or where using it would be
+confusing (such as date and time types). This module will re-export
+all backend specific data structures when compiled against that
+backend.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="deserialize/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::deserialize'>deserialize</a></td>
+                           <td class='docblock-short'>
+                                <p>Types and traits related to deserializing values from the database</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="dsl/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::dsl'>dsl</a></td>
+                           <td class='docblock-short'>
+                                <p>Includes various helper types and bare functions which are named too
+generically to be included in prelude, but are often used when using Diesel.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="expression/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::expression'>expression</a></td>
+                           <td class='docblock-short'>
+                                <p>AST types representing various typed SQL expressions.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="expression_methods/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::expression_methods'>expression_methods</a></td>
+                           <td class='docblock-short'>
+                                <p>Adds various methods to construct new expressions. These traits are exported
+by default, and implemented automatically.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="helper_types/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::helper_types'>helper_types</a></td>
+                           <td class='docblock-short'>
+                                <p>Provide helper types for concisely writing the return type of functions.
+As with iterators, it is unfortunately difficult to return a partially
+constructed query without exposing the exact implementation of the
+function. Without higher kinded types, these various DSLs can't be
+combined into a single trait for boxing purposes.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="insertable/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::insertable'>insertable</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="migration/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::migration'>migration</a></td>
+                           <td class='docblock-short'>
+                                <p>Representation of migrations</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="prelude/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::prelude'>prelude</a></td>
+                           <td class='docblock-short'>
+                                <p>Re-exports important traits and types. Meant to be glob imported when using Diesel.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="query_builder/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::query_builder'>query_builder</a></td>
+                           <td class='docblock-short'>
+                                <p>Contains traits responsible for the actual construction of SQL statements</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="query_dsl/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::query_dsl'>query_dsl</a></td>
+                           <td class='docblock-short'>
+                                <p>Traits that construct SELECT statements</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="query_source/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::query_source'>query_source</a></td>
+                           <td class='docblock-short'>
+                                <p>Types related to describing schema, and interactions between tables.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="result/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::result'>result</a></td>
+                           <td class='docblock-short'>
+                                <p>Errors, type aliases, and functions related to working with <code>Result</code>.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="row/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::row'>row</a></td>
+                           <td class='docblock-short'>
+                                <p>Contains the <code>Row</code> trait</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="serialize/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::serialize'>serialize</a></td>
+                           <td class='docblock-short'>
+                                <p>Types and traits related to serializing values for the database</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="sql_types/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::sql_types'>sql_types</a></td>
+                           <td class='docblock-short'>
+                                <p>Types which represent a SQL data type.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="sqlite/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::sqlite'>sqlite</a></td>
+                           <td class='docblock-short'>
+                                <p>Provides types and functions related to working with SQLite</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="types/index.html"
+                                  title='mod oration::schema::threads::columns::_impl_query_id_for_id::diesel::types'>types</a></td>
+                           <td class='docblock-short'>
+                               [<div class='stab deprecated'>Deprecated</div>] 
+                           </td>
+                       </tr></table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_column.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_column'>__diesel_column</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_for_each_tuple.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_for_each_tuple'>__diesel_for_each_tuple</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_generate_ops_impls_if_date_time.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_generate_ops_impls_if_date_time'>__diesel_generate_ops_impls_if_date_time</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_generate_ops_impls_if_numeric.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_generate_ops_impls_if_numeric'>__diesel_generate_ops_impls_if_numeric</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_operator_body.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_operator_body'>__diesel_operator_body</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_operator_to_sql.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_operator_to_sql'>__diesel_operator_to_sql</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_parse_type_args.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_parse_type_args'>__diesel_parse_type_args</a></td>
+                           <td class='docblock-short'>
+                                <p>Parses a sequence of type parameters and their bounds.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_sql_function_body.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_sql_function_body'>__diesel_sql_function_body</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_sqlite_register_fn.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_sqlite_register_fn'>__diesel_sqlite_register_fn</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_table_impl.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_table_impl'>__diesel_table_impl</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_table_query_source_impl.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_table_query_source_impl'>__diesel_table_query_source_impl</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.__diesel_use_everything.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::__diesel_use_everything'>__diesel_use_everything</a></td>
+                           <td class='docblock-short'>
+                                <p>Used by <code>diesel_derives</code>, which can't access <code>$crate</code></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.allow_tables_to_appear_in_same_query.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::allow_tables_to_appear_in_same_query'>allow_tables_to_appear_in_same_query</a></td>
+                           <td class='docblock-short'>
+                                <p>Allow two or more tables which are otherwise unrelated to be used together
+in a query.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.date_time_expr.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::date_time_expr'>date_time_expr</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.diesel_infix_operator.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::diesel_infix_operator'>diesel_infix_operator</a></td>
+                           <td class='docblock-short'>
+                                <p>Useful for libraries adding support for new SQL types. Apps should never
+need to call this.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.diesel_postfix_operator.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::diesel_postfix_operator'>diesel_postfix_operator</a></td>
+                           <td class='docblock-short'>
+                                <p>Useful for libraries adding support for new SQL types. Apps should never
+need to call this.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.diesel_prefix_operator.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::diesel_prefix_operator'>diesel_prefix_operator</a></td>
+                           <td class='docblock-short'>
+                                <p>Useful for libraries adding support for new SQL types. Apps should never
+need to call this.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.impl_query_id.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::impl_query_id'>impl_query_id</a></td>
+                           <td class='docblock-short'>
+                               [<div class='stab deprecated'>Deprecated</div>] <p>Provides a standard implementation of <code>QueryId</code>.
+Apps should not need to concern themselves with this macro.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.impl_selectable_expression.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::impl_selectable_expression'>impl_selectable_expression</a></td>
+                           <td class='docblock-short'>
+                                <p>This will implement <code>SelectableExpression</code> and <code>AppearsOnTable</code> for &quot;simple&quot;
+composite nodes where the where clause is roughly <code>AllTyParams: SelectableExpression&lt;QS&gt;, Self: Expression</code>.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.joinable.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::joinable'>joinable</a></td>
+                           <td class='docblock-short'>
+                                <p>Allow two tables to be referenced in a join query without providing an
+explicit <code>ON</code> clause.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.joinable_inner.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::joinable_inner'>joinable_inner</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.no_arg_sql_function.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::no_arg_sql_function'>no_arg_sql_function</a></td>
+                           <td class='docblock-short'>
+                                <p>Declare a 0 argument SQL function for use in your code. This will generate a
+unit struct, which is an expression representing calling this function. See
+<a href="expression/dsl/struct.now.html"><code>now</code></a> for example output. <code>now</code> was
+generated using:</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.no_arg_sql_function_body.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::no_arg_sql_function_body'>no_arg_sql_function_body</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.no_arg_sql_function_body_except_to_sql.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::no_arg_sql_function_body_except_to_sql'>no_arg_sql_function_body_except_to_sql</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.not_none.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::not_none'>not_none</a></td>
+                           <td class='docblock-short'>
+                                <p>Gets the value out of an option, or returns an error.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.numeric_expr.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::numeric_expr'>numeric_expr</a></td>
+                           <td class='docblock-short'>
+                                <p>Indicates that an expression allows all numeric operators. If you create new
+SQL functions that return a numeric type, you should invoke this macro that
+type. Unfortunately, Rust disallows us from automatically implementing <code>Add</code>
+for types which implement <code>Expression</code>, under its orphan rules.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.operator_allowed.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::operator_allowed'>operator_allowed</a></td>
+                           <td class='docblock-short'>
+                                <p>Implements the Rust operator for a given type. If you create a new SQL
+function, which returns a type that you'd like to use an operator on, you
+should invoke this macro. Unfortunately, Rust disallows us from
+automatically implementing <code>Add</code> and other traits from <code>std::ops</code>, under its
+orphan rules.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.sql_function.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::sql_function'>sql_function</a></td>
+                           <td class='docblock-short'>
+                                <p>Declare a sql function for use in your code.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.sql_function_body.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::sql_function_body'>sql_function_body</a></td>
+                           <td class='docblock-short'>
+                               [<div class='stab deprecated'>Deprecated</div>] 
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.static_cond.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::static_cond'>static_cond</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.table.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::table'>table</a></td>
+                           <td class='docblock-short'>
+                                <p>Specifies that a table exists, and what columns it has. This will create a
+new public module, with the same name, as the name of the table. In this
+module, you'll find a unit struct named <code>table</code>, and a unit struct with the
+names of each of the columns. In the definition, you can also specify an
+additional set of columns which exist, but should not be selected by default
+(for example, for things like full text search)</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.table_body.html"
+                                  title='macro oration::schema::threads::columns::_impl_query_id_for_id::diesel::table_body'>table_body</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../../../../";window.currentCrate = "oration";</script><script src="../../../../../../aliases.js"></script><script src="../../../../../../main.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>

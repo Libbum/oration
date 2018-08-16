@@ -1,0 +1,208 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `helper_types` mod in crate `oration`."><meta name="keywords" content="rust, rustlang, rust-lang, helper_types"><title>oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types - Rust</title><link rel="stylesheet" type="text/css" href="../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../../light.css" id="themeStyle"><script src="../../../../../../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module helper_types</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'><a href='../../../../../../index.html'>oration</a>::<wbr><a href='../../../../../index.html'>schema</a>::<wbr><a href='../../../../index.html'>preferences</a>::<wbr><a href='../../../index.html'>_impl_query_id_for_table</a>::<wbr><a href='../../index.html'>diesel</a>::<wbr><a href='../index.html'>expression</a></p><script>window.sidebarCurrent = {name: 'helper_types', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../../../../settings.html"><img src="../../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span></span><span class='in-band'>Module <a href='../../../../../../index.html'>oration</a>::<wbr><a href='../../../../../index.html'>schema</a>::<wbr><a href='../../../../index.html'>preferences</a>::<wbr><a href='../../../index.html'>_impl_query_id_for_table</a>::<wbr><a href='../../index.html'>diesel</a>::<wbr><a href='../index.html'>expression</a>::<wbr><a class="mod" href=''>helper_types</a></span></h1><div class='docblock'><p>The types in this module are all shorthand for <code>PredicateType&lt;Lhs, AsExpr&lt;Rhs, Lhs&gt;&gt;</code>. Since we often need to return concrete types, instead of
+a boxed trait object, these can be useful for writing concise return types.</p>
+</div><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.And.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::And'>And</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.BoolExpressionMethods.html#method.and"><code>lhs.and(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.AsExpr.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::AsExpr'>AsExpr</a></td>
+                           <td class='docblock-short'>
+                                <p>The type of <code>Item</code> when converted to an expression with the same type as <code>TargetExpr</code></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.AsExprOf.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::AsExprOf'>AsExprOf</a></td>
+                           <td class='docblock-short'>
+                                <p>The type of <code>Item</code> when converted to an expression of <code>Type</code></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Asc.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Asc'>Asc</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.asc"><code>expr.asc()</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Between.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Between'>Between</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.between"><code>lhs.between(lower, upper)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Desc.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Desc'>Desc</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.desc"><code>expr.desc()</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Eq.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Eq'>Eq</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.eq"><code>lhs.eq(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.EqAny.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::EqAny'>EqAny</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.eq_any"><code>lhs.eq_any(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Escape.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Escape'>Escape</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.EscapeExpressionMethods.html#method.escape"><code>lhs.escape('x')</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Gt.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Gt'>Gt</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.gt"><code>lhs.gt(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.GtEq.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::GtEq'>GtEq</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.ge"><code>lhs.ge(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.IsNotNull.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::IsNotNull'>IsNotNull</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.is_not_null"><code>expr.is_not_null()</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.IsNull.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::IsNull'>IsNull</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.is_null"><code>expr.is_null()</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Like.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Like'>Like</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.TextExpressionMethods.html#method.like"><code>lhs.like(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Lt.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Lt'>Lt</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.lt"><code>lhs.lt(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.LtEq.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::LtEq'>LtEq</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.le"><code>lhs.le(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.NeAny.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::NeAny'>NeAny</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.ne_any"><code>lhs.ne_any(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.NotBetween.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::NotBetween'>NotBetween</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.not_between"><code>lhs.not_between(lower, upper)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.NotEq.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::NotEq'>NotEq</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.ExpressionMethods.html#method.ne"><code>lhs.ne(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.NotLike.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::NotLike'>NotLike</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.TextExpressionMethods.html#method.not_like"><code>lhs.not_like(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Nullable.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Nullable'>Nullable</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.NullableExpressionMethods.html#method.nullable"><code>expr.nullable()</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Or.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::Or'>Or</a></td>
+                           <td class='docblock-short'>
+                                <p>The return type of
+<a href="../expression_methods/trait.BoolExpressionMethods.html#method.or"><code>lhs.or(rhs)</code></a></p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.SqlTypeOf.html"
+                                  title='type oration::schema::preferences::_impl_query_id_for_table::diesel::expression::helper_types::SqlTypeOf'>SqlTypeOf</a></td>
+                           <td class='docblock-short'>
+                                <p>The SQL type of an expression</p>
+
+                           </td>
+                       </tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../../../../../";window.currentCrate = "oration";</script><script src="../../../../../../../aliases.js"></script><script src="../../../../../../../main.js"></script><script defer src="../../../../../../../search-index.js"></script></body></html>

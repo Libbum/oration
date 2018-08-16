@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["not","Creates a SQL `NOT` expression"]],"type":[["count","The return type of `count(expr)`"],["count_star","The return type of `count_star)(`"],["date","The return type of `date(expr)`"]]});

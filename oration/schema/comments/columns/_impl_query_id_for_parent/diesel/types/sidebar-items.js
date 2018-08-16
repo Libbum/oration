@@ -1,0 +1,1 @@
+initSidebarItems({"type":[["BigInt",""],["Binary",""],["Bool",""],["Date",""],["Double",""],["Float",""],["Integer",""],["Interval",""],["Nullable",""],["Numeric",""],["SmallInt",""],["Text",""],["Time",""],["Timestamp",""],["Tinyint",""],["ToSqlOutput",""]]});

@@ -15,8 +15,6 @@ Administration, porting from other commenting systems and a number of additional
 Contributions are welcome, please see our [guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
 
 # Get it running now
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLibbum%2Foration.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FLibbum%2Foration?ref=badge_shield)
-
 
 A static binary for the backend that runs on any Linux machine can be found in the [release tarball](https://github.com/Libbum/oration/releases/download/v0.1/oration-v0.1.tar.gz), along with a configuration file and minified `oration.{js,css}` files for you to put in your blog files.
 
@@ -76,4 +74,6 @@ These changes should be in your own html files, an example can be seen in the bu
 
 
 ## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLibbum%2Foration.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FLibbum%2Foration?ref=badge_shield)
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLibbum%2Foration.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FLibbum%2Foration?ref=badge_large)

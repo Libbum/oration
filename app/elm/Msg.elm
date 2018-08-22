@@ -1,4 +1,4 @@
-module Msg exposing (..)
+module Msg exposing (Msg(..))
 
 import Data.Comment exposing (Comment, Edited, Inserted)
 import Data.Init exposing (Init)

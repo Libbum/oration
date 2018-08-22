@@ -18,35 +18,45 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UpdateComment comment ->
-            { model | comment = comment } ! []
+            ( { model | comment = comment }
+            , Cmd.none
+            )
 
         UpdateName name ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | name = name } } ! []
+            ( { model | user = { user | name = name } }
+            , Cmd.none
+            )
 
         UpdateEmail email ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | email = email } } ! []
+            ( { model | user = { user | email = email } }
+            , Cmd.none
+            )
 
         UpdateUrl url ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | url = url } } ! []
+            ( { model | user = { user | url = url } }
+            , Cmd.none
+            )
 
         UpdatePreview ->
             let
                 user =
                     model.user
             in
-            { model | user = { user | preview = not model.user.preview } } ! []
+            ( { model | user = { user | preview = not model.user.preview } }
+            , Cmd.none
+            )
 
         SetPreview strPreview ->
             let
@@ -56,17 +66,19 @@ update msg model =
                 preview_ =
                     dumbDecode strPreview
             in
-            { model | user = { user | preview = preview_ } } ! []
+            ( { model | user = { user | preview = preview_ } }
+            , Cmd.none
+            )
 
         StoreUser ->
-            model
-                ! [ Cmd.batch
-                        [ Ports.setName model.user.name
-                        , Ports.setEmail model.user.email
-                        , Ports.setUrl model.user.url
-                        , Ports.setPreview (Just <| toString model.user.preview)
-                        ]
-                  ]
+            ( model
+            , Cmd.batch
+                [ Ports.setName model.user.name
+                , Ports.setEmail model.user.email
+                , Ports.setUrl model.user.url
+                , Ports.setPreview (Just <| toString model.user.preview)
+                ]
+            )
 
         Count (Ok strCount) ->
             let
@@ -78,26 +90,34 @@ update msg model =
                         Err _ ->
                             0
             in
-            { model | count = intCount } ! []
+            ( { model | count = intCount }
+            , Cmd.none
+            )
 
         Count (Err error) ->
-            { model | debug = toString error } ! []
+            ( { model | debug = toString error }
+            , Cmd.none
+            )
 
         Post location ->
-            { model | post = location } ! []
+            ( { model | post = location }
+            , Cmd.none
+            )
 
         Title value ->
-            { model | title = value } ! []
+            ( { model | title = value }
+            , Cmd.none
+            )
 
         PostComment ->
-            model
-                ! [ let
-                        postReq =
-                            Request.Comment.post model
-                                |> Http.toTask
-                    in
-                    Task.attempt PostConfirm postReq
-                  ]
+            ( model
+            , let
+                postReq =
+                    Request.Comment.post model
+                        |> Http.toTask
+              in
+              Task.attempt PostConfirm postReq
+            )
 
         PostConfirm (Ok result) ->
             let
@@ -110,7 +130,7 @@ update msg model =
                 comments =
                     Comment.insertNew result ( model.comment, author, model.now, model.comments )
             in
-            { model
+            ( { model
                 | comment = ""
                 , parent = Nothing
                 , count = model.count + 1
@@ -118,18 +138,21 @@ update msg model =
                 , comments = comments
                 , status = Commenting
                 , user = { user | identity = author }
-            }
-                ! [ timeoutEdits model.editTimeout result.id ]
+              }
+            , timeoutEdits model.editTimeout result.id
+            )
 
         PostConfirm (Err error) ->
-            { model | debug = toString error } ! []
+            ( { model | debug = toString error }
+            , Cmd.none
+            )
 
         Hashes (Ok result) ->
             let
                 user =
                     model.user
             in
-            { model
+            ( { model
                 | user =
                     { user
                         | iphash = result.userIp
@@ -137,88 +160,105 @@ update msg model =
                     }
                 , blogAuthor = result.blogAuthor ? ""
                 , editTimeout = result.editTimeout
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         Hashes (Err error) ->
-            { model | debug = toString error } ! []
+            ( { model | debug = toString error }
+            , Cmd.none
+            )
 
         Comments (Ok result) ->
             let
                 count =
                     Comment.count result
             in
-            { model
+            ( { model
                 | comments = result
                 , count = count
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         Comments (Err error) ->
-            { model | debug = toString error } ! []
+            ( { model | debug = toString error }
+            , Cmd.none
+            )
 
         GetDate _ ->
-            model ! [ Task.perform NewDate currentDate ]
+            ( model
+            , Task.perform NewDate currentDate
+            )
 
         NewDate date ->
-            { model | now = date } ! []
+            ( { model | now = date }
+            , Cmd.none
+            )
 
         CommentReply id ->
             let
                 value =
                     if model.parent == Just id then
                         Nothing
+
                     else
                         Just id
 
                 status =
                     if model.parent == Just id then
                         Commenting
+
                     else
                         Replying
             in
-            { model
+            ( { model
                 | parent = value
                 , status = status
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         CommentEdit id ->
             let
                 value =
                     if model.parent == Just id then
                         Nothing
+
                     else
                         Just id
 
                 status =
                     if model.parent == Just id then
                         Commenting
+
                     else
                         Editing
 
                 comment =
                     if model.parent == Just id then
                         ""
+
                     else
                         Comment.getText id model.comments
             in
-            { model
+            ( { model
                 | parent = value
                 , comment = comment
                 , status = status
-            }
-                ! [ timeoutEdits model.editTimeout id ]
+              }
+            , timeoutEdits model.editTimeout id
+            )
 
         SendEdit id ->
-            model
-                ! [ let
-                        postReq =
-                            Request.Comment.edit id model
-                                |> Http.toTask
-                    in
-                    Task.attempt EditConfirm postReq
-                  ]
+            ( model
+            , let
+                postReq =
+                    Request.Comment.edit id model
+                        |> Http.toTask
+              in
+              Task.attempt EditConfirm postReq
+            )
 
         EditConfirm (Ok result) ->
             let
@@ -228,63 +268,70 @@ update msg model =
                 comments =
                     Comment.update result model.comments
             in
-            { model
+            ( { model
                 | debug = toString result
                 , status = Commenting
                 , comments = comments
                 , comment = ""
                 , parent = Nothing
                 , user = { user | identity = getIdentity user }
-            }
-                ! [ timeoutEdits model.editTimeout result.id ]
+              }
+            , timeoutEdits model.editTimeout result.id
+            )
 
         EditConfirm (Err error) ->
-            { model | debug = toString error } ! []
+            ( { model | debug = toString error }
+            , Cmd.none
+            )
 
         CommentDelete id ->
-            model
-                ! [ let
-                        postReq =
-                            Request.Comment.delete id model.user.identity
-                                |> Http.toTask
-                    in
-                    Task.attempt DeleteConfirm postReq
-                  ]
+            ( model
+            , let
+                postReq =
+                    Request.Comment.delete id model.user.identity
+                        |> Http.toTask
+              in
+              Task.attempt DeleteConfirm postReq
+            )
 
         DeleteConfirm (Ok result) ->
             let
                 comments =
                     Comment.delete result model.comments
             in
-            { model
+            ( { model
                 | debug = toString result
                 , comments = comments
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         DeleteConfirm (Err error) ->
-            { model | debug = toString error } ! []
+            ( { model | debug = toString error }
+            , Cmd.none
+            )
 
         CommentLike id ->
-            model
-                ! [ let
-                        postReq =
-                            Request.Comment.like id
-                                |> Http.toTask
-                    in
-                    Task.attempt LikeConfirm postReq
-                  ]
+            ( model
+            , let
+                postReq =
+                    Request.Comment.like id
+                        |> Http.toTask
+              in
+              Task.attempt LikeConfirm postReq
+            )
 
         LikeConfirm (Ok result) ->
             let
                 comments =
                     Comment.like result model.comments
             in
-            { model
+            ( { model
                 | debug = toString result
                 , comments = comments
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         LikeConfirm (Err error) ->
             let
@@ -304,32 +351,34 @@ update msg model =
                         _ ->
                             toString error
             in
-            { model
+            ( { model
                 | debug = print
                 , comments = comments
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         CommentDislike id ->
-            model
-                ! [ let
-                        postReq =
-                            Request.Comment.dislike id
-                                |> Http.toTask
-                    in
-                    Task.attempt DislikeConfirm postReq
-                  ]
+            ( model
+            , let
+                postReq =
+                    Request.Comment.dislike id
+                        |> Http.toTask
+              in
+              Task.attempt DislikeConfirm postReq
+            )
 
         DislikeConfirm (Ok result) ->
             let
                 comments =
                     Comment.dislike result model.comments
             in
-            { model
+            ( { model
                 | debug = toString result
                 , comments = comments
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         DislikeConfirm (Err error) ->
             let
@@ -349,11 +398,12 @@ update msg model =
                         _ ->
                             toString error
             in
-            { model
+            ( { model
                 | debug = print
                 , comments = comments
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         HardenEdit id ->
             let
@@ -365,14 +415,18 @@ update msg model =
                         _ ->
                             Comment.readOnly id model.comments
             in
-            { model | comments = comments } ! []
+            ( { model | comments = comments }
+            , Cmd.none
+            )
 
         ToggleCommentVisibility id ->
             let
                 comments =
                     Comment.toggleVisible id model.comments
             in
-            { model | comments = comments } ! []
+            ( { model | comments = comments }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
@@ -395,6 +449,7 @@ dumbDecode val =
         Just decoded ->
             if decoded == "True" then
                 True
+
             else
                 False
 

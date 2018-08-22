@@ -1,4 +1,4 @@
-module Helpers.Dates exposing (..)
+module Helpers.Dates exposing (dateForYear, dateWithinYearRange)
 
 import Fuzz exposing (Fuzzer, int, intRange)
 import Time.Date exposing (isLeapYear)
@@ -11,6 +11,7 @@ dateForYear year =
         daysUpper =
             if isLeapYear year then
                 365
+
             else
                 364
     in

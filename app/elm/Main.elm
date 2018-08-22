@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Http
-import Models exposing (Model, Status(Commenting))
+import Models exposing (Model, Status(..))
 import Msg exposing (Msg)
 import Navigation
 import Request.Comment

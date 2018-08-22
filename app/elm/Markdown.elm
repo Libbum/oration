@@ -1,10 +1,7 @@
-module Markdown
-    exposing
-        ( Options
-        , defaultOptions
-        , toHtml
-        , toHtmlWith
-        )
+module Markdown exposing
+    ( toHtml
+    , Options, defaultOptions, toHtmlWith
+    )
 
 {-| A library for markdown parsing. This is just an Elm API built on top of the
 [markdown-it](https://github.com/markdown-it/markdown-it) project which focuses on speed.
@@ -77,11 +74,13 @@ toHtml attrs string =
         -- Russian
         { doubleLeft = "«", doubleRight = "»", singleLeft = "„", singleRight = "“" }
 
+
         -- German
         { doubleLeft = "„", doubleRight = "“", singleLeft = "‚", singleRight = "‘" }
 
+
         -- French
-        { doubleLeft = "«\xA0", doubleRight = "\xA0»", singleLeft = "‹\xA0", singleRight = "\xA0›" }
+        { doubleLeft = "«\u{00A0}", doubleRight = "\u{00A0}»", singleLeft = "‹\u{00A0}", singleRight = "\u{00A0}›" }
 
 [gfm]: https://help.github.com/articles/github-flavored-markdown/
 [fenced]: https://help.github.com/articles/github-flavored-markdown/#fenced-code-blocks

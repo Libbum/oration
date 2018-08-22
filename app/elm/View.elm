@@ -1,6 +1,6 @@
 module View exposing (view)
 
-import Data.Comment exposing (Comment, Responses(Responses), count)
+import Data.Comment exposing (Comment, Responses(..), count)
 import Data.User exposing (Identity, getIdentity)
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, checked, cols, defaultValue, disabled, for, href, method, minlength, name, placeholder, rows, type_, value)
@@ -13,6 +13,7 @@ import Msg exposing (Msg(..))
 import Style
 import Time.DateTime.Distance exposing (inWords)
 import Util exposing (nothing, stringToMaybe)
+
 
 
 {- Sync up stylsheets -}
@@ -29,6 +30,7 @@ view model =
             toString model.count
                 ++ (if model.count /= 1 then
                         " comments"
+
                     else
                         " comment"
                    )
@@ -66,6 +68,7 @@ commentForm model commentId =
                 Commenting ->
                     if isNothing model.parent then
                         model.comment
+
                     else
                         ""
 
@@ -83,12 +86,14 @@ commentForm model commentId =
         formDisable =
             if isNothing commentId && isJust model.parent then
                 True
+
             else
                 False
 
         buttonDisable =
             if formDisable then
                 True
+
             else
                 setButtonDisabled model.comment
 
@@ -96,6 +101,7 @@ commentForm model commentId =
             if isNothing commentId then
                 "Comment"
                 --The main form is never a reply or update
+
             else
                 case model.status of
                     Commenting ->
@@ -118,6 +124,7 @@ commentForm model commentId =
         preview =
             if formDisable then
                 nothing
+
             else
                 Markdown.toHtmlWith options [ id Style.OrationCommentPreview ] <|
                     markdownContent model.comment model.user.preview
@@ -158,6 +165,7 @@ setButtonDisabled : String -> Bool
 setButtonDisabled comment =
     if String.length comment > 3 then
         False
+
     else
         True
 
@@ -180,6 +188,7 @@ markdownContent : String -> Bool -> String
 markdownContent content preview =
     if preview then
         content
+
     else
         ""
 
@@ -203,6 +212,7 @@ printComment comment model =
         notDeleted =
             if String.isEmpty comment.text && String.isEmpty comment.hash then
                 False
+
             else
                 True
 
@@ -218,18 +228,21 @@ printComment comment model =
         headerStyle =
             if comment.hash == model.blogAuthor && notDeleted then
                 [ Style.Thread, Style.BlogAuthor ]
+
             else
                 [ Style.Thread ]
 
         contentStyle =
             if comment.visible then
                 [ Style.Comment ]
+
             else
                 [ Style.Hidden ]
 
         visibleButtonText =
             if comment.visible then
                 "[–]"
+
             else
                 "[+" ++ toString (count <| List.singleton comment) ++ "]"
     in
@@ -247,6 +260,7 @@ printComment comment model =
                 , printResponses comment.children model
                 ]
             ]
+
     else
         li [ id commentId, class headerStyle ]
             [ span [ class [ Style.Deleted ] ] [ text "Deleted comment" ]
@@ -261,6 +275,7 @@ printAuthor : String -> Html Msg
 printAuthor author =
     if String.startsWith "http://" author || String.startsWith "https://" author then
         a [ class [ Style.Author ], href author ] [ text author ]
+
     else
         span [ class [ Style.Author ] ] [ text author ]
 
@@ -311,24 +326,28 @@ printFooter status identity comment =
         votingDisabled =
             if comment.votable && comment.hash /= identity then
                 False
+
             else
                 True
 
         edit =
             if comment.editable then
                 button [ onClick (CommentEdit comment.id), disabled editDisabled ] [ text editText ]
+
             else
                 nothing
 
         delete =
             if comment.editable then
                 button [ onClick (CommentDelete comment.id), disabled deleteDisabled ] [ text "delete" ]
+
             else
                 nothing
 
         votes =
             if comment.votes == 0 then
                 " "
+
             else
                 " " ++ toString comment.votes
     in
@@ -348,6 +367,7 @@ printResponses : Responses -> Model -> Html Msg
 printResponses (Responses responses) model =
     if List.isEmpty responses then
         nothing
+
     else
         ul [] <|
             List.map (\c -> printComment c model) responses
@@ -364,6 +384,7 @@ replyForm id model =
                 Just val ->
                     if id == val then
                         commentForm model (Just id)
+
                     else
                         nothing
 

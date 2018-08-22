@@ -1,6 +1,6 @@
-module Tests exposing (..)
+module Tests exposing (all, dateNear, user)
 
-import Data.Comment exposing (Comment, Responses(Responses))
+import Data.Comment exposing (Comment, Responses(..))
 import Data.User exposing (User)
 import Expect exposing (..)
 import Fuzz exposing (Fuzzer, bool, int, list, maybe, string, tuple)

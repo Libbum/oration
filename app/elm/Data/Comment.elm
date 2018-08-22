@@ -1,4 +1,4 @@
-module Data.Comment exposing (Comment, Edited, Inserted, Responses(Responses), count, decoder, delete, disableVote, dislike, editDecoder, encode, getText, insertDecoder, insertNew, like, readOnly, toggleVisible, update)
+module Data.Comment exposing (Comment, Edited, Inserted, Responses(..), count, decoder, delete, disableVote, dislike, editDecoder, encode, getText, insertDecoder, insertNew, like, readOnly, toggleVisible, update)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExtra
@@ -77,6 +77,7 @@ insertNew insert current =
     in
     if isNothing insert.parent then
         comments ++ List.singleton newComment
+
     else
         List.map (\comment -> injectNew insert newComment comment) comments
 
@@ -89,6 +90,7 @@ injectNew insert newComment comment =
                 case comment.children of
                     Responses responses ->
                         Responses <| responses ++ List.singleton newComment
+
             else
                 case comment.children of
                     Responses responses ->
@@ -111,6 +113,7 @@ injectUpdates edit comment =
             , hash = edit.hash
             , editable = True
         }
+
     else
         mapChildren edit comment injectUpdates
 
@@ -124,6 +127,7 @@ switchVisible : Int -> Comment -> Comment
 switchVisible id comment =
     if comment.id == id then
         { comment | visible = not comment.visible }
+
     else
         mapChildren id comment switchVisible
 
@@ -146,6 +150,7 @@ filterComment id comment =
         in
         if noChildren then
             Nothing
+
         else
             --We must display a masked delete
             let
@@ -163,6 +168,7 @@ filterComment id comment =
                     , votes = 0
                     , votable = False
                 }
+
     else
         let
             children =
@@ -182,6 +188,7 @@ removeEditable : Int -> Comment -> Comment
 removeEditable id comment =
     if comment.id == id then
         { comment | editable = False }
+
     else
         mapChildren id comment removeEditable
 
@@ -212,6 +219,7 @@ voteComment ( id, like ) comment =
             | votes = count
             , votable = False
         }
+
     else
         mapChildren ( id, like ) comment voteComment
 
@@ -225,6 +233,7 @@ removeVotable : Int -> Comment -> Comment
 removeVotable id comment =
     if comment.id == id then
         { comment | votable = False }
+
     else
         mapChildren id comment removeVotable
 
@@ -266,6 +275,7 @@ findText : Int -> Comment -> String
 findText id comment =
     if comment.id == id then
         comment.text
+
     else
         ""
 

@@ -1,4 +1,4 @@
-module Style exposing (..)
+module Style exposing (OrationClasses(..), OrationIds(..), activeColor, clickableStyle, css, hoverColor, inputStyle, orationNamespace, primaryColor)
 
 import Css exposing (..)
 import Css.Elements exposing (button, img, input, label, li, p, textarea, typeSelector)

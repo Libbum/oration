@@ -39,6 +39,7 @@ getIdentity user =
     in
     if List.all isNothing data then
         user.iphash ? ""
+
     else
         -- Join with b since it gives the authors' credentials a cool identicon
         Crypto.Hash.sha224 (String.join "b" unwrapped)
